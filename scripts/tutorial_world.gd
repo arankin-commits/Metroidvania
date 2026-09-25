@@ -18,6 +18,7 @@ const WORLD_MAP = preload("res://scripts/world_map.gd")
 const HAND_CHAIR = preload("res://assets/hand_chair.png")
 const HAND_MENU = preload("res://scripts/hand_menu.gd")
 const LEDGE_SENTINEL = preload("res://scripts/ledge_sentinel.gd")
+const GAME_AUDIO = preload("res://scripts/game_audio.gd")
 
 const FLOOR_Y := 600.0
 const LEVEL_END := 4450.0
@@ -38,6 +39,7 @@ var loading_overlay: CanvasLayer
 var world_map: CanvasLayer
 var hand_chair: Sprite2D
 var hand_menu: CanvasLayer
+var game_audio: Node
 var visited_rooms: Array[int] = [2]
 var platforms: Array[Rect2] = []
 var ledge_wall: StaticBody2D
@@ -87,6 +89,10 @@ var last_safe_position := Vector2(120, 570)
 var heal_hint_shown := false
 
 func _ready() -> void:
+	game_audio = GAME_AUDIO.new()
+	game_audio.name = "GameAudio"
+	add_child(game_audio)
+	game_audio.play_cave()
 	if get_tree().has_meta("active_save_slot"):
 		active_save_slot = int(get_tree().get_meta("active_save_slot"))
 		save_root = str(get_tree().get_meta("save_root", "user://"))
@@ -176,6 +182,7 @@ func _ready() -> void:
 	scout.player = player
 	add_child(scout)
 	scout.defeated.connect(_on_scout_defeated)
+	scout.attack_landed.connect(func() -> void: game_audio.play_effect("enemy_attack"))
 	if saved_scout_defeated:
 		scout.queue_free()
 	ledge_sentinel = LEDGE_SENTINEL.new()
@@ -184,6 +191,7 @@ func _ready() -> void:
 	ledge_sentinel.player = player
 	add_child(ledge_sentinel)
 	ledge_sentinel.defeated.connect(_on_ledge_sentinel_defeated)
+	ledge_sentinel.attack_landed.connect(func() -> void: game_audio.play_effect("enemy_attack"))
 	if sentinel_defeated:
 		ledge_sentinel.queue_free()
 	boss = BOSS_SCRIPT.new()
@@ -192,6 +200,7 @@ func _ready() -> void:
 	boss.player = player
 	add_child(boss)
 	boss.defeated.connect(_on_boss_defeated)
+	boss.attack_cued.connect(game_audio.play_effect)
 	if saved_boss_defeated:
 		boss_defeated = true
 		boss.visible = false
@@ -306,6 +315,7 @@ func _process(delta: float) -> void:
 	if current_room == 4 and not boss.active and not boss_defeated and not respawning and player.global_position.x > 3070.0:
 		boss.active = true
 		boss.state_time = 0.9
+		game_audio.play_boss()
 		_lock_arena()
 		_show_toast("THE HOLLOW WARDEN  ·  Watch the red charge tell", 3.0)
 	_update_hud()
@@ -470,7 +480,8 @@ func _close_note() -> void:
 	player.controls_enabled = true
 
 func _on_player_attacked(hitbox: Rect2) -> void:
-	if is_instance_valid(ledge_sentinel) and not ledge_sentinel.is_queued_for_deletion() and not player.is_on_floor() and hitbox.intersects(Rect2(ledge_sentinel.global_position - Vector2(20, 27), Vector2(40, 54))):
+	game_audio.play_effect("attack")
+	if is_instance_valid(ledge_sentinel) and not ledge_sentinel.is_queued_for_deletion() and hitbox.intersects(Rect2(ledge_sentinel.global_position - Vector2(20, 27), Vector2(40, 54))):
 		ledge_sentinel.take_hit()
 	if is_instance_valid(scout) and hitbox.intersects(Rect2(scout.global_position - Vector2(17, 20), Vector2(34, 40))):
 		scout.take_hit()
@@ -485,17 +496,20 @@ func _on_player_attacked(hitbox: Rect2) -> void:
 	queue_redraw()
 
 func _on_player_dodged() -> void:
+	game_audio.play_effect("dodge")
 	if not dodge_practiced and current_room == 2 and player.global_position.x < 690.0:
 		dodge_practiced = true
 		_show_toast("Good dodge. You can avoid danger before striking.", 2.8)
 		_save_progress()
 
 func _on_player_jumped() -> void:
+	game_audio.play_effect("jump")
 	if not jump_practiced:
 		jump_practiced = true
 		_save_progress()
 
 func _on_player_healed() -> void:
+	game_audio.play_effect("heal")
 	heal_practiced = true
 	_save_progress()
 
@@ -512,6 +526,7 @@ func _on_player_platform_dropped() -> void:
 		_save_progress()
 
 func _on_player_heavy_attacked(hitbox: Rect2) -> void:
+	game_audio.play_effect("heavy_attack")
 	if boss.active and not boss_defeated and hitbox.intersects(Rect2(boss.global_position - Vector2(55, 78), Vector2(110, 120))):
 		boss.take_hit()
 		boss.take_hit()
@@ -537,6 +552,7 @@ func _on_ledge_sentinel_defeated() -> void:
 
 func _on_boss_defeated() -> void:
 	boss_defeated = true
+	game_audio.play_cave()
 	_unlock_arena()
 	_spawn_will_orb(boss.global_position, 50)
 	player.has_heavy = true
@@ -593,6 +609,7 @@ func _respawn_regular_enemies() -> void:
 		scout.player = player
 		add_child(scout)
 		scout.defeated.connect(_on_scout_defeated)
+		scout.attack_landed.connect(func() -> void: game_audio.play_effect("enemy_attack"))
 	if is_instance_valid(ledge_sentinel) and not ledge_sentinel.is_queued_for_deletion():
 		ledge_sentinel.health = ledge_sentinel.max_health
 		ledge_sentinel.hit_cooldown = 0.0
@@ -604,6 +621,7 @@ func _respawn_regular_enemies() -> void:
 		ledge_sentinel.player = player
 		add_child(ledge_sentinel)
 		ledge_sentinel.defeated.connect(_on_ledge_sentinel_defeated)
+		ledge_sentinel.attack_landed.connect(func() -> void: game_audio.play_effect("enemy_attack"))
 
 func _save_progress() -> void:
 	if active_save_slot <= 0:
@@ -692,6 +710,7 @@ func _safe_fall_position() -> Vector2:
 
 func _respawn() -> void:
 	_unlock_arena()
+	game_audio.play_cave()
 	player.global_position = checkpoint
 	last_safe_position = checkpoint
 	current_room = _room_for_x(checkpoint.x)
@@ -707,6 +726,7 @@ func _respawn() -> void:
 		boss.state_time = 0.0
 		boss.health = boss.max_health
 		boss.position = Vector2(3510, 553)
+		boss.attack_count = 0
 	_show_toast("Try again. Read the enemy's tell.", 2.4)
 	_save_progress()
 

@@ -17,6 +17,9 @@ func _run() -> void:
 	await process_frame
 	await process_frame
 	var world := current_scene
+	if world.game_audio.current_track != "cave" or world.game_audio.music.stream != world.game_audio.CAVE_MUSIC:
+		_fail("Cave music did not start with the biome")
+		return
 	if world.current_room != 2 or world.player.position.x != 120.0:
 		_fail("New game did not spawn in Cave Room 2")
 		return
@@ -128,6 +131,15 @@ func _run() -> void:
 	if world.player.global_position.x <= world.ledge_sentinel.global_position.x + 28.0:
 		_fail("The ledge enemy blocked an air dash")
 		return
+	world.player.global_position = Vector2(1120, 480)
+	world.player.facing = -1
+	await physics_frame
+	world._on_player_attacked(Rect2(Vector2(1040, 457), Vector2(72, 56)))
+	if not is_instance_valid(world.ledge_sentinel) or world.ledge_sentinel.health != 1:
+		_fail("The ledge enemy could not be attacked from behind")
+		return
+	world.ledge_sentinel.health = 2
+	world.ledge_sentinel.queue_redraw()
 	world.player.dash_time = 0.0
 	world.player.global_position = Vector2(995, 490)
 	world.player.facing = 1
@@ -156,9 +168,10 @@ func _run() -> void:
 	await physics_frame
 	_key(KEY_J, false)
 	if not world.aerial_practiced or is_instance_valid(world.ledge_sentinel):
-		_fail("Second aerial hit did not clear the ledge enemy")
+		_fail("Second hit did not clear the ledge enemy")
 		return
 	world.player.global_position = Vector2(1400, 497)
+	world.player.reset_movement_state()
 	world.player.velocity = Vector2.ZERO
 	await physics_frame
 	await physics_frame
@@ -407,6 +420,37 @@ func _run() -> void:
 	if world.checkpoint.x != 2610.0 or not world.boss.active or not is_instance_valid(world.arena_barrier):
 		_fail("Warden fight did not preserve the prior checkpoint and seal the arena")
 		return
+	if world.game_audio.current_track != "warden" or world.game_audio.music.stream != world.game_audio.WARDEN_MUSIC:
+		_fail("Boss music did not replace cave music")
+		return
+	world.boss.state = "idle"
+	world.boss.state_time = 0.0
+	world.boss.attack_count = 0
+	world.boss._process(0.01)
+	if world.boss.state != "telegraph":
+		_fail("The Warden did not telegraph its charge")
+		return
+	world.boss.state_time = 0.0
+	world.boss._process(0.01)
+	if world.boss.state != "charge":
+		_fail("The Warden charge did not follow its tell")
+		return
+	world.boss.state_time = 0.0
+	world.boss._process(0.01)
+	world.boss.state_time = 0.0
+	world.boss._process(0.01)
+	world.boss.state_time = 0.0
+	world.boss._process(0.01)
+	if world.boss.state != "telegraph_slam":
+		_fail("The Warden did not alternate to a slam tell")
+		return
+	world.boss.state_time = 0.0
+	world.boss._process(0.01)
+	if world.boss.state != "slam":
+		_fail("The Warden slam did not follow its tell")
+		return
+	world.boss.state = "idle"
+	world.boss.state_time = 0.4
 	world.player.global_position = Vector2(3060, 570)
 	await process_frame
 	if world.current_room != 4 or world.player.global_position.x < 3110.0:
@@ -419,6 +463,9 @@ func _run() -> void:
 	if world.current_room != 3 or absf(world.player.global_position.x - 2610.0) > 3.0 or is_instance_valid(world.arena_barrier):
 		_fail("Death did not return the player to the Room 3 respawn point")
 		return
+	if world.game_audio.current_track != "cave":
+		_fail("Cave music did not resume after the boss reset")
+		return
 	world.player.global_position = Vector2(3086, 570)
 	await create_timer(0.7).timeout
 	if world.current_room != 4 or not world.boss.active or not is_instance_valid(world.arena_barrier):
@@ -428,6 +475,9 @@ func _run() -> void:
 	world._on_boss_defeated()
 	if not world.player.has_heavy or world.wall_broken or is_instance_valid(world.arena_barrier) or world.player.health != 2:
 		_fail("Boss reward or cracked wall state is wrong")
+		return
+	if world.game_audio.current_track != "cave":
+		_fail("Cave music did not resume after the boss defeat")
 		return
 	world.boss.active = false
 	world.player.global_position = Vector2(3810, 570)
@@ -454,6 +504,9 @@ func _run() -> void:
 		_fail("Forest exit did not load the forest room")
 		return
 	var forest := current_scene
+	if forest.game_audio.current_track != "forest" or forest.game_audio.music.stream != forest.game_audio.FOREST_MUSIC:
+		_fail("Forest music did not start on biome entry")
+		return
 	if not forest.visited_rooms.has(5) or not forest._completed_rooms().has(5):
 		_fail("Forest map discovery was not recorded")
 		return
