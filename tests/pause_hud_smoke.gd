@@ -18,6 +18,23 @@ func _run() -> void:
 	if world.hud.level != 1 or world.hud.will_amount != 0 or world.hud.healing_charges != 3:
 		_fail("Starting HUD values are wrong")
 		return
+	if world.player.footstep_audio.stream == null:
+		_fail("Walking sound is missing")
+		return
+	var move_press := InputEventKey.new()
+	move_press.physical_keycode = KEY_D
+	move_press.keycode = KEY_D
+	move_press.pressed = true
+	Input.parse_input_event(move_press)
+	await create_timer(0.4).timeout
+	var move_release := InputEventKey.new()
+	move_release.physical_keycode = KEY_D
+	move_release.keycode = KEY_D
+	move_release.pressed = false
+	Input.parse_input_event(move_release)
+	if world.player.footstep_count == 0:
+		_fail("Walking did not trigger footsteps")
+		return
 	world.player.global_position = world.scout.global_position + Vector2(0, -40)
 	world.scout.hit_cooldown = 0.0
 	world.scout._physics_process(0.016)
@@ -41,8 +58,12 @@ func _run() -> void:
 	Input.parse_input_event(heal_press)
 	await physics_frame
 	await physics_frame
+	if world.player.health != 3 or world.player.healing_charges != 3 or world.player.heal_time <= 0.0:
+		_fail("Healing did not begin with a visible delay")
+		return
+	await create_timer(0.75).timeout
 	if world.player.health != 5 or world.player.healing_charges != 2:
-		_fail("F did not consume one healing charge and heal")
+		_fail("Healing did not complete after the animation")
 		return
 	var heal_release := InputEventKey.new()
 	heal_release.physical_keycode = KEY_F

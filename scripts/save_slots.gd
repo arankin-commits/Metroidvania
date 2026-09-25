@@ -20,7 +20,15 @@ static func load_slot(slot: int, root: String = "user://") -> Dictionary:
 		"will": int(config.get_value("save", "will", 0)),
 		"healing_charges": int(config.get_value("save", "healing_charges", 3)),
 		"checkpoint_x": float(config.get_value("save", "checkpoint_x", 120.0)),
-		"has_dash": bool(config.get_value("save", "has_dash", false)),
+		"hand_activated": bool(config.get_value("save", "hand_activated", false)),
+		"has_dash": true,
+		"aerial_practiced": bool(config.get_value("save", "aerial_practiced", false)),
+		"jump_practiced": bool(config.get_value("save", "jump_practiced", false)),
+		"dodge_practiced": bool(config.get_value("save", "dodge_practiced", false)),
+		"drop_practiced": bool(config.get_value("save", "drop_practiced", false)),
+		"ledge_practiced": bool(config.get_value("save", "ledge_practiced", false)),
+		"heal_practiced": bool(config.get_value("save", "heal_practiced", false)),
+		"dash_gap_practiced": bool(config.get_value("save", "dash_gap_practiced", false)),
 		"seal_broken": bool(config.get_value("save", "seal_broken", false)),
 		"scout_defeated": bool(config.get_value("save", "scout_defeated", false)),
 		"boss_defeated": bool(config.get_value("save", "boss_defeated", false)),
@@ -28,6 +36,7 @@ static func load_slot(slot: int, root: String = "user://") -> Dictionary:
 		"wall_broken": bool(config.get_value("save", "wall_broken", false)),
 		"secret_found": bool(config.get_value("save", "secret_found", false)),
 		"note_found": bool(config.get_value("save", "note_found", false)),
+		"visited_rooms": Array(config.get_value("save", "visited_rooms", [2])),
 	}
 
 static func new_slot() -> Dictionary:
@@ -39,7 +48,15 @@ static func new_slot() -> Dictionary:
 		"will": 0,
 		"healing_charges": 3,
 		"checkpoint_x": 120.0,
-		"has_dash": false,
+		"hand_activated": false,
+		"has_dash": true,
+		"aerial_practiced": false,
+		"jump_practiced": false,
+		"dodge_practiced": false,
+		"drop_practiced": false,
+		"ledge_practiced": false,
+		"heal_practiced": false,
+		"dash_gap_practiced": false,
 		"seal_broken": false,
 		"scout_defeated": false,
 		"boss_defeated": false,
@@ -47,6 +64,7 @@ static func new_slot() -> Dictionary:
 		"wall_broken": false,
 		"secret_found": false,
 		"note_found": false,
+		"visited_rooms": [2],
 	}
 
 static func write_slot(slot: int, data: Dictionary, root: String = "user://") -> Error:

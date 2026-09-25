@@ -14,6 +14,10 @@ const CAVE_ROOM_BACKDROPS := [
 	preload("res://assets/cave_room4.png"),
 ]
 const WILL_ORB = preload("res://scripts/will_orb.gd")
+const WORLD_MAP = preload("res://scripts/world_map.gd")
+const HAND_CHAIR = preload("res://assets/hand_chair.png")
+const HAND_MENU = preload("res://scripts/hand_menu.gd")
+const LEDGE_SENTINEL = preload("res://scripts/ledge_sentinel.gd")
 
 const FLOOR_Y := 600.0
 const LEVEL_END := 4450.0
@@ -24,19 +28,26 @@ const NOTE_POSITION := Vector2(2870, 485)
 
 var player: CharacterBody2D
 var scout: CharacterBody2D
+var ledge_sentinel: Node2D
 var boss: Node2D
 var hud: Control
 var background_rect: TextureRect
 var room_backgrounds: Array[TextureRect] = []
 var pause_menu: CanvasLayer
 var loading_overlay: CanvasLayer
+var world_map: CanvasLayer
+var hand_chair: Sprite2D
+var hand_menu: CanvasLayer
+var visited_rooms: Array[int] = [2]
 var platforms: Array[Rect2] = []
+var ledge_wall: StaticBody2D
+var drop_platform_body: StaticBody2D
 var seal_body: StaticBody2D
 var exit_barrier: StaticBody2D
 var arena_barrier: StaticBody2D
 var seal_health := 3
 var checkpoint := Vector2(120, 570)
-var dash_orb_active := true
+var hand_activated := false
 var boss_defeated := false
 var complete := false
 var respawning := false
@@ -49,7 +60,7 @@ var will_amount := 0
 var player_level := 1
 var saved_healing_charges := 3
 var save_timer := 0.0
-var saved_dash := false
+var saved_aerial_practiced := false
 var saved_boss_defeated := false
 var saved_heavy := false
 var saved_seal_broken := false
@@ -64,8 +75,13 @@ var note_panel: Control
 var note_text: Label
 var sigil_icon: Label
 var end_gate_hint_shown := false
-var practice_target_hit := false
+var aerial_practiced := false
+var ledge_practiced := false
+var drop_practiced := false
 var dodge_practiced := false
+var jump_practiced := false
+var heal_practiced := false
+var dash_gap_practiced := false
 var last_safe_position := Vector2(120, 570)
 var heal_hint_shown := false
 
@@ -76,12 +92,19 @@ func _ready() -> void:
 		var data: Dictionary = SAVE_SLOTS.load_slot(active_save_slot, save_root)
 		if not data.is_empty():
 			current_room = clampi(int(data.get("room", 2)), 1, 4)
-			checkpoint = Vector2(float(data.get("checkpoint_x", 120.0)), 570)
+			hand_activated = bool(data.get("hand_activated", false))
+			checkpoint = Vector2(float(data.get("checkpoint_x", 120.0)), 570) if hand_activated else Vector2(120, 570)
 			elapsed_seconds = float(data.get("seconds", 0.0))
 			will_amount = int(data.get("will", 0))
 			player_level = int(data.get("level", 1))
 			saved_healing_charges = int(data.get("healing_charges", 3))
-			saved_dash = bool(data.get("has_dash", false))
+			saved_aerial_practiced = bool(data.get("aerial_practiced", false))
+			jump_practiced = bool(data.get("jump_practiced", false))
+			dodge_practiced = bool(data.get("dodge_practiced", false))
+			drop_practiced = bool(data.get("drop_practiced", false))
+			ledge_practiced = bool(data.get("ledge_practiced", false))
+			heal_practiced = bool(data.get("heal_practiced", false))
+			dash_gap_practiced = bool(data.get("dash_gap_practiced", false))
 			saved_boss_defeated = bool(data.get("boss_defeated", false))
 			saved_heavy = bool(data.get("has_heavy", saved_boss_defeated))
 			saved_seal_broken = bool(data.get("seal_broken", false))
@@ -89,24 +112,35 @@ func _ready() -> void:
 			wall_broken = bool(data.get("wall_broken", false))
 			secret_found = bool(data.get("secret_found", false))
 			note_found = bool(data.get("note_found", false))
+			visited_rooms.assign(data.get("visited_rooms", [2]))
+	var spawn_position := checkpoint
 	if get_tree().has_meta("cave_entry_x"):
-		checkpoint = Vector2(float(get_tree().get_meta("cave_entry_x")), 570)
-		current_room = 4
+		spawn_position = Vector2(float(get_tree().get_meta("cave_entry_x")), 570)
 		get_tree().remove_meta("cave_entry_x")
-	else:
-		current_room = _room_for_x(checkpoint.x)
-	last_safe_position = checkpoint
+	current_room = _room_for_x(spawn_position.x)
+	_mark_room_visited(current_room)
+	last_safe_position = spawn_position
 	platforms = [
 		Rect2(-1200, FLOOR_Y, 1200, 120),
 		Rect2(0, FLOOR_Y, 690, 120),
 		Rect2(840, FLOOR_Y, 1320, 120),
 		Rect2(2450, FLOOR_Y, 2000, 120),
 		Rect2(380, 525, 155, 18),
+		Rect2(1040, 510, 120, 90),
 		Rect2(1350, 520, 170, 18),
+		Rect2(2010, 470, 150, 130),
 		Rect2(2730, 520, 150, 18),
 	]
 	for rect in platforms:
-		_make_solid(rect)
+		var body := _make_solid(rect, rect.position.x == 1350.0)
+		if rect.position.x == 1350.0:
+			drop_platform_body = body
+		if rect.position.x == 2010.0:
+			ledge_wall = body
+	if saved_aerial_practiced:
+		aerial_practiced = true
+	_make_solid(Rect2(1330, 540, 20, 60))
+	_make_solid(Rect2(1510, 350, 32, 190))
 	_make_solid(Rect2(-1160, 380, 32, 220))
 	seal_body = _make_solid(Rect2(1680, 300, 32, 300))
 	if saved_seal_broken:
@@ -117,16 +151,20 @@ func _ready() -> void:
 		exit_barrier.queue_free()
 	player = PLAYER_SCRIPT.new()
 	player.name = "Player"
-	player.position = checkpoint
-	player.has_dash = saved_dash
+	player.position = spawn_position
+	player.has_dash = true
 	player.has_heavy = saved_heavy
 	player.healing_charges = saved_healing_charges
-	dash_orb_active = not saved_dash
+	player.drop_platform = drop_platform_body
+	player.drop_region = Rect2(1350, 519, 170, 20)
 	add_child(player)
 	player.attacked.connect(_on_player_attacked)
 	player.heavy_attacked.connect(_on_player_heavy_attacked)
 	player.dodged.connect(_on_player_dodged)
-	player.healed.connect(_save_progress)
+	player.jumped.connect(_on_player_jumped)
+	player.ledge_climbed.connect(_on_player_ledge_climbed)
+	player.platform_dropped.connect(_on_player_platform_dropped)
+	player.healed.connect(_on_player_healed)
 	player.damaged.connect(_on_player_damaged)
 	player.died.connect(_on_player_died)
 	scout = SCOUT_SCRIPT.new()
@@ -137,6 +175,14 @@ func _ready() -> void:
 	scout.defeated.connect(_on_scout_defeated)
 	if saved_scout_defeated:
 		scout.queue_free()
+	ledge_sentinel = LEDGE_SENTINEL.new()
+	ledge_sentinel.name = "LedgeSentinel"
+	ledge_sentinel.position = Vector2(1058, 485)
+	ledge_sentinel.player = player
+	add_child(ledge_sentinel)
+	ledge_sentinel.defeated.connect(_on_ledge_sentinel_defeated)
+	if saved_aerial_practiced:
+		ledge_sentinel.queue_free()
 	boss = BOSS_SCRIPT.new()
 	boss.name = "HollowWarden"
 	boss.position = Vector2(3510, 553)
@@ -153,12 +199,21 @@ func _ready() -> void:
 	hud.name = "HUD"
 	layer.add_child(hud)
 	_add_backdrop()
+	_add_hand_chair()
 	pause_menu = preload("res://scripts/pause_menu.gd").new()
 	add_child(pause_menu)
 	loading_overlay = LOADING_OVERLAY.new()
 	add_child(loading_overlay)
+	world_map = WORLD_MAP.new()
+	add_child(world_map)
+	hand_menu = HAND_MENU.new()
+	hand_menu.world = self
+	add_child(hand_menu)
 	_build_note_panel(layer)
 	_set_camera_room()
+	if get_tree().has_meta("arriving_room_transition"):
+		get_tree().remove_meta("arriving_room_transition")
+		loading_overlay.reveal_room()
 	_show_toast("Find your way through the forgotten passage", 3.5)
 	queue_redraw()
 
@@ -179,13 +234,43 @@ func _add_backdrop() -> void:
 		room_backgrounds.append(backdrop)
 	background_rect = room_backgrounds[current_room - 1]
 
-func _make_solid(rect: Rect2) -> StaticBody2D:
+func _add_hand_chair() -> void:
+	hand_chair = Sprite2D.new()
+	hand_chair.name = "HandChairCheckpoint"
+	hand_chair.texture = HAND_CHAIR
+	hand_chair.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	hand_chair.scale = Vector2(0.096, 0.096)
+	hand_chair.position = Vector2(2610, 538)
+	hand_chair.z_index = 2
+	add_child(hand_chair)
+
+func _mark_room_visited(room: int) -> void:
+	if not visited_rooms.has(room):
+		visited_rooms.append(room)
+		visited_rooms.sort()
+
+func _completed_rooms() -> Array[int]:
+	var completed: Array[int] = []
+	if visited_rooms.has(1):
+		completed.append(1)
+	if visited_rooms.has(2) and secret_found:
+		completed.append(2)
+	if visited_rooms.has(3) and note_found:
+		completed.append(3)
+	if visited_rooms.has(4) and boss_defeated:
+		completed.append(4)
+	if visited_rooms.has(5):
+		completed.append(5)
+	return completed
+
+func _make_solid(rect: Rect2, one_way: bool = false) -> StaticBody2D:
 	var body := StaticBody2D.new()
 	body.position = rect.position + rect.size * 0.5
 	var shape := RectangleShape2D.new()
 	shape.size = rect.size
 	var collision := CollisionShape2D.new()
 	collision.shape = shape
+	collision.one_way_collision = one_way
 	body.add_child(collision)
 	add_child(body)
 	return body
@@ -200,7 +285,7 @@ func _process(delta: float) -> void:
 	if transitioning_room or note_open:
 		_update_hud()
 		return
-	if player.is_on_floor() and player.global_position.y < 650.0:
+	if player.is_on_floor() and player.global_position.y < 650.0 and _has_stable_footing(player.global_position):
 		last_safe_position = player.global_position
 	if player.global_position.y > 790.0 and not respawning:
 		_on_player_fell()
@@ -209,23 +294,12 @@ func _process(delta: float) -> void:
 	if _check_room_transition():
 		_update_hud()
 		return
+	if current_room == 3 and player.global_position.x > 2490.0 and not dash_gap_practiced:
+		dash_gap_practiced = true
+		_save_progress()
 	if current_room == 1 and player.global_position.x < -1020.0 and not end_gate_hint_shown:
 		end_gate_hint_shown = true
 		_show_toast("The End Area entrance is sealed for now", 3.0)
-	if player.global_position.x > 1750.0 and checkpoint.x < 1800.0:
-		checkpoint = Vector2(1810, 570)
-		_show_toast("A new checkpoint awakens", 2.5)
-		_save_progress()
-	if player.global_position.x > 2710.0 and checkpoint.x < 2700.0:
-		checkpoint = Vector2(2760, 570)
-		_show_toast("Checkpoint before the Warden", 2.5)
-		_save_progress()
-	if dash_orb_active and player.global_position.distance_to(Vector2(1945, 550)) < 44.0:
-		dash_orb_active = false
-		player.has_dash = true
-		player.heal_full()
-		_save_progress()
-		_show_toast("DASH UNLOCKED  ·  Press K or Shift in midair", 4.0)
 	if current_room == 4 and not boss.active and not boss_defeated and not respawning and player.global_position.x > 3070.0:
 		boss.active = true
 		boss.state_time = 0.9
@@ -235,13 +309,22 @@ func _process(delta: float) -> void:
 	queue_redraw()
 
 func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and not event.echo and event.physical_keycode in [KEY_M, KEY_TAB]:
+		if not note_open and not transitioning_room and not get_tree().paused:
+			world_map.show_map(visited_rooms, _completed_rooms(), current_room)
+			get_viewport().set_input_as_handled()
+		return
 	if event is InputEventKey and event.pressed and not event.echo and event.physical_keycode == KEY_E:
 		if note_open:
 			_close_note()
-		elif current_room == 2 and player.global_position.distance_to(SECRET_POSITION) < 65.0:
+		elif current_room == 2 and not secret_found and player.global_position.distance_to(SECRET_POSITION) < 65.0:
 			_open_sigil()
-		elif current_room == 3 and player.global_position.distance_to(NOTE_POSITION) < 65.0:
+		elif current_room == 3 and not note_found and player.global_position.distance_to(NOTE_POSITION) < 65.0:
 			_open_note()
+		elif current_room == 3 and player.global_position.distance_to(hand_chair.global_position) < 70.0:
+			activate_hand()
+			hand_menu.show_menu()
+		get_viewport().set_input_as_handled()
 		return
 	if event is InputEventKey and event.pressed and not event.echo and event.physical_keycode == KEY_R:
 		get_tree().reload_current_scene()
@@ -254,28 +337,28 @@ func _check_room_transition() -> bool:
 		return false
 	match current_room:
 		1:
-			if x >= 0.0:
+			if x >= 14.0:
 				_begin_room_transition(2, 80.0)
 				return true
 		2:
-			if x < 0.0:
+			if x <= -14.0:
 				_begin_room_transition(1, -80.0)
 				return true
-			if x >= 1700.0:
+			if x >= 1714.0:
 				_begin_room_transition(3, 1780.0)
 				return true
 		3:
-			if x < 1700.0:
+			if x <= 1686.0:
 				_begin_room_transition(2, 1620.0)
 				return true
-			if x >= 3070.0:
+			if x >= 3084.0:
 				_begin_room_transition(4, 3150.0)
 				return true
 		4:
-			if x < 3070.0:
+			if x <= 3056.0:
 				_begin_room_transition(3, 2990.0)
 				return true
-			if x >= 4200.0 and wall_broken:
+			if x >= 4464.0 and wall_broken:
 				_leave_for_forest()
 				return true
 	return false
@@ -284,15 +367,14 @@ func _begin_room_transition(destination: int, entry_x: float) -> void:
 	transitioning_room = true
 	player.controls_enabled = false
 	player.velocity = Vector2.ZERO
-	loading_overlay.show_room(ROOM_NAMES[destination - 1])
-	await get_tree().create_timer(0.45).timeout
+	await loading_overlay.cover_room()
 	current_room = destination
+	_mark_room_visited(current_room)
 	player.global_position = Vector2(entry_x, 570)
 	last_safe_position = player.global_position
 	_set_camera_room()
 	_save_progress()
-	await get_tree().process_frame
-	loading_overlay.hide_room()
+	await loading_overlay.reveal_room()
 	player.controls_enabled = true
 	transitioning_room = false
 
@@ -301,8 +383,8 @@ func _leave_for_forest() -> void:
 	player.controls_enabled = false
 	player.velocity = Vector2.ZERO
 	_save_progress()
-	loading_overlay.show_room("Forest Edge")
-	await get_tree().create_timer(0.45).timeout
+	await loading_overlay.cover_room()
+	get_tree().set_meta("arriving_room_transition", true)
 	get_tree().change_scene_to_file("res://scenes/forest_entry.tscn")
 
 func _set_camera_room() -> void:
@@ -362,6 +444,7 @@ func _open_note() -> void:
 	player.velocity = Vector2.ZERO
 	note_panel.visible = true
 	_save_progress()
+	queue_redraw()
 
 func _open_sigil() -> void:
 	note_open = true
@@ -374,6 +457,7 @@ func _open_sigil() -> void:
 	player.velocity = Vector2.ZERO
 	note_panel.visible = true
 	_save_progress()
+	queue_redraw()
 
 func _close_note() -> void:
 	note_open = false
@@ -382,9 +466,8 @@ func _close_note() -> void:
 	player.controls_enabled = true
 
 func _on_player_attacked(hitbox: Rect2) -> void:
-	if not practice_target_hit and hitbox.intersects(Rect2(560, 515, 32, 85)):
-		practice_target_hit = true
-		_show_toast("Clean strike. The training post cannot hurt you.", 2.8)
+	if is_instance_valid(ledge_sentinel) and not ledge_sentinel.is_queued_for_deletion() and not player.is_on_floor() and hitbox.intersects(Rect2(ledge_sentinel.global_position - Vector2(20, 27), Vector2(40, 54))):
+		ledge_sentinel.take_hit()
 	if is_instance_valid(scout) and hitbox.intersects(Rect2(scout.global_position - Vector2(17, 20), Vector2(34, 40))):
 		scout.take_hit()
 	if seal_health > 0 and hitbox.intersects(Rect2(1680, 300, 32, 300)):
@@ -401,6 +484,28 @@ func _on_player_dodged() -> void:
 	if not dodge_practiced and current_room == 2 and player.global_position.x < 690.0:
 		dodge_practiced = true
 		_show_toast("Good dodge. You can avoid danger before striking.", 2.8)
+		_save_progress()
+
+func _on_player_jumped() -> void:
+	if not jump_practiced:
+		jump_practiced = true
+		_save_progress()
+
+func _on_player_healed() -> void:
+	heal_practiced = true
+	_save_progress()
+
+func _on_player_ledge_climbed() -> void:
+	if not ledge_practiced:
+		ledge_practiced = true
+		_show_toast("Ledge climb learned. Press Jump or Up while hanging.", 3.0)
+		_save_progress()
+
+func _on_player_platform_dropped() -> void:
+	if not drop_practiced:
+		drop_practiced = true
+		_show_toast("Drop through platforms with S + Jump.", 2.8)
+		_save_progress()
 
 func _on_player_heavy_attacked(hitbox: Rect2) -> void:
 	if boss.active and not boss_defeated and hitbox.intersects(Rect2(boss.global_position - Vector2(55, 78), Vector2(110, 120))):
@@ -417,6 +522,12 @@ func _on_scout_defeated() -> void:
 	saved_scout_defeated = true
 	_spawn_will_orb(scout.global_position, 5)
 	_show_toast("The scout falls. Its Will drifts toward you.", 2.6)
+	_save_progress()
+
+func _on_ledge_sentinel_defeated() -> void:
+	aerial_practiced = true
+	_spawn_will_orb(ledge_sentinel.global_position, 5)
+	_show_toast("The ledge is clear. Jump up and continue.", 2.8)
 	_save_progress()
 
 func _on_boss_defeated() -> void:
@@ -446,6 +557,17 @@ func _on_player_damaged() -> void:
 		heal_hint_shown = true
 		_show_toast("Hurt? Press F to use a healing charge.", 3.0)
 
+func activate_hand() -> void:
+	checkpoint = Vector2(2610, 570)
+	hand_activated = true
+	_save_progress()
+
+func save_at_hand() -> void:
+	activate_hand()
+	player.heal_full()
+	player.healing_charges = player.max_healing_charges
+	_save_progress()
+
 func _save_progress() -> void:
 	if active_save_slot <= 0:
 		return
@@ -457,7 +579,15 @@ func _save_progress() -> void:
 	data["area"] = "Forgotten Passage"
 	data["room"] = current_room
 	data["checkpoint_x"] = checkpoint.x
+	data["hand_activated"] = hand_activated
 	data["has_dash"] = player.has_dash
+	data["aerial_practiced"] = aerial_practiced
+	data["jump_practiced"] = jump_practiced
+	data["dodge_practiced"] = dodge_practiced
+	data["drop_practiced"] = drop_practiced
+	data["ledge_practiced"] = ledge_practiced
+	data["heal_practiced"] = heal_practiced
+	data["dash_gap_practiced"] = dash_gap_practiced
 	data["seal_broken"] = seal_health <= 0
 	data["scout_defeated"] = saved_scout_defeated or not is_instance_valid(scout) or scout.is_queued_for_deletion()
 	data["boss_defeated"] = boss_defeated
@@ -465,6 +595,7 @@ func _save_progress() -> void:
 	data["wall_broken"] = wall_broken
 	data["secret_found"] = secret_found
 	data["note_found"] = note_found
+	data["visited_rooms"] = visited_rooms.duplicate()
 	var result: Error = SAVE_SLOTS.write_slot(active_save_slot, data, save_root)
 	if result != OK:
 		push_error("Could not save slot %d: %s" % [active_save_slot, error_string(result)])
@@ -484,21 +615,42 @@ func _on_player_died() -> void:
 func _on_player_fell() -> void:
 	if respawning:
 		return
+	var damage := maxi(1, ceili(float(player.max_health) * 0.20))
+	if player.health <= damage:
+		player.health = 0
+		player.velocity = Vector2.ZERO
+		_on_player_died()
+		return
 	respawning = true
 	player.controls_enabled = false
 	player.velocity = Vector2.ZERO
-	var damage := maxi(1, ceili(float(player.max_health) * 0.20))
-	player.health = maxi(1, player.health - damage)
+	player.health -= damage
 	_show_toast("The fall costs %d health. Press F to heal." % damage, 3.0)
 	get_tree().create_timer(0.65).timeout.connect(_respawn_after_fall)
 
 func _respawn_after_fall() -> void:
-	player.global_position = last_safe_position
-	player.velocity = Vector2.ZERO
+	player.global_position = _safe_fall_position()
+	last_safe_position = player.global_position
+	player.reset_movement_state()
 	player.invulnerability = 1.0
 	player.controls_enabled = true
 	respawning = false
 	_save_progress()
+
+func _has_stable_footing(position: Vector2) -> bool:
+	var foot_y := position.y + 23.0
+	for surface in platforms:
+		if absf(foot_y - surface.position.y) <= 7.0 and position.x >= surface.position.x + 50.0 and position.x <= surface.end.x - 50.0:
+			return true
+	return false
+
+func _safe_fall_position() -> Vector2:
+	var x := player.global_position.x
+	if x > 660.0 and x < 870.0:
+		return Vector2(910, 570) if last_safe_position.x > 840.0 else Vector2(620, 570)
+	if x > 2130.0 and x < 2480.0:
+		return Vector2(2520, 570) if last_safe_position.x > 2450.0 else Vector2(2080, 447)
+	return last_safe_position
 
 func _respawn() -> void:
 	_unlock_arena()
@@ -506,7 +658,7 @@ func _respawn() -> void:
 	last_safe_position = checkpoint
 	current_room = _room_for_x(checkpoint.x)
 	_set_camera_room()
-	player.velocity = Vector2.ZERO
+	player.reset_movement_state()
 	player.heal_full()
 	player.healing_charges = player.max_healing_charges
 	player.controls_enabled = true
@@ -544,83 +696,37 @@ func _update_hud() -> void:
 	hud.has_heavy = player.has_heavy
 	hud.boss_health = boss.health if boss.active and not boss_defeated else 0
 	hud.finished = complete
-	var x := player.global_position.x
-	match current_room:
-		1:
-			hud.area = "CAVE 01  ·  THE OLD ENTRANCE"
-			hud.prompt = "The sealed entrance at the far left leads to the End Area."
-		2:
-			hud.area = "CAVE 02  ·  FIRST STEPS"
-			if x < 300.0:
-				hud.prompt = "Move with A / D. Jump with Space. The open hand marks your respawn point."
-			elif x < 700.0:
-				hud.prompt = "Dodge with K or Shift. Strike the training post with J. Search above."
-			elif x < 1400.0:
-				hud.prompt = "Dodge on the ground with K or Shift. Strike with J."
-			else:
-				hud.prompt = "Strike the old seal three times to reach the next room."
-		3:
-			hud.area = "CAVE 03  ·  THE HIDDEN WORD"
-			if player.global_position.distance_to(NOTE_POSITION) < 65.0:
-				hud.prompt = "Press E to read the weathered note."
-			elif x < 2110.0:
-				hud.prompt = "Touch the turquoise light to upgrade your dodge to an air dash."
-			elif x < 2650.0:
-				hud.prompt = "Jump, then dodge through the chasm with K or Shift."
-			else:
-				hud.prompt = "A checkpoint. Search the stone before the Warden."
-		4:
-			hud.area = "CAVE 04  ·  THE HOLLOW WARDEN"
-			if not boss_defeated:
-				hud.prompt = "Watch the red charge tell. Strike during recovery."
-			elif not wall_broken:
-				hud.prompt = "Hold H, then release a charged attack at the cracked wall."
-			else:
-				hud.prompt = "The forest exit is beyond the broken wall."
-	if toast_time > 0.0:
-		hud.prompt = toast
-	elif current_room == 2 and player.global_position.distance_to(SECRET_POSITION) < 65.0:
-		hud.prompt = "Press E to inspect the Cave Sigil."
-	elif current_room == 2 and player.health < player.max_health and player.healing_charges > 0:
-		hud.prompt = "Press F to spend a healing charge and restore health."
+	hud.notice = toast if toast_time > 0.0 else ""
 	hud.queue_redraw()
 
 func _draw() -> void:
 	for rect in platforms:
 		_draw_cave_terrain(rect)
-	_draw_hand_bench(Vector2(77, 600))
 	if is_instance_valid(arena_barrier) and not arena_barrier.is_queued_for_deletion():
 		draw_rect(Rect2(3070, -60, 32, 660), Color(0.12, 0.18, 0.23))
 		for y in range(-48, 600, 32):
 			draw_rect(Rect2(3076, y, 20, 12), Color(0.33, 0.73, 0.72))
 			draw_rect(Rect2(3081, y + 4, 10, 4), Color(0.72, 0.98, 0.83))
-	for x in [1780.0, 2740.0]:
-		draw_line(Vector2(x, 600), Vector2(x, 508), Color(0.22, 0.72, 0.71), 5)
-		draw_circle(Vector2(x, 505), 12, Color(0.35, 0.95, 0.85))
-		draw_circle(Vector2(x, 505), 25, Color(0.35, 0.95, 0.85, 0.14))
 	for x in [0.0, 1700.0, 3070.0]:
 		draw_rect(Rect2(x - 8, 280, 16, 320), Color(0.17, 0.24, 0.31, 0.65))
 		draw_rect(Rect2(x - 28, 270, 56, 18), Color(0.31, 0.45, 0.48))
 	draw_rect(Rect2(-1160, 380, 32, 220), Color(0.33, 0.30, 0.41))
 	draw_rect(Rect2(-1152, 405, 16, 170), Color(0.11, 0.17, 0.26))
 	draw_circle(Vector2(-1144, 490), 11, Color(0.81, 0.65, 0.38))
-	draw_rect(Rect2(499, 467, 22, 20), Color(0.24, 0.24, 0.30))
-	draw_circle(SECRET_POSITION, 6, Color(0.52, 0.88, 0.79) if secret_found else Color(0.96, 0.79, 0.39))
-	draw_circle(SECRET_POSITION, 13, Color(0.96, 0.79, 0.39, 0.15))
-	draw_rect(Rect2(572, 515, 9, 85), Color(0.54, 0.38, 0.26))
-	draw_rect(Rect2(560, 515, 33, 37), Color(0.71, 0.51, 0.31) if not practice_target_hit else Color(0.47, 0.70, 0.59))
-	draw_circle(Vector2(576, 533), 10, Color(0.29, 0.22, 0.24))
-	draw_rect(Rect2(2858, 480, 24, 20), Color(0.20, 0.27, 0.29))
-	draw_rect(Rect2(2864, 484, 12, 13), Color(0.74, 0.66, 0.48))
+	if not secret_found:
+		draw_rect(Rect2(499, 467, 22, 20), Color(0.24, 0.24, 0.30))
+		draw_circle(SECRET_POSITION, 6, Color(0.96, 0.79, 0.39))
+		draw_circle(SECRET_POSITION, 13, Color(0.96, 0.79, 0.39, 0.15))
+	_draw_cave_terrain(Rect2(1330, 540, 20, 60))
+	_draw_cave_terrain(Rect2(1510, 350, 32, 190))
+	if not note_found:
+		draw_rect(Rect2(2858, 480, 24, 20), Color(0.20, 0.27, 0.29))
+		draw_rect(Rect2(2864, 484, 12, 13), Color(0.74, 0.66, 0.48))
 	if seal_health > 0:
 		draw_rect(Rect2(1680, 300, 32, 300), Color(0.28, 0.51, 0.57))
 		draw_rect(Rect2(1687, 316, 18, 268), Color(0.15, 0.23, 0.32))
 		for i in seal_health:
 			draw_circle(Vector2(1696, 521 + i * 23), 5, Color(0.95, 0.78, 0.44))
-	if dash_orb_active:
-		draw_circle(Vector2(1945, 550), 27, Color(0.20, 0.91, 0.86, 0.13))
-		draw_circle(Vector2(1945, 550), 13, Color(0.36, 0.98, 0.87))
-		draw_colored_polygon(PackedVector2Array([Vector2(1940, 540), Vector2(1953, 548), Vector2(1942, 563), Vector2(1946, 550)]), Color(0.96, 0.97, 0.77))
 	if not wall_broken:
 		draw_rect(Rect2(3850, 465, 32, 135), Color(0.38, 0.43, 0.46))
 		draw_line(Vector2(3855, 481), Vector2(3872, 514), Color(0.09, 0.12, 0.17), 3)
@@ -629,14 +735,37 @@ func _draw() -> void:
 	for x in [3120.0, 3800.0]:
 		draw_rect(Rect2(x, 380, 35, 220), Color(0.17, 0.20, 0.28))
 		draw_rect(Rect2(x - 8, 370, 51, 18), Color(0.29, 0.31, 0.39))
-	draw_circle(Vector2(4200, 520), 43, Color(0.26, 0.91, 0.81, 0.12))
-	draw_circle(Vector2(4200, 520), 19, Color(0.51, 0.96, 0.81, 0.75))
-	draw_arc(Vector2(4200, 520), 42, 0, TAU, 32, Color(0.48, 0.91, 0.81, 0.8), 4)
+	draw_rect(Rect2(4370, 390, 15, 210), Color(0.27, 0.36, 0.37))
+	draw_rect(Rect2(4436, 390, 15, 210), Color(0.27, 0.36, 0.37))
+	draw_rect(Rect2(4370, 380, 81, 18), Color(0.38, 0.49, 0.47))
+	draw_rect(Rect2(4385, 398, 51, 202), Color(0.07, 0.19, 0.18, 0.6))
+	for leaf in 5:
+		draw_rect(Rect2(4390 + leaf * 10, 416 + posmod(leaf * 13, 4) * 15, 6, 13), Color(0.24, 0.49, 0.33))
 	var font := ThemeDB.fallback_font
-	draw_string(font, Vector2(310, 455), "JUMP", HORIZONTAL_ALIGNMENT_LEFT, -1, 20, Color(0.62, 0.82, 0.81))
-	draw_string(font, Vector2(1060, 500), "STRIKE", HORIZONTAL_ALIGNMENT_LEFT, -1, 20, Color(0.84, 0.72, 0.69))
-	draw_string(font, Vector2(1840, 480), "TAKE THE LIGHT", HORIZONTAL_ALIGNMENT_LEFT, -1, 20, Color(0.61, 0.91, 0.84))
-	draw_string(font, Vector2(2200, 490), "DASH ACROSS", HORIZONTAL_ALIGNMENT_LEFT, -1, 20, Color(0.61, 0.91, 0.84))
+	if not jump_practiced:
+		draw_string(font, Vector2(150, 465), "[A/D] MOVE    [SPACE] JUMP", HORIZONTAL_ALIGNMENT_LEFT, -1, 19, Color(0.62, 0.82, 0.81))
+	if not secret_found:
+		draw_string(font, Vector2(420, 455), "[E] READ SIGIL", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color(0.93, 0.80, 0.53))
+	if not dodge_practiced:
+		draw_string(font, Vector2(575, 425), "[K/SHIFT] DODGE", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color(0.62, 0.82, 0.81))
+	if not aerial_practiced:
+		draw_string(font, Vector2(940, 400), "[SPACE] + [J/X] ATTACK IN AIR", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color(0.84, 0.72, 0.69))
+	if not drop_practiced:
+		draw_string(font, Vector2(1330, 475), "HOLD [S] + [SPACE] DROP", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color(0.62, 0.82, 0.81))
+	if not heal_practiced:
+		draw_string(font, Vector2(1450, 415), "[F] HEAL AFTER DAMAGE", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color(0.62, 0.89, 0.68))
+	if seal_health > 0:
+		draw_string(font, Vector2(1580, 460), "[J/X] BREAK SEAL", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color(0.62, 0.82, 0.81))
+	if not ledge_practiced:
+		draw_string(font, Vector2(1800, 405), "[SPACE] TO EDGE, [SPACE/UP/A/D] CLIMB", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color(0.62, 0.82, 0.81))
+	if not dash_gap_practiced:
+		draw_string(font, Vector2(2150, 390), "[SPACE] JUMP + [K/SHIFT] DASH ACROSS", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color(0.61, 0.91, 0.84))
+	if not hand_activated:
+		draw_string(font, Vector2(2540, 425), "[E] REST / SAVE", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color(0.93, 0.80, 0.53))
+	if not note_found:
+		draw_string(font, Vector2(2810, 400), "[E] READ NOTE", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color(0.93, 0.80, 0.53))
+	if boss_defeated and not wall_broken:
+		draw_string(font, Vector2(3770, 420), "HOLD [H], RELEASE TO BREAK", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color(0.84, 0.72, 0.69))
 	draw_string(font, Vector2(-1075, 455), "END AREA", HORIZONTAL_ALIGNMENT_LEFT, -1, 20, Color(0.88, 0.73, 0.50))
 	draw_string(font, Vector2(4090, 455), "TO THE FOREST", HORIZONTAL_ALIGNMENT_LEFT, -1, 20, Color(0.61, 0.91, 0.84))
 
@@ -668,22 +797,3 @@ func _draw_cave_terrain(rect: Rect2) -> void:
 				draw_rect(Rect2(x + 11, y + 8, 3, 3), mid)
 		if rect.size.y > 20.0 and posmod(seed, 6) == 0:
 			draw_rect(Rect2(x + 13, rect.position.y + 8, 2, 20), dark)
-
-func _draw_hand_bench(base: Vector2) -> void:
-	var outline := Color(0.06, 0.14, 0.19)
-	var stone := Color(0.43, 0.58, 0.58)
-	var highlight := Color(0.77, 0.86, 0.74)
-	var glow := Color(0.32, 0.95, 0.83, 0.20)
-	draw_circle(base + Vector2(0, -50), 46, glow)
-	draw_rect(Rect2(base + Vector2(-25, -65), Vector2(50, 55)), outline)
-	draw_rect(Rect2(base + Vector2(-21, -60), Vector2(42, 46)), stone)
-	for finger in 4:
-		var height := 21.0 + float((finger + 1) % 3) * 7.0
-		draw_rect(Rect2(base + Vector2(-20 + finger * 11, -60 - height), Vector2(9, height + 5)), outline)
-		draw_rect(Rect2(base + Vector2(-18 + finger * 11, -57 - height), Vector2(5, height)), highlight)
-	draw_rect(Rect2(base + Vector2(-36, -48), Vector2(15, 34)), outline)
-	draw_rect(Rect2(base + Vector2(-31, -44), Vector2(11, 23)), stone)
-	draw_rect(Rect2(base + Vector2(-31, -25), Vector2(62, 12)), outline)
-	draw_rect(Rect2(base + Vector2(-27, -23), Vector2(54, 6)), highlight)
-	draw_rect(Rect2(base + Vector2(-14, -13), Vector2(28, 13)), stone)
-	draw_rect(Rect2(base + Vector2(-18, -4), Vector2(36, 4)), outline)

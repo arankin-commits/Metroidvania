@@ -1,0 +1,4 @@
+[mcp_servers.godot-mcp]
+command = "C:\\Program Files\\nodejs\\npx.cmd"
+args = ["-y", "@satelliteoflove/godot-mcp"]
+startup_timeout_sec = 30

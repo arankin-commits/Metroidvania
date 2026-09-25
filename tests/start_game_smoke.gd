@@ -13,7 +13,8 @@ func _run() -> void:
 		return
 	var data: Dictionary = SAVE_SLOTS.new_slot()
 	data["seconds"] = 3610.0
-	data["checkpoint_x"] = 1810.0
+	data["checkpoint_x"] = 2610.0
+	data["hand_activated"] = true
 	data["room"] = 3
 	data["has_dash"] = true
 	data["seal_broken"] = true
@@ -43,7 +44,7 @@ func _run() -> void:
 		push_error("Slot selection did not enter the cave")
 		quit(1)
 		return
-	if absf(world.player.position.x - 1810.0) > 2.0 or not world.player.has_dash or world.seal_health != 0:
+	if absf(world.player.position.x - 2610.0) > 2.0 or not world.player.has_dash or world.seal_health != 0:
 		push_error("Save progress was not restored")
 		quit(1)
 		return
