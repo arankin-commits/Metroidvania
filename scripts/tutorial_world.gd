@@ -57,6 +57,7 @@ var seal_body: StaticBody2D
 var exit_barrier: StaticBody2D
 var arena_barrier: StaticBody2D
 var bow_arena_barrier: StaticBody2D
+var bow_arena_exit_barrier: StaticBody2D
 var bow_hand_chair: Sprite2D
 var bow_scouts: Array[Node2D] = []
 var seal_health := 3
@@ -518,15 +519,19 @@ func _unlock_arena() -> void:
 		arena_barrier.queue_free()
 
 func _lock_bow_arena() -> void:
-	if is_instance_valid(bow_arena_barrier):
-		return
-	bow_arena_barrier = _make_solid(Rect2(4450, -60, 32, 660))
+	if not is_instance_valid(bow_arena_barrier):
+		bow_arena_barrier = _make_solid(Rect2(4450, -60, 32, 660))
+	if not is_instance_valid(bow_arena_exit_barrier):
+		bow_arena_exit_barrier = _make_solid(Rect2(5850, -60, 32, 660))
 	queue_redraw()
 
 func _unlock_bow_arena() -> void:
 	if is_instance_valid(bow_arena_barrier):
 		bow_arena_barrier.queue_free()
-		arena_barrier = null
+	bow_arena_barrier = null
+	if is_instance_valid(bow_arena_exit_barrier):
+		bow_arena_exit_barrier.queue_free()
+	bow_arena_exit_barrier = null
 	queue_redraw()
 
 func _build_note_panel(layer: CanvasLayer) -> void:
@@ -909,6 +914,7 @@ func _safe_fall_position() -> Vector2:
 
 func _respawn() -> void:
 	_unlock_arena()
+	_unlock_bow_arena()
 	game_audio.play_cave()
 	player.global_position = checkpoint
 	last_safe_position = checkpoint
@@ -985,6 +991,10 @@ func _draw() -> void:
 		draw_rect(Rect2(4450, -60, 32, 660), Color(0.12, 0.18, 0.23))
 		for y in range(-48, 600, 32):
 			draw_rect(Rect2(4456, y, 20, 12), Color(0.72, 0.39, 0.31))
+	if is_instance_valid(bow_arena_exit_barrier) and not bow_arena_exit_barrier.is_queued_for_deletion():
+		draw_rect(Rect2(5850, -60, 32, 660), Color(0.12, 0.18, 0.23))
+		for y in range(-48, 600, 32):
+			draw_rect(Rect2(5856, y, 20, 12), Color(0.72, 0.39, 0.31))
 	draw_rect(Rect2(-1160, 380, 32, 220), Color(0.33, 0.30, 0.41))
 	draw_rect(Rect2(-1152, 405, 16, 170), Color(0.11, 0.17, 0.26))
 	draw_circle(Vector2(-1144, 490), 11, Color(0.81, 0.65, 0.38))

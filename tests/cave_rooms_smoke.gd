@@ -621,6 +621,45 @@ func _run() -> void:
 		return
 	world.player.global_position = Vector2(4466, 570)
 	await create_timer(0.7).timeout
+	if world.current_room != 5 or not world.bow_boss.active or not is_instance_valid(world.bow_arena_barrier) or not is_instance_valid(world.bow_arena_exit_barrier):
+		_fail("Bow Trial did not activate and lock both arena exits")
+		return
+	world.player.global_position = Vector2(5810, 570)
+	world.player.velocity = Vector2.ZERO
+	_key(KEY_D, true)
+	for i in 20:
+		await physics_frame
+	_key(KEY_D, false)
+	if world.current_room != 5 or world.player.global_position.x >= 5850.0:
+		_fail("Player walked through the right side of the archer arena")
+		return
+	world.player.health = 1
+	world.player.take_damage(1, world.bow_boss.global_position.x)
+	await create_timer(1.15).timeout
+	if world.current_room != 3 or absf(world.player.global_position.x - 2610.0) > 3.0 or is_instance_valid(world.bow_arena_barrier) or is_instance_valid(world.bow_arena_exit_barrier):
+		_fail("Archer death did not return to the checkpoint and clear the arena locks")
+		return
+	world.player.global_position = Vector2(3086, 570)
+	await create_timer(0.7).timeout
+	if world.current_room != 4:
+		_fail("Could not return to Room 4 after archer death")
+		return
+	world.player.global_position = Vector2(4466, 570)
+	await create_timer(0.7).timeout
+	if world.current_room != 5 or not world.bow_boss.active or not is_instance_valid(world.bow_arena_barrier) or not is_instance_valid(world.bow_arena_exit_barrier):
+		_fail("Could not re-enter the archer arena after death")
+		return
+	world._on_bow_boss_defeated()
+	if not world.player.has_bow or is_instance_valid(world.bow_arena_barrier) or is_instance_valid(world.bow_arena_exit_barrier):
+		_fail("Archer defeat did not award the bow and unlock both exits")
+		return
+	world.player.global_position = Vector2(5866, 570)
+	await create_timer(0.7).timeout
+	if world.current_room != 6:
+		_fail("Bow Trial exit did not lead to the Bow Tutorial")
+		return
+	world.player.global_position = Vector2(7266, 570)
+	await create_timer(0.7).timeout
 	if current_scene == null or current_scene.name != "ForestEntry":
 		_fail("Forest exit did not load the forest room")
 		return
