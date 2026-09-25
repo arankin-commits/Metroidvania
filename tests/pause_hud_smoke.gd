@@ -58,8 +58,12 @@ func _run() -> void:
 	Input.parse_input_event(heal_press)
 	await physics_frame
 	await physics_frame
+	if world.player.health != 3 or world.player.healing_charges != 3 or world.player.heal_time <= 0.0:
+		_fail("Healing did not begin with a visible delay")
+		return
+	await create_timer(0.75).timeout
 	if world.player.health != 5 or world.player.healing_charges != 2:
-		_fail("F did not consume one healing charge and heal")
+		_fail("Healing did not complete after the animation")
 		return
 	var heal_release := InputEventKey.new()
 	heal_release.physical_keycode = KEY_F

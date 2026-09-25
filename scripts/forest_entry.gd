@@ -35,11 +35,10 @@ func _ready() -> void:
 		visited_rooms.append(5)
 		visited_rooms.sort()
 	_make_solid(Rect2(0, 600, 1200, 120))
-	_make_solid(Rect2(-40, 350, 40, 250))
 	_make_solid(Rect2(1200, 350, 40, 250))
 	player = PLAYER_SCRIPT.new()
 	player.position = Vector2(120, 570)
-	player.has_dash = bool(saved_data.get("has_dash", false))
+	player.has_dash = true
 	player.has_heavy = bool(saved_data.get("has_heavy", false))
 	player.healing_charges = int(saved_data.get("healing_charges", 3))
 	add_child(player)
@@ -91,7 +90,7 @@ func _process(delta: float) -> void:
 	if save_timer >= 10.0:
 		save_timer = 0.0
 		_save_progress()
-	if not transitioning and player.global_position.x < 40.0:
+	if not transitioning and player.global_position.x <= -14.0:
 		_return_to_cave()
 	hud.health = player.health
 	hud.max_health = player.max_health
@@ -128,7 +127,7 @@ func _completed_rooms() -> Array[int]:
 		completed.append(1)
 	if visited_rooms.has(2) and bool(saved_data.get("secret_found", false)):
 		completed.append(2)
-	if visited_rooms.has(3) and bool(saved_data.get("note_found", false)) and player.has_dash:
+	if visited_rooms.has(3) and bool(saved_data.get("note_found", false)):
 		completed.append(3)
 	if visited_rooms.has(4) and bool(saved_data.get("boss_defeated", false)):
 		completed.append(4)
@@ -147,7 +146,7 @@ func _save_progress() -> void:
 	data["will"] = will_amount
 	data["level"] = player_level
 	data["healing_charges"] = player.healing_charges
-	data["checkpoint_x"] = 120.0
+	data["checkpoint_x"] = float(saved_data.get("checkpoint_x", 120.0))
 	data["has_dash"] = player.has_dash
 	data["has_heavy"] = player.has_heavy
 	data["visited_rooms"] = visited_rooms.duplicate()
