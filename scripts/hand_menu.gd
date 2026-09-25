@@ -9,14 +9,21 @@ func _ready() -> void:
 	layer = 150
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	var shade := ColorRect.new()
-	shade.color = Color(0.015, 0.035, 0.055, 0.88)
+	shade.color = Color(0.015, 0.035, 0.055, 0.16)
 	shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(shade)
-	var center := CenterContainer.new()
+	var center := Control.new()
 	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	shade.add_child(center)
 	var panel := PanelContainer.new()
-	panel.custom_minimum_size = Vector2(620, 440)
+	panel.custom_minimum_size = Vector2(440, 440)
+	panel.anchor_left = 1.0
+	panel.anchor_right = 1.0
+	panel.anchor_top = 0.12
+	panel.anchor_bottom = 0.12
+	panel.offset_left = -464.0
+	panel.offset_right = -24.0
+	panel.offset_bottom = 440.0
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color(0.045, 0.09, 0.12)
 	style.border_color = Color(0.42, 0.81, 0.72)
@@ -39,9 +46,9 @@ func _ready() -> void:
 	_add_button(row, "SAVE", _save)
 	_add_button(row, "PREVIOUS NOTES", _show_notes)
 	content = Label.new()
-	content.custom_minimum_size = Vector2(560, 245)
+	content.custom_minimum_size = Vector2(390, 245)
 	content.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	content.add_theme_font_size_override("font_size", 20)
+	content.add_theme_font_size_override("font_size", 18)
 	content.add_theme_color_override("font_color", Color("e9ead8"))
 	column.add_child(content)
 	status = Label.new()
@@ -62,15 +69,16 @@ func show_menu() -> void:
 	status.text = ""
 	_show_abilities()
 	visible = true
-	get_tree().paused = true
 
 func hide_menu() -> void:
+	if not visible:
+		return
 	visible = false
-	get_tree().paused = false
+	world.end_hand_meditation()
 
 func _show_abilities() -> void:
 	title.text = "ABILITIES"
-	content.text = "Jump: Space / W / Up\nGround dodge: K / Shift\nAir dash: K / Shift while airborne\nLedge climb: Jump / Up while hanging\nDrop through: hold S / Down + Jump\nAerial strike: J / X while airborne\nHeal: F\nCharged heavy attack: %s" % ("hold and release H" if world.player.has_heavy else "defeat the Hollow Warden")
+	content.text = "Jump: Space / W / Up\nGround dodge: K / Shift\nAir dash: K / Shift while airborne\nLedge climb: Jump / Up / toward ledge\nDrop through: hold S / Down + Jump\nAerial strike: J / X while airborne\nHeal: F\nCharged heavy attack: %s" % ("hold and release H" if world.player.has_heavy else "defeat the Hollow Warden")
 
 func _show_notes() -> void:
 	title.text = "PREVIOUS NOTES"

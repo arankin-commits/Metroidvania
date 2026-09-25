@@ -65,6 +65,7 @@ var saved_boss_defeated := false
 var saved_heavy := false
 var saved_seal_broken := false
 var saved_scout_defeated := false
+var sentinel_defeated := false
 var current_room := 2
 var transitioning_room := false
 var wall_broken := false
@@ -99,6 +100,7 @@ func _ready() -> void:
 			player_level = int(data.get("level", 1))
 			saved_healing_charges = int(data.get("healing_charges", 3))
 			saved_aerial_practiced = bool(data.get("aerial_practiced", false))
+			sentinel_defeated = bool(data.get("sentinel_defeated", saved_aerial_practiced))
 			jump_practiced = bool(data.get("jump_practiced", false))
 			dodge_practiced = bool(data.get("dodge_practiced", false))
 			drop_practiced = bool(data.get("drop_practiced", false))
@@ -151,6 +153,7 @@ func _ready() -> void:
 		exit_barrier.queue_free()
 	player = PLAYER_SCRIPT.new()
 	player.name = "Player"
+	player.z_index = 3
 	player.position = spawn_position
 	player.has_dash = true
 	player.has_heavy = saved_heavy
@@ -181,7 +184,7 @@ func _ready() -> void:
 	ledge_sentinel.player = player
 	add_child(ledge_sentinel)
 	ledge_sentinel.defeated.connect(_on_ledge_sentinel_defeated)
-	if saved_aerial_practiced:
+	if sentinel_defeated:
 		ledge_sentinel.queue_free()
 	boss = BOSS_SCRIPT.new()
 	boss.name = "HollowWarden"
@@ -240,7 +243,7 @@ func _add_hand_chair() -> void:
 	hand_chair.texture = HAND_CHAIR
 	hand_chair.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	hand_chair.scale = Vector2(0.096, 0.096)
-	hand_chair.position = Vector2(2610, 538)
+	hand_chair.position = Vector2(2610, 546)
 	hand_chair.z_index = 2
 	add_child(hand_chair)
 
@@ -310,7 +313,7 @@ func _process(delta: float) -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo and event.physical_keycode in [KEY_M, KEY_TAB]:
-		if not note_open and not transitioning_room and not get_tree().paused:
+		if not note_open and not transitioning_room and not hand_menu.visible and not get_tree().paused:
 			world_map.show_map(visited_rooms, _completed_rooms(), current_room)
 			get_viewport().set_input_as_handled()
 		return
@@ -321,8 +324,9 @@ func _unhandled_input(event: InputEvent) -> void:
 			_open_sigil()
 		elif current_room == 3 and not note_found and player.global_position.distance_to(NOTE_POSITION) < 65.0:
 			_open_note()
-		elif current_room == 3 and player.global_position.distance_to(hand_chair.global_position) < 70.0:
+		elif current_room == 3 and player.meditation_state.is_empty() and player.global_position.distance_to(hand_chair.global_position) < 70.0:
 			activate_hand()
+			player.begin_meditation(hand_chair.global_position)
 			hand_menu.show_menu()
 		get_viewport().set_input_as_handled()
 		return
@@ -526,6 +530,7 @@ func _on_scout_defeated() -> void:
 
 func _on_ledge_sentinel_defeated() -> void:
 	aerial_practiced = true
+	sentinel_defeated = true
 	_spawn_will_orb(ledge_sentinel.global_position, 5)
 	_show_toast("The ledge is clear. Jump up and continue.", 2.8)
 	_save_progress()
@@ -535,7 +540,6 @@ func _on_boss_defeated() -> void:
 	_unlock_arena()
 	_spawn_will_orb(boss.global_position, 50)
 	player.has_heavy = true
-	player.heal_full()
 	_show_toast("HEAVY ATTACK UNLOCKED - Hold H, release when charged", 4.0)
 	_save_progress()
 	queue_redraw()
@@ -560,13 +564,46 @@ func _on_player_damaged() -> void:
 func activate_hand() -> void:
 	checkpoint = Vector2(2610, 570)
 	hand_activated = true
+	_respawn_regular_enemies()
 	_save_progress()
 
 func save_at_hand() -> void:
-	activate_hand()
+	if not hand_activated:
+		activate_hand()
 	player.heal_full()
 	player.healing_charges = player.max_healing_charges
 	_save_progress()
+
+func end_hand_meditation() -> void:
+	player.end_meditation()
+
+func _respawn_regular_enemies() -> void:
+	saved_scout_defeated = false
+	sentinel_defeated = false
+	if is_instance_valid(scout) and not scout.is_queued_for_deletion():
+		scout.health = scout.max_health
+		scout.global_position = Vector2(1175, 579)
+		scout.velocity = Vector2.ZERO
+		scout.hit_cooldown = 0.0
+		scout.queue_redraw()
+	else:
+		scout = SCOUT_SCRIPT.new()
+		scout.name = "Scout"
+		scout.position = Vector2(1175, 579)
+		scout.player = player
+		add_child(scout)
+		scout.defeated.connect(_on_scout_defeated)
+	if is_instance_valid(ledge_sentinel) and not ledge_sentinel.is_queued_for_deletion():
+		ledge_sentinel.health = ledge_sentinel.max_health
+		ledge_sentinel.hit_cooldown = 0.0
+		ledge_sentinel.queue_redraw()
+	else:
+		ledge_sentinel = LEDGE_SENTINEL.new()
+		ledge_sentinel.name = "LedgeSentinel"
+		ledge_sentinel.position = Vector2(1058, 485)
+		ledge_sentinel.player = player
+		add_child(ledge_sentinel)
+		ledge_sentinel.defeated.connect(_on_ledge_sentinel_defeated)
 
 func _save_progress() -> void:
 	if active_save_slot <= 0:
@@ -582,6 +619,7 @@ func _save_progress() -> void:
 	data["hand_activated"] = hand_activated
 	data["has_dash"] = player.has_dash
 	data["aerial_practiced"] = aerial_practiced
+	data["sentinel_defeated"] = sentinel_defeated
 	data["jump_practiced"] = jump_practiced
 	data["dodge_practiced"] = dodge_practiced
 	data["drop_practiced"] = drop_practiced
@@ -702,6 +740,7 @@ func _update_hud() -> void:
 func _draw() -> void:
 	for rect in platforms:
 		_draw_cave_terrain(rect)
+	draw_rect(Rect2(2567, 594, 86, 6), Color(0.035, 0.075, 0.10, 0.62))
 	if is_instance_valid(arena_barrier) and not arena_barrier.is_queued_for_deletion():
 		draw_rect(Rect2(3070, -60, 32, 660), Color(0.12, 0.18, 0.23))
 		for y in range(-48, 600, 32):

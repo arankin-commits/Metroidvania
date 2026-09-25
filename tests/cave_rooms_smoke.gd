@@ -116,6 +116,19 @@ func _run() -> void:
 	if not world.get_world_2d().direct_space_state.intersect_ray(air_path).is_empty():
 		_fail("A wall still blocks the aerial enemy's ledge")
 		return
+	world.player.global_position = Vector2(995, 470)
+	world.player.velocity = Vector2.ZERO
+	world.player.facing = 1
+	world.player.dash_cooldown = 0.0
+	await physics_frame
+	_key(KEY_K, true)
+	for i in 12:
+		await physics_frame
+	_key(KEY_K, false)
+	if world.player.global_position.x <= world.ledge_sentinel.global_position.x + 28.0:
+		_fail("The ledge enemy blocked an air dash")
+		return
+	world.player.dash_time = 0.0
 	world.player.global_position = Vector2(995, 490)
 	world.player.facing = 1
 	await physics_frame
@@ -192,6 +205,14 @@ func _run() -> void:
 		_fail("Pressing into the wall changed drop-through fall speed")
 		return
 	await create_timer(0.45).timeout
+	world.player.global_position = Vector2(1565, 497)
+	world.player.reset_movement_state()
+	await physics_frame
+	await physics_frame
+	await create_timer(0.12).timeout
+	if absf(world.player.global_position.y - drop_without_wall_input) > 8.0:
+		_fail("Drop-through descent was faster than normal falling")
+		return
 	# The raised platform puts the Sigil within interaction range.
 	world.player.global_position = Vector2(510, 502)
 	await process_frame
@@ -266,8 +287,26 @@ func _run() -> void:
 	if world.current_room != 3:
 		_fail("Could not return to Room 3 after death")
 		return
+	var covered_ledge: StaticBody2D = world._make_solid(Rect2(2010, 390, 150, 80))
 	world.player.global_position = Vector2(1970, 577)
-	world.player.velocity = Vector2.ZERO
+	world.player.reset_movement_state()
+	world.player.facing = 1
+	await physics_frame
+	await physics_frame
+	_key(KEY_D, true)
+	_key(KEY_SPACE, true)
+	for i in 14:
+		await physics_frame
+	_key(KEY_D, false)
+	_key(KEY_SPACE, false)
+	if world.player.ledge_grabbed or world.player.ledge_climb_time > 0.0:
+		_fail("A fully covered ledge was treated as climbable")
+		return
+	covered_ledge.queue_free()
+	await physics_frame
+	await physics_frame
+	world.player.global_position = Vector2(1970, 577)
+	world.player.reset_movement_state()
 	world.player.facing = 1
 	await physics_frame
 	await physics_frame
@@ -301,7 +340,6 @@ func _run() -> void:
 		await physics_frame
 	_key(KEY_K, false)
 	if not world.player.ledge_grabbed and world.player.ledge_climb_time <= 0.0:
-		print("DASH_LEDGE_DEBUG pos=", world.player.global_position, " dash=", world.player.dash_time, " wall=", world.player.is_on_wall(), " normal=", world.player.get_wall_normal(), " floor=", world.player.is_on_floor(), " facing=", world.player.facing)
 		_fail("Air dashing into a head-height edge did not catch the ledge")
 		return
 	if world.player.ledge_grabbed:
@@ -313,11 +351,20 @@ func _run() -> void:
 	if world.player.global_position.y > 455.0:
 		_fail("Forward input did not climb after the air dash")
 		return
+	world.scout.health = 1
+	world.boss.health = 3
 	world.player.global_position = Vector2(2610, 570)
 	_interact()
 	await process_frame
-	if not world.hand_menu.visible or not paused or not world.hand_menu.content.text.contains("Air dash") or not world.hand_activated or world.checkpoint.x != 2610.0:
+	if not world.hand_menu.visible or paused or not world.hand_menu.content.text.contains("Air dash") or not world.hand_activated or world.checkpoint.x != 2610.0:
 		_fail("The Room 3 hand did not open its abilities menu")
+		return
+	if not is_instance_valid(world.ledge_sentinel) or world.ledge_sentinel.health != 2 or world.scout.health != 2 or world.boss.health != 3:
+		_fail("Interacting with the hand did not restore regular enemies only")
+		return
+	await create_timer(0.45).timeout
+	if world.player.meditation_state != "meditate" or absf(world.player.global_position.x - 2610.0) > 2.0 or world.player.global_position.y > 515.0:
+		_fail("The player did not hop onto the hand and meditate")
 		return
 	world.player.health = 2
 	world.hand_menu._save()
@@ -328,11 +375,12 @@ func _run() -> void:
 	if not world.hand_menu.content.text.contains("CAVE SIGIL"):
 		_fail("The hand did not retain the collected Cave Sigil")
 		return
-	_map_key(KEY_ESCAPE)
-	await process_frame
-	if world.hand_menu.visible or paused or world.pause_menu.visible:
-		_fail("Esc did not close the hand menu cleanly")
+	_interact()
+	await create_timer(0.4).timeout
+	if world.hand_menu.visible or paused or world.pause_menu.visible or not world.player.meditation_state.is_empty() or not world.player.controls_enabled or absf(world.player.global_position.x - 2695.0) > 3.0:
+		_fail("E did not end meditation and hop off the hand")
 		return
+	world.boss.health = world.boss.max_health
 	world.player.global_position = world.NOTE_POSITION
 	_interact()
 	await process_frame
@@ -376,8 +424,9 @@ func _run() -> void:
 	if world.current_room != 4 or not world.boss.active or not is_instance_valid(world.arena_barrier):
 		_fail("Warden arena did not lock on retry")
 		return
+	world.player.health = 2
 	world._on_boss_defeated()
-	if not world.player.has_heavy or world.wall_broken or is_instance_valid(world.arena_barrier):
+	if not world.player.has_heavy or world.wall_broken or is_instance_valid(world.arena_barrier) or world.player.health != 2:
 		_fail("Boss reward or cracked wall state is wrong")
 		return
 	world.boss.active = false

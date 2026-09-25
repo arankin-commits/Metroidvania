@@ -4,6 +4,7 @@ signal defeated
 
 var player: CharacterBody2D
 var health := 2
+var max_health := 2
 var hit_cooldown := 0.0
 
 func _process(delta: float) -> void:
@@ -12,6 +13,8 @@ func _process(delta: float) -> void:
 		return
 	var bounds := Rect2(global_position - Vector2(20, 27), Vector2(40, 54))
 	var player_bounds := Rect2(player.global_position - Vector2(14, 23), Vector2(28, 46))
+	if player.dash_time > 0.0:
+		return
 	if hit_cooldown <= 0.0 and bounds.intersects(player_bounds):
 		player.take_damage(1, global_position.x)
 		hit_cooldown = 0.8
@@ -40,5 +43,6 @@ func _draw() -> void:
 	draw_rect(Rect2(-14, 10, 28, 12), Color(0.28, 0.17, 0.30))
 	draw_rect(Rect2(-11, -10, 8, 5), Color(1.0, 0.76, 0.48))
 	draw_rect(Rect2(4, -10, 8, 5), Color(1.0, 0.76, 0.48))
-	for i in health:
-		draw_rect(Rect2(-9 + i * 10, -32, 7, 3), Color(0.96, 0.59, 0.42))
+	draw_rect(Rect2(-21, -39, 42, 7), Color(0.04, 0.10, 0.14))
+	draw_rect(Rect2(-19, -37, 38, 3), Color(0.25, 0.32, 0.36))
+	draw_rect(Rect2(-19, -37, 38.0 * float(health) / float(max_health), 3), Color(0.96, 0.59, 0.42))

@@ -54,6 +54,12 @@ var drop_platform: StaticBody2D
 var drop_region := Rect2()
 var drop_ignore_timer := 0.0
 var drop_exception_active := false
+var meditation_state := ""
+var meditation_time := 0.0
+var meditation_duration := 0.0
+var meditation_from := Vector2.ZERO
+var meditation_to := Vector2.ZERO
+var meditation_chair := Vector2.ZERO
 
 func _ready() -> void:
 	add_to_group("mcp_watch")
@@ -79,6 +85,9 @@ func _ready() -> void:
 	add_child(footstep_audio)
 
 func _physics_process(delta: float) -> void:
+	if not meditation_state.is_empty():
+		_advance_meditation(delta)
+		return
 	if drop_ignore_timer > 0.0:
 		drop_ignore_timer = maxf(0.0, drop_ignore_timer - delta)
 	if drop_exception_active and drop_ignore_timer <= 0.0 and global_position.y - 23.0 > drop_region.end.y + 2.0 and is_instance_valid(drop_platform):
@@ -145,8 +154,8 @@ func _physics_process(delta: float) -> void:
 		drop_exception_active = true
 		drop_ignore_timer = 0.40
 		floor_block_on_wall = false
-		global_position.y += 8.0
-		velocity.y = 500.0
+		global_position.y += 1.0
+		velocity.y = maxf(0.0, velocity.y)
 		jump_buffer = 0.0
 		dropping = true
 		platform_dropped.emit()
@@ -198,8 +207,6 @@ func _physics_process(delta: float) -> void:
 			facing = 1 if direction > 0 else -1
 		velocity.x = move_toward(velocity.x, direction * SPEED, 1700.0 * delta)
 		velocity.y += GRAVITY * delta
-		if drop_ignore_timer > 0.0:
-			velocity.y = maxf(velocity.y, 500.0)
 		if jump_buffer > 0.0 and coyote_time > 0.0:
 			velocity.y = JUMP_SPEED
 			jumped.emit()
@@ -234,8 +241,17 @@ func _try_grab_ledge() -> void:
 	var top_y: float = hit.position.y
 	if absf(top_y - head_y) > 18.0 or global_position.y <= top_y + 4.0:
 		return
+	var landing_position := Vector2(global_position.x + facing * 34.0, top_y - 23.0)
+	var clearance_shape := RectangleShape2D.new()
+	clearance_shape.size = Vector2(26, 44)
+	var clearance := PhysicsShapeQueryParameters2D.new()
+	clearance.shape = clearance_shape
+	clearance.transform = Transform2D(0.0, landing_position + Vector2(0, -1))
+	clearance.exclude = [get_rid()]
+	if not get_world_2d().direct_space_state.intersect_shape(clearance, 4).is_empty():
+		return
 	ledge_grabbed = true
-	ledge_top = Vector2(global_position.x + facing * 34.0, top_y - 23.0)
+	ledge_top = landing_position
 	dash_time = 0.0
 	velocity = Vector2.ZERO
 	queue_redraw()
@@ -262,6 +278,7 @@ func heal_full() -> void:
 
 func reset_movement_state() -> void:
 	velocity = Vector2.ZERO
+	meditation_state = ""
 	dash_time = 0.0
 	dash_cooldown = 0.0
 	jump_buffer = 0.0
@@ -275,10 +292,58 @@ func reset_movement_state() -> void:
 	floor_block_on_wall = true
 	queue_redraw()
 
+func begin_meditation(chair_position: Vector2) -> void:
+	reset_movement_state()
+	controls_enabled = false
+	meditation_chair = chair_position
+	meditation_from = global_position
+	meditation_to = chair_position + Vector2(0, -35)
+	meditation_duration = 0.36
+	meditation_time = meditation_duration
+	meditation_state = "enter"
+	queue_redraw()
+
+func end_meditation() -> void:
+	if meditation_state.is_empty() or meditation_state == "exit":
+		return
+	meditation_from = global_position
+	meditation_to = Vector2(meditation_chair.x + 85.0, 570.0)
+	meditation_duration = 0.32
+	meditation_time = meditation_duration
+	meditation_state = "exit"
+	queue_redraw()
+
+func _advance_meditation(delta: float) -> void:
+	velocity = Vector2.ZERO
+	if meditation_state == "meditate":
+		queue_redraw()
+		return
+	meditation_time = maxf(0.0, meditation_time - delta)
+	var progress := 1.0 - meditation_time / meditation_duration
+	global_position = meditation_from.lerp(meditation_to, progress) + Vector2(0, -sin(PI * progress) * 20.0)
+	if meditation_time <= 0.0:
+		if meditation_state == "enter":
+			meditation_state = "meditate"
+		else:
+			meditation_state = ""
+			controls_enabled = true
+	queue_redraw()
+
 func _draw() -> void:
 	var alpha := 0.55 if invulnerability > 0.0 and Engine.get_physics_frames() % 6 < 3 else 1.0
 	var cloak := Color(0.13, 0.80, 0.79, alpha)
 	var dark := Color(0.08, 0.16, 0.25, alpha)
+	if not meditation_state.is_empty():
+		var pulse := 0.24 + 0.08 * sin(float(Engine.get_physics_frames()) * 0.12)
+		draw_circle(Vector2(0, -4), 30, Color(0.28, 0.95, 0.83, pulse))
+		draw_rect(Rect2(-13, -15, 26, 30), cloak)
+		draw_rect(Rect2(-11, -28, 22, 18), dark)
+		draw_rect(Rect2(-5, -21, 4, 3), Color(1.0, 0.87, 0.52, alpha))
+		draw_rect(Rect2(3, -21, 4, 3), Color(1.0, 0.87, 0.52, alpha))
+		draw_rect(Rect2(-18, 11, 36, 8), dark)
+		draw_rect(Rect2(-21, 2, 14, 6), cloak)
+		draw_rect(Rect2(7, 2, 14, 6), cloak)
+		return
 	draw_circle(Vector2(0, -6), 24, Color(0.08, 0.79, 0.82, 0.12 * alpha))
 	draw_colored_polygon(PackedVector2Array([Vector2(-13, -16), Vector2(13, -16), Vector2(18, 22), Vector2(0, 13), Vector2(-18, 22)]), cloak)
 	draw_rect(Rect2(-11, -24, 22, 19), dark)
