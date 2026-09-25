@@ -14,6 +14,12 @@ const EFFECTS := {
 	"warden_charge": preload("res://assets/warden_charge.wav"),
 	"warden_slam_tell": preload("res://assets/warden_slam_tell.wav"),
 	"warden_slam": preload("res://assets/warden_slam.wav"),
+	"ui_move": preload("res://assets/menu_hover.wav"),
+	"ui_confirm": preload("res://assets/menu_click.wav"),
+	"fast_travel_select": preload("res://assets/fast_travel_select.wav"),
+	"fast_travel_confirm": preload("res://assets/fast_travel_confirm.wav"),
+	"hand_mount": preload("res://assets/hand_mount.wav"),
+	"hand_dismount": preload("res://assets/hand_dismount.wav"),
 }
 
 var music: AudioStreamPlayer
@@ -24,8 +30,10 @@ var sound_volume := 0.75
 var option_timer := 0.0
 
 func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	music = AudioStreamPlayer.new()
 	music.name = "Music"
+	music.process_mode = Node.PROCESS_MODE_ALWAYS
 	music.finished.connect(func() -> void:
 		if not current_track.is_empty():
 			music.play())
@@ -34,6 +42,7 @@ func _ready() -> void:
 		var player := AudioStreamPlayer.new()
 		player.name = str(cue)
 		player.stream = EFFECTS[cue]
+		player.process_mode = Node.PROCESS_MODE_ALWAYS
 		add_child(player)
 		effects[cue] = player
 	_refresh_options()

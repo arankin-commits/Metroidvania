@@ -104,8 +104,13 @@ func _run() -> void:
 	if not paused or not world.pause_menu.visible:
 		_fail("Esc did not open the pause overlay")
 		return
+	var paused_music_position: float = world.game_audio.music.get_playback_position()
+	await create_timer(0.2).timeout
+	if world.game_audio.music.get_playback_position() <= paused_music_position + 0.05:
+		_fail("Biome music stopped in the pause menu")
+		return
 	world.pause_menu._show_options()
-	if not world.pause_menu.options_page.visible:
+	if not world.pause_menu.options_page.visible or not (world.game_audio.effects["ui_confirm"] as AudioStreamPlayer).playing:
 		_fail("Pause Options did not open")
 		return
 	_press_escape()

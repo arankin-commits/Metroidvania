@@ -103,6 +103,9 @@ func _slider(parent: Node, amount: float) -> HSlider:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo and event.physical_keycode == KEY_ESCAPE:
+		var game: Variant = get_parent().get("game_menu")
+		if game is CanvasLayer and game.visible:
+			return
 		get_viewport().set_input_as_handled()
 		var map: Variant = get_parent().get("world_map")
 		if map is CanvasLayer and map.visible:
@@ -123,29 +126,40 @@ func _can_pause() -> bool:
 	var overlay: Variant = get_parent().get("loading_overlay")
 	var map: Variant = get_parent().get("world_map")
 	var hand: Variant = get_parent().get("hand_menu")
-	return not (overlay is CanvasLayer and overlay.visible) and not (map is CanvasLayer and map.visible) and not (hand is CanvasLayer and hand.visible)
+	var game: Variant = get_parent().get("game_menu")
+	return not (overlay is CanvasLayer and overlay.visible) and not (map is CanvasLayer and map.visible) and not (hand is CanvasLayer and hand.visible) and not (game is CanvasLayer and game.visible)
 
 func _open() -> void:
+	_play_ui()
 	main_page.visible = true
 	options_page.visible = false
 	visible = true
 	get_tree().paused = true
 
 func _resume() -> void:
+	_play_ui()
 	get_tree().paused = false
 	visible = false
 
 func _show_options() -> void:
+	_play_ui()
 	main_page.visible = false
 	options_page.visible = true
 
 func _show_main() -> void:
+	_play_ui()
 	main_page.visible = true
 	options_page.visible = false
 
 func _main_menu() -> void:
+	_play_ui()
 	get_tree().paused = false
 	get_tree().change_scene_to_file("res://scenes/main_menu.tscn")
+
+func _play_ui() -> void:
+	var sound: Variant = get_parent().get("game_audio")
+	if sound is Node:
+		sound.play_effect("ui_confirm")
 
 func _load_options() -> void:
 	var config := ConfigFile.new()

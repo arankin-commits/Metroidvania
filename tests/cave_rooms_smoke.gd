@@ -37,11 +37,71 @@ func _run() -> void:
 	if not world.world_map.visible or not paused or world.world_map.visited_rooms != [2]:
 		_fail("M did not open the discovery map")
 		return
-	_map_key(KEY_TAB)
+	var map_music_position: float = world.game_audio.music.get_playback_position()
+	await create_timer(0.2).timeout
+	if world.game_audio.music.get_playback_position() <= map_music_position + 0.05:
+		_fail("Biome music stopped while the map was open")
+		return
+	_map_key(KEY_M)
 	await process_frame
 	if world.world_map.visible or paused:
-		_fail("Tab did not close the map")
+		_fail("M did not close the quick map")
 		return
+	_map_key(KEY_TAB)
+	await process_frame
+	if not world.game_menu.visible or not paused or world.game_menu.current_tab != 0:
+		_fail("Tab did not open the status menu")
+		return
+	var menu_music_position: float = world.game_audio.music.get_playback_position()
+	await create_timer(0.2).timeout
+	if world.game_audio.music.get_playback_position() <= menu_music_position + 0.05:
+		_fail("Biome music stopped while the game menu was open")
+		return
+	_map_key(KEY_E)
+	await process_frame
+	if world.game_menu.current_tab != 1 or world.game_menu.will_name.text != "NO WILLS YET" or not (world.game_audio.effects["ui_move"] as AudioStreamPlayer).playing:
+		_fail("E did not switch to the locked Wills section")
+		return
+	world.game_menu.next_button.pressed.emit()
+	if world.game_menu.current_tab != 2 or world.game_menu.note_title.text != "???":
+		_fail("The header E button did not open locked Notes")
+		return
+	world.game_menu.next_button.pressed.emit()
+	if world.game_menu.current_tab != 3 or not world.game_menu.ability_name.text.contains("JUMP"):
+		_fail("Abilities did not follow Notes")
+		return
+	world.game_menu.previous_button.pressed.emit()
+	if world.game_menu.current_tab != 2:
+		_fail("The header Q button did not move left")
+		return
+	_map_key(KEY_Q)
+	await process_frame
+	if world.game_menu.current_tab != 1:
+		_fail("Q did not switch back to Wills")
+		return
+	_map_key(KEY_Q)
+	await process_frame
+	if world.game_menu.current_tab != 0:
+		_fail("Q did not switch back to Status")
+		return
+	world.game_menu.tab_buttons[2].pressed.emit()
+	if world.game_menu.current_tab != 2 or world.game_menu.note_title.text != "???":
+		_fail("Mouse tab selection or locked note placeholder failed")
+		return
+	_map_key(KEY_TAB)
+	await process_frame
+	if world.game_menu.visible or paused:
+		_fail("Tab did not close the game menu")
+		return
+	_map_key(KEY_M)
+	await process_frame
+	_map_key(KEY_TAB)
+	await process_frame
+	if world.world_map.visible or not world.game_menu.visible or world.game_menu.current_tab != 4:
+		_fail("Tab did not switch the quick map into the menu map section")
+		return
+	_map_key(KEY_TAB)
+	await process_frame
 	_map_key(KEY_M)
 	await process_frame
 	_map_key(KEY_ESCAPE)
@@ -288,7 +348,7 @@ func _run() -> void:
 	world.player.global_position = Vector2(2300, 800)
 	await process_frame
 	await process_frame
-	if not world.respawning or world.player.health != 0:
+	if not world.respawning or world.player.health != 0 or world.player.death_active:
 		_fail("A pit fall at 20 percent health did not cause death")
 		return
 	await create_timer(1.15).timeout
@@ -369,8 +429,8 @@ func _run() -> void:
 	world.player.global_position = Vector2(2610, 570)
 	_interact()
 	await process_frame
-	if not world.hand_menu.visible or paused or not world.hand_menu.content.text.contains("Air dash") or not world.hand_activated or world.checkpoint.x != 2610.0:
-		_fail("The Room 3 hand did not open its abilities menu")
+	if not world.hand_menu.visible or paused or world.hand_menu.title.text != "THE OPEN HAND" or world.hand_menu.subtitle.text != "MEDITATE" or not world.hand_activated or world.checkpoint.x != 2610.0 or not (world.game_audio.effects["hand_mount"] as AudioStreamPlayer).playing:
+		_fail("The Room 3 hand did not open its meditation menu")
 		return
 	if not is_instance_valid(world.ledge_sentinel) or world.ledge_sentinel.health != 2 or world.scout.health != 2 or world.boss.health != 3:
 		_fail("Interacting with the hand did not restore regular enemies only")
@@ -379,16 +439,50 @@ func _run() -> void:
 	if world.player.meditation_state != "meditate" or absf(world.player.global_position.x - 2610.0) > 2.0 or world.player.global_position.y > 515.0:
 		_fail("The player did not hop onto the hand and meditate")
 		return
+	world.hand_menu._show_travel()
+	await process_frame
+	if world.hand_menu.visible or not world.world_map.visible or not world.world_map.fast_travel or not world.world_map.travel_panel.visible or not paused or not (world.game_audio.effects["fast_travel_select"] as AudioStreamPlayer).playing:
+		_fail("Fast travel did not open the full-screen map")
+		return
+	var travel_music_position: float = world.game_audio.music.get_playback_position()
+	await create_timer(0.2).timeout
+	if world.game_audio.music.get_playback_position() <= travel_music_position + 0.05:
+		_fail("Biome music stopped while Fast Travel was open")
+		return
+	if world.world_map.unlocked_hands.size() != 1 or world.world_map.selected_hand != 0 or world.world_map.travel_list.get_child_count() != 1 or not world.world_map.travel_button.disabled:
+		_fail("Fast travel did not list the unlocked current hand")
+		return
+	var placement: Dictionary = world.world_map.MAP_ART.layout(world.world_map.panel.size, 3)
+	var hand_screen_x: float = placement.origin_x + world.world_map.MAP_ART.room_center_world(3) * placement.scale
+	if absf(hand_screen_x - world.world_map.panel.size.x * 0.6) > 1.0:
+		_fail("Selecting the hand did not pan its room to 60 percent of the map")
+		return
+	world.world_map.hide_map()
+	if not world.hand_menu.visible or paused:
+		_fail("Closing Fast Travel did not return to meditation")
+		return
+	world.hand_menu._show_abilities()
+	if world.hand_menu.visible or not world.game_menu.visible or not paused or world.game_menu.current_tab != 3:
+		_fail("Hand Abilities did not open the abilities section")
+		return
+	world.game_menu._show_tab(2)
+	if not world.game_menu.note_title.text.contains("CAVE SIGIL"):
+		_fail("The menu did not retain the collected Cave Sigil")
+		return
+	world.game_menu.close_menu()
+	if not world.hand_menu.visible or paused or world.player.meditation_state != "meditate":
+		_fail("Closing Abilities did not return to meditation")
+		return
 	world.player.health = 2
 	world.hand_menu._save()
 	if world.player.health != world.player.max_health or SAVE_SLOTS.load_slot(3, TEST_ROOT).get("checkpoint_x") != 2610.0:
 		_fail("The Room 3 hand did not set the checkpoint and save")
 		return
-	world.hand_menu._show_notes()
-	if not world.hand_menu.content.text.contains("CAVE SIGIL"):
-		_fail("The hand did not retain the collected Cave Sigil")
-		return
 	_interact()
+	await process_frame
+	if not (world.game_audio.effects["hand_dismount"] as AudioStreamPlayer).playing:
+		_fail("Hopping off the hand did not play its animation sound")
+		return
 	await create_timer(0.4).timeout
 	if world.hand_menu.visible or paused or world.pause_menu.visible or not world.player.meditation_state.is_empty() or not world.player.controls_enabled or absf(world.player.global_position.x - 2695.0) > 3.0:
 		_fail("E did not end meditation and hop off the hand")
@@ -423,6 +517,13 @@ func _run() -> void:
 	if world.game_audio.current_track != "warden" or world.game_audio.music.stream != world.game_audio.WARDEN_MUSIC:
 		_fail("Boss music did not replace cave music")
 		return
+	world.game_menu.open_section("status")
+	var boss_music_position: float = world.game_audio.music.get_playback_position()
+	await create_timer(0.2).timeout
+	if world.game_audio.music.get_playback_position() <= boss_music_position + 0.05:
+		_fail("Boss music stopped while the menu was open")
+		return
+	world.game_menu.close_menu()
 	world.boss.state = "idle"
 	world.boss.state_time = 0.0
 	world.boss.attack_count = 0
@@ -453,15 +554,26 @@ func _run() -> void:
 	world.boss.state_time = 0.4
 	world.player.global_position = Vector2(3060, 570)
 	await process_frame
+	await process_frame
 	if world.current_room != 4 or world.player.global_position.x < 3110.0:
 		_fail("Player escaped the active Warden arena")
 		return
 	world.player.invulnerability = 0.0
 	world.player.health = 1
 	world.player.take_damage(1, world.boss.global_position.x)
-	await create_timer(1.15).timeout
+	if not world.player.death_active or world.player.death_time <= 0.0 or world.player.controls_enabled:
+		_fail("Boss damage did not start the non-pit death animation")
+		return
+	await create_timer(0.38).timeout
+	if not world.player.death_active or world.player.death_time >= world.player.DEATH_DURATION or world.player.death_time <= 0.0:
+		_fail("The non-pit death animation did not advance")
+		return
+	await create_timer(0.8).timeout
 	if world.current_room != 3 or absf(world.player.global_position.x - 2610.0) > 3.0 or is_instance_valid(world.arena_barrier):
 		_fail("Death did not return the player to the Room 3 respawn point")
+		return
+	if world.player.death_active:
+		_fail("The death animation was not cleared on respawn")
 		return
 	if world.game_audio.current_track != "cave":
 		_fail("Cave music did not resume after the boss reset")
@@ -479,6 +591,15 @@ func _run() -> void:
 	if world.game_audio.current_track != "cave":
 		_fail("Cave music did not resume after the boss defeat")
 		return
+	world.game_menu.open_section("wills")
+	await process_frame
+	if world.game_menu.current_tab != 1 or world.game_menu.will_list.get_child_count() != 1 or not world.game_menu.will_name.text.contains("CHARGED HEAVY ATTACK"):
+		_fail("The Warden reward did not appear in Wills")
+		return
+	if world.game_menu.ability_list.get_child_count() != 7:
+		_fail("Boss Will was duplicated in ordinary Abilities")
+		return
+	world.game_menu.close_menu()
 	world.boss.active = false
 	world.player.global_position = Vector2(3810, 570)
 	world.player.facing = 1
@@ -512,13 +633,17 @@ func _run() -> void:
 		return
 	_map_key(KEY_TAB)
 	await process_frame
-	if not forest.world_map.visible or not paused:
-		_fail("Forest map did not open")
+	if not forest.game_menu.visible or not paused:
+		_fail("Forest Tab menu did not open")
+		return
+	forest.game_menu._show_tab(4)
+	if forest.game_menu.current_tab != 4:
+		_fail("Forest map section did not open")
 		return
 	_map_key(KEY_TAB)
 	await process_frame
-	if forest.world_map.visible or paused:
-		_fail("Forest map did not close")
+	if forest.game_menu.visible or paused:
+		_fail("Forest Tab menu did not close")
 		return
 	forest.player.global_position = Vector2(-16, 570)
 	await create_timer(0.7).timeout
