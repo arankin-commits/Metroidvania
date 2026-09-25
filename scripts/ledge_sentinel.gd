@@ -1,6 +1,7 @@
 extends Node2D
 
 signal defeated
+signal attack_landed
 
 var player: CharacterBody2D
 var health := 2
@@ -16,14 +17,11 @@ func _process(delta: float) -> void:
 	if player.dash_time > 0.0:
 		return
 	if hit_cooldown <= 0.0 and bounds.intersects(player_bounds):
+		var health_before: int = player.health
 		player.take_damage(1, global_position.x)
+		if player.health < health_before:
+			attack_landed.emit()
 		hit_cooldown = 0.8
-	if bounds.intersects(player_bounds) and player.global_position.x < global_position.x:
-		# Its body occupies the landing spot even during damage invulnerability.
-		player.ledge_grabbed = false
-		player.ledge_climb_time = 0.0
-		player.global_position.x = minf(player.global_position.x, global_position.x - 36.0)
-		player.velocity.x = minf(player.velocity.x, -220.0)
 	queue_redraw()
 
 func take_hit() -> void:

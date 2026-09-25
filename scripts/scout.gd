@@ -1,6 +1,7 @@
 extends CharacterBody2D
 
 signal defeated
+signal attack_landed
 
 const GRAVITY := 1250.0
 var health := 2
@@ -35,7 +36,10 @@ func _physics_process(delta: float) -> void:
 	var enemy_bounds := Rect2(global_position - Vector2(16, 17), Vector2(32, 34))
 	var player_bounds := Rect2(player.global_position - Vector2(14, 23), Vector2(28, 46)) if player != null else Rect2()
 	if player != null and hit_cooldown <= 0.0 and enemy_bounds.grow(4.0).intersects(player_bounds):
+		var health_before: int = player.health
 		player.take_damage(1, global_position.x)
+		if player.health < health_before:
+			attack_landed.emit()
 		hit_cooldown = 0.8
 	queue_redraw()
 

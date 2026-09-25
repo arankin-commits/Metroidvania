@@ -6,12 +6,14 @@ const SAVE_SLOTS = preload("res://scripts/save_slots.gd")
 const LOADING_OVERLAY = preload("res://scripts/loading_overlay.gd")
 const FOREST_BACKDROP = preload("res://assets/forest_backdrop.png")
 const WORLD_MAP = preload("res://scripts/world_map.gd")
+const GAME_AUDIO = preload("res://scripts/game_audio.gd")
 
 var player: CharacterBody2D
 var hud: Control
 var pause_menu: CanvasLayer
 var loading_overlay: CanvasLayer
 var world_map: CanvasLayer
+var game_audio: Node
 var visited_rooms: Array[int] = [2]
 var active_save_slot := 0
 var save_root := "user://"
@@ -23,6 +25,10 @@ var transitioning := false
 var saved_data: Dictionary = {}
 
 func _ready() -> void:
+	game_audio = GAME_AUDIO.new()
+	game_audio.name = "GameAudio"
+	add_child(game_audio)
+	game_audio.play_forest()
 	if get_tree().has_meta("active_save_slot"):
 		active_save_slot = int(get_tree().get_meta("active_save_slot"))
 		save_root = str(get_tree().get_meta("save_root", "user://"))
@@ -43,6 +49,11 @@ func _ready() -> void:
 	player.healing_charges = int(saved_data.get("healing_charges", 3))
 	add_child(player)
 	player.healed.connect(_save_progress)
+	player.healed.connect(func() -> void: game_audio.play_effect("heal"))
+	player.attacked.connect(func(_hitbox: Rect2) -> void: game_audio.play_effect("attack"))
+	player.heavy_attacked.connect(func(_hitbox: Rect2) -> void: game_audio.play_effect("heavy_attack"))
+	player.jumped.connect(func() -> void: game_audio.play_effect("jump"))
+	player.dodged.connect(func() -> void: game_audio.play_effect("dodge"))
 	var camera := player.get_node("Camera2D") as Camera2D
 	camera.limit_left = 0
 	camera.limit_right = 1200

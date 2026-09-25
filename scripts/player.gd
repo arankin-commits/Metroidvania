@@ -137,6 +137,10 @@ func _physics_process(delta: float) -> void:
 		return
 	if ledge_grabbed:
 		velocity = Vector2.ZERO
+		if controls_enabled and attack_down and not _attack_was_down and attack_cooldown <= 0.0:
+			attack_time = 0.17
+			attack_cooldown = 0.30
+			attacked.emit(Rect2(global_position + Vector2(10 if facing > 0 else -82, -28), Vector2(72, 56)))
 		var forward_down := controls_enabled and ((facing > 0 and (Input.is_physical_key_pressed(KEY_D) or Input.is_physical_key_pressed(KEY_RIGHT))) or (facing < 0 and (Input.is_physical_key_pressed(KEY_A) or Input.is_physical_key_pressed(KEY_LEFT))))
 		if (jump_down and not _jump_was_down) or forward_down:
 			ledge_grabbed = false
@@ -144,6 +148,7 @@ func _physics_process(delta: float) -> void:
 			ledge_climb_to = ledge_top
 			ledge_climb_time = 0.32
 		_jump_was_down = jump_down
+		_attack_was_down = attack_down
 		queue_redraw()
 		return
 	var drop_down := controls_enabled and jump_down and not _jump_was_down and (Input.is_physical_key_pressed(KEY_S) or Input.is_physical_key_pressed(KEY_DOWN))
