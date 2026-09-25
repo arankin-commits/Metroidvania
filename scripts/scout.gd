@@ -4,6 +4,7 @@ signal defeated
 
 const GRAVITY := 1250.0
 var health := 2
+var max_health := 2
 var origin_x := 0.0
 var player: CharacterBody2D
 var hit_cooldown := 0.0
@@ -54,6 +55,9 @@ func _draw() -> void:
 	draw_circle(Vector2(facing * 6, -5), 3, Color(1.0, 0.86, 0.55))
 	draw_line(Vector2(-10, 15), Vector2(-15, 22), Color(0.18, 0.13, 0.26), 5)
 	draw_line(Vector2(10, 15), Vector2(15, 22), Color(0.18, 0.13, 0.26), 5)
+	draw_rect(Rect2(-19, -34, 38, 7), Color(0.04, 0.10, 0.14))
+	draw_rect(Rect2(-17, -32, 34, 3), Color(0.25, 0.32, 0.36))
+	draw_rect(Rect2(-17, -32, 34.0 * float(health) / float(max_health), 3), Color(0.91, 0.44, 0.47))
 
 func _mcp_state() -> Dictionary:
 	return {"health": health}
