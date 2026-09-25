@@ -1,3 +1,6 @@
+# HTML Game Version
+https://arankin-commits.github.io/Metroidvania/
+
 # Metroidvania
 
 Open this folder in Godot 4.7.2 and press **F5** to start at the main menu. Choose **Start Game**, then one of three save slots. Empty slots show **New Game**; occupied slots show the saved area, time played, and player level. The **Delete** button beside a slot asks for confirmation before clearing it. **Back** returns to the menu.
