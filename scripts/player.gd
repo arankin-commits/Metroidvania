@@ -60,6 +60,9 @@ var meditation_duration := 0.0
 var meditation_from := Vector2.ZERO
 var meditation_to := Vector2.ZERO
 var meditation_chair := Vector2.ZERO
+const DEATH_DURATION := 0.85
+var death_active := false
+var death_time := 0.0
 
 func _ready() -> void:
 	add_to_group("mcp_watch")
@@ -85,6 +88,11 @@ func _ready() -> void:
 	add_child(footstep_audio)
 
 func _physics_process(delta: float) -> void:
+	if death_active:
+		death_time = maxf(0.0, death_time - delta)
+		velocity = Vector2.ZERO
+		queue_redraw()
+		return
 	if not meditation_state.is_empty():
 		_advance_meditation(delta)
 		return
@@ -283,6 +291,8 @@ func heal_full() -> void:
 
 func reset_movement_state() -> void:
 	velocity = Vector2.ZERO
+	death_active = false
+	death_time = 0.0
 	meditation_state = ""
 	dash_time = 0.0
 	dash_cooldown = 0.0
@@ -295,6 +305,13 @@ func reset_movement_state() -> void:
 	drop_exception_active = false
 	drop_ignore_timer = 0.0
 	floor_block_on_wall = true
+	queue_redraw()
+
+func start_death_animation() -> void:
+	reset_movement_state()
+	controls_enabled = false
+	death_active = true
+	death_time = DEATH_DURATION
 	queue_redraw()
 
 func begin_meditation(chair_position: Vector2) -> void:
@@ -335,6 +352,9 @@ func _advance_meditation(delta: float) -> void:
 	queue_redraw()
 
 func _draw() -> void:
+	if death_active:
+		_draw_death_animation()
+		return
 	var alpha := 0.55 if invulnerability > 0.0 and Engine.get_physics_frames() % 6 < 3 else 1.0
 	var cloak := Color(0.13, 0.80, 0.79, alpha)
 	var dark := Color(0.08, 0.16, 0.25, alpha)
@@ -380,6 +400,23 @@ func _draw() -> void:
 		draw_arc(Vector2(0, -7), 28, -PI / 2.0, -PI / 2.0 + TAU * heavy_charge, 20, Color(1.0, 0.78, 0.36), 4)
 	if heavy_attack_time > 0.0:
 		draw_arc(Vector2(facing * 28, -6), 56, -1.1 if facing > 0 else 2.0, 1.1 if facing > 0 else 4.2, 18, Color(1.0, 0.75, 0.33), 10)
+
+func _draw_death_animation() -> void:
+	var progress := 1.0 - death_time / DEATH_DURATION
+	var collapse := minf(1.0, progress * 2.2)
+	var fade := 1.0 - clampf((progress - 0.38) / 0.52, 0.0, 1.0)
+	var head_y := -17.0 + collapse * 28.0
+	var body_y := -15.0 + collapse * 24.0
+	draw_circle(Vector2(0, 2), 22.0 + progress * 20.0, Color(0.20, 0.89, 0.85, 0.24 * fade))
+	draw_rect(Rect2(-12, body_y, 24, 31.0 - collapse * 13.0), Color(0.10, 0.64, 0.67, fade))
+	draw_rect(Rect2(-10, head_y - 9.0, 20, 16), Color(0.08, 0.16, 0.25, fade))
+	draw_rect(Rect2(-5, head_y - 2.0, 10, 3), Color(1.0, 0.68, 0.47, fade))
+	for index in 12:
+		var angle := TAU * float(index) / 12.0
+		var distance := 8.0 + progress * (18.0 + float(index % 4) * 8.0)
+		var fragment := Vector2(cos(angle), sin(angle)) * distance + Vector2(0, -4.0 + progress * 11.0)
+		var size := 5.0 if index % 3 == 0 else 3.0
+		draw_rect(Rect2(fragment, Vector2(size, size)), Color(0.55, 1.0, 0.88, fade))
 
 func _mcp_state() -> Dictionary:
 	return {"health": health, "healing_charges": healing_charges, "has_dash": has_dash, "has_heavy": has_heavy, "heavy_charge": heavy_charge, "dash_cooldown": dash_cooldown, "on_floor": is_on_floor()}

@@ -7,6 +7,7 @@ const LOADING_OVERLAY = preload("res://scripts/loading_overlay.gd")
 const FOREST_BACKDROP = preload("res://assets/forest_backdrop.png")
 const WORLD_MAP = preload("res://scripts/world_map.gd")
 const GAME_AUDIO = preload("res://scripts/game_audio.gd")
+const GAME_MENU = preload("res://scripts/game_menu.gd")
 
 var player: CharacterBody2D
 var hud: Control
@@ -14,6 +15,7 @@ var pause_menu: CanvasLayer
 var loading_overlay: CanvasLayer
 var world_map: CanvasLayer
 var game_audio: Node
+var game_menu: CanvasLayer
 var visited_rooms: Array[int] = [2]
 var active_save_slot := 0
 var save_root := "user://"
@@ -68,6 +70,9 @@ func _ready() -> void:
 	add_child(loading_overlay)
 	world_map = WORLD_MAP.new()
 	add_child(world_map)
+	game_menu = GAME_MENU.new()
+	game_menu.world = self
+	add_child(game_menu)
 	if get_tree().has_meta("arriving_room_transition"):
 		get_tree().remove_meta("arriving_room_transition")
 		loading_overlay.reveal_room()
@@ -127,9 +132,14 @@ func _return_to_cave() -> void:
 	get_tree().change_scene_to_file("res://scenes/tutorial.tscn")
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event is InputEventKey and event.pressed and not event.echo and event.physical_keycode in [KEY_M, KEY_TAB]:
+	if event is InputEventKey and event.pressed and not event.echo and event.physical_keycode == KEY_TAB:
+		if not transitioning and not world_map.visible and not get_tree().paused:
+			game_menu.open_section("status")
+			get_viewport().set_input_as_handled()
+		return
+	if event is InputEventKey and event.pressed and not event.echo and event.physical_keycode == KEY_M:
 		if not transitioning and not get_tree().paused:
-			world_map.show_map(visited_rooms, _completed_rooms(), 5)
+			world_map.show_map(visited_rooms, _completed_rooms(), 5, get_fast_travel_hands())
 			get_viewport().set_input_as_handled()
 
 func _completed_rooms() -> Array[int]:
@@ -144,6 +154,12 @@ func _completed_rooms() -> Array[int]:
 		completed.append(4)
 	completed.append(5)
 	return completed
+
+func get_fast_travel_hands() -> Array[Dictionary]:
+	var hands: Array[Dictionary] = []
+	if bool(saved_data.get("hand_activated", false)):
+		hands.append({"name": "THE OPEN HAND", "room": 3, "position": Vector2(2610, 570)})
+	return hands
 
 func _save_progress() -> void:
 	if active_save_slot <= 0:

@@ -19,6 +19,7 @@ const HAND_CHAIR = preload("res://assets/hand_chair.png")
 const HAND_MENU = preload("res://scripts/hand_menu.gd")
 const LEDGE_SENTINEL = preload("res://scripts/ledge_sentinel.gd")
 const GAME_AUDIO = preload("res://scripts/game_audio.gd")
+const GAME_MENU = preload("res://scripts/game_menu.gd")
 
 const FLOOR_Y := 600.0
 const LEVEL_END := 4450.0
@@ -40,6 +41,7 @@ var world_map: CanvasLayer
 var hand_chair: Sprite2D
 var hand_menu: CanvasLayer
 var game_audio: Node
+var game_menu: CanvasLayer
 var visited_rooms: Array[int] = [2]
 var platforms: Array[Rect2] = []
 var ledge_wall: StaticBody2D
@@ -221,6 +223,9 @@ func _ready() -> void:
 	hand_menu = HAND_MENU.new()
 	hand_menu.world = self
 	add_child(hand_menu)
+	game_menu = GAME_MENU.new()
+	game_menu.world = self
+	add_child(game_menu)
 	_build_note_panel(layer)
 	_set_camera_room()
 	if get_tree().has_meta("arriving_room_transition"):
@@ -322,9 +327,14 @@ func _process(delta: float) -> void:
 	queue_redraw()
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event is InputEventKey and event.pressed and not event.echo and event.physical_keycode in [KEY_M, KEY_TAB]:
+	if event is InputEventKey and event.pressed and not event.echo and event.physical_keycode == KEY_TAB:
+		if not note_open and not transitioning_room and not hand_menu.visible and not world_map.visible and not get_tree().paused:
+			game_menu.open_section("status")
+			get_viewport().set_input_as_handled()
+		return
+	if event is InputEventKey and event.pressed and not event.echo and event.physical_keycode == KEY_M:
 		if not note_open and not transitioning_room and not hand_menu.visible and not get_tree().paused:
-			world_map.show_map(visited_rooms, _completed_rooms(), current_room)
+			world_map.show_map(visited_rooms, _completed_rooms(), current_room, get_fast_travel_hands())
 			get_viewport().set_input_as_handled()
 		return
 	if event is InputEventKey and event.pressed and not event.echo and event.physical_keycode == KEY_E:
@@ -337,6 +347,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		elif current_room == 3 and player.meditation_state.is_empty() and player.global_position.distance_to(hand_chair.global_position) < 70.0:
 			activate_hand()
 			player.begin_meditation(hand_chair.global_position)
+			game_audio.play_effect("hand_mount")
 			hand_menu.show_menu()
 		get_viewport().set_input_as_handled()
 		return
@@ -591,7 +602,31 @@ func save_at_hand() -> void:
 	_save_progress()
 
 func end_hand_meditation() -> void:
+	if not player.meditation_state.is_empty() and player.meditation_state != "exit":
+		game_audio.play_effect("hand_dismount")
 	player.end_meditation()
+
+func get_fast_travel_hands() -> Array[Dictionary]:
+	var hands: Array[Dictionary] = []
+	if hand_activated:
+		hands.append({"name": "THE OPEN HAND", "room": 3, "position": Vector2(2610, 570)})
+	return hands
+
+func fast_travel_to_hand(destination: Dictionary) -> void:
+	if not hand_activated or int(destination.get("room", -1)) != 3:
+		return
+	transitioning_room = true
+	player.reset_movement_state()
+	player.controls_enabled = false
+	await loading_overlay.cover_room()
+	current_room = 3
+	player.global_position = destination.position
+	last_safe_position = player.global_position
+	_set_camera_room()
+	_save_progress()
+	await loading_overlay.reveal_room()
+	player.controls_enabled = true
+	transitioning_room = false
 
 func _respawn_regular_enemies() -> void:
 	saved_scout_defeated = false
@@ -660,11 +695,13 @@ func _exit_tree() -> void:
 	if is_instance_valid(player):
 		_save_progress()
 
-func _on_player_died() -> void:
+func _on_player_died(from_hole: bool = false) -> void:
 	if respawning or complete:
 		return
 	respawning = true
 	player.controls_enabled = false
+	if not from_hole:
+		player.start_death_animation()
 	_show_toast("The passage remembers you...", 2.0)
 	get_tree().create_timer(1.0).timeout.connect(_respawn)
 
@@ -675,7 +712,7 @@ func _on_player_fell() -> void:
 	if player.health <= damage:
 		player.health = 0
 		player.velocity = Vector2.ZERO
-		_on_player_died()
+		_on_player_died(true)
 		return
 	respawning = true
 	player.controls_enabled = false
