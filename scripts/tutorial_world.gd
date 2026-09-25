@@ -4,6 +4,8 @@ const PLAYER_SCRIPT = preload("res://scripts/player.gd")
 const SCOUT_SCRIPT = preload("res://scripts/scout.gd")
 const NAVIGATION_SYSTEM = preload("res://scripts/nav_system.gd")
 const BOSS_SCRIPT = preload("res://scripts/boss.gd")
+const BOW_BOSS_SCRIPT = preload("res://scripts/bow_boss.gd")
+const BOW_ARROW_SCRIPT = preload("res://scripts/bow_arrow.gd")
 const HUD_SCRIPT = preload("res://scripts/hud.gd")
 const SAVE_SLOTS = preload("res://scripts/save_slots.gd")
 const LOADING_OVERLAY = preload("res://scripts/loading_overlay.gd")
@@ -13,6 +15,8 @@ const CAVE_ROOM_BACKDROPS := [
 	CAVE_BACKDROP,
 	preload("res://assets/cave_room3.png"),
 	preload("res://assets/cave_room4.png"),
+	preload("res://assets/cave_room4.png"),
+	CAVE_BACKDROP,
 ]
 const WILL_ORB = preload("res://scripts/will_orb.gd")
 const WORLD_MAP = preload("res://scripts/world_map.gd")
@@ -23,9 +27,9 @@ const GAME_AUDIO = preload("res://scripts/game_audio.gd")
 const GAME_MENU = preload("res://scripts/game_menu.gd")
 
 const FLOOR_Y := 600.0
-const LEVEL_END := 4450.0
-const ROOM_BOUNDS := [Vector2(-1200, 0), Vector2(0, 1700), Vector2(1700, 3070), Vector2(3070, 4450)]
-const ROOM_NAMES := ["Cave Room 1", "Cave Room 2", "Cave Room 3", "Cave Room 4"]
+const LEVEL_END := 7250.0
+const ROOM_BOUNDS := [Vector2(-1200, 0), Vector2(0, 1700), Vector2(1700, 3070), Vector2(3070, 4450), Vector2(4450, 5850), Vector2(5850, 7250)]
+const ROOM_NAMES := ["Cave Room 1", "Cave Room 2", "Cave Room 3", "Cave Room 4", "Bow Trial", "Bow Tutorial"]
 const SECRET_POSITION := Vector2(510, 475)
 const NOTE_POSITION := Vector2(2870, 485)
 
@@ -34,6 +38,7 @@ var scout: CharacterBody2D
 var navigation_system: Node
 var ledge_sentinel: Node2D
 var boss: Node2D
+var bow_boss: Node2D
 var hud: Control
 var background_rect: TextureRect
 var room_backgrounds: Array[TextureRect] = []
@@ -51,6 +56,9 @@ var drop_platform_body: StaticBody2D
 var seal_body: StaticBody2D
 var exit_barrier: StaticBody2D
 var arena_barrier: StaticBody2D
+var bow_arena_barrier: StaticBody2D
+var bow_hand_chair: Sprite2D
+var bow_scouts: Array[Node2D] = []
 var seal_health := 3
 var checkpoint := Vector2(120, 570)
 var hand_activated := false
@@ -68,6 +76,11 @@ var saved_healing_charges := 3
 var save_timer := 0.0
 var saved_aerial_practiced := false
 var saved_boss_defeated := false
+var saved_bow_boss_defeated := false
+var saved_has_bow := false
+var bow_boss_defeated := false
+var bow_tutorial_practiced := false
+var bow_hand_activated := false
 var saved_heavy := false
 var saved_seal_broken := false
 var saved_scout_defeated := false
@@ -122,6 +135,10 @@ func _ready() -> void:
 			dash_gap_practiced = bool(data.get("dash_gap_practiced", false))
 			saved_boss_defeated = bool(data.get("boss_defeated", false))
 			saved_heavy = bool(data.get("has_heavy", saved_boss_defeated))
+			saved_bow_boss_defeated = bool(data.get("bow_boss_defeated", false))
+			saved_has_bow = bool(data.get("has_bow", saved_bow_boss_defeated))
+			bow_tutorial_practiced = bool(data.get("bow_tutorial_practiced", false))
+			bow_hand_activated = bool(data.get("bow_hand_activated", false))
 			saved_seal_broken = bool(data.get("seal_broken", false))
 			saved_scout_defeated = bool(data.get("scout_defeated", false))
 			wall_broken = bool(data.get("wall_broken", false))
@@ -145,6 +162,7 @@ func _ready() -> void:
 		Rect2(1350, 520, 170, 18),
 		Rect2(2010, 470, 150, 130),
 		Rect2(2730, 520, 150, 18),
+		Rect2(4450, FLOOR_Y, 2800, 120),
 	]
 	for rect in platforms:
 		var body := _make_solid(rect, rect.position.x == 1350.0)
@@ -170,12 +188,15 @@ func _ready() -> void:
 	player.position = spawn_position
 	player.has_dash = true
 	player.has_heavy = saved_heavy
+	player.has_bow = saved_has_bow
+	player.bow_ammo = player.BOW_AMMO_MAX if saved_has_bow else 0
 	player.healing_charges = saved_healing_charges
 	player.drop_platform = drop_platform_body
 	player.drop_region = Rect2(1350, 519, 170, 20)
 	add_child(player)
 	player.attacked.connect(_on_player_attacked)
 	player.heavy_attacked.connect(_on_player_heavy_attacked)
+	player.bow_fired.connect(_on_player_bow_fired)
 	player.dodged.connect(_on_player_dodged)
 	player.jumped.connect(_on_player_jumped)
 	player.ledge_climbed.connect(_on_player_ledge_climbed)
@@ -212,6 +233,16 @@ func _ready() -> void:
 	if saved_boss_defeated:
 		boss_defeated = true
 		boss.visible = false
+	bow_boss = BOW_BOSS_SCRIPT.new()
+	bow_boss.name = "BowBoss"
+	bow_boss.position = Vector2(5200, 553)
+	bow_boss.player = player
+	add_child(bow_boss)
+	bow_boss.defeated.connect(_on_bow_boss_defeated)
+	bow_boss.attack_cued.connect(func(_cue: String) -> void: game_audio.play_effect("enemy_attack"))
+	if saved_bow_boss_defeated:
+		bow_boss_defeated = true
+		bow_boss.visible = false
 	var layer := CanvasLayer.new()
 	layer.name = "HUDLayer"
 	add_child(layer)
@@ -220,6 +251,8 @@ func _ready() -> void:
 	layer.add_child(hud)
 	_add_backdrop()
 	_add_hand_chair()
+	_add_bow_hand_chair()
+	_spawn_bow_tutorial_scouts()
 	pause_menu = preload("res://scripts/pause_menu.gd").new()
 	add_child(pause_menu)
 	loading_overlay = LOADING_OVERLAY.new()
@@ -268,6 +301,27 @@ func _add_hand_chair() -> void:
 	hand_chair.z_index = 2
 	add_child(hand_chair)
 
+func _add_bow_hand_chair() -> void:
+	bow_hand_chair = Sprite2D.new()
+	bow_hand_chair.name = "BowRoomHandChair"
+	bow_hand_chair.texture = HAND_CHAIR
+	bow_hand_chair.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	bow_hand_chair.scale = Vector2(0.096, 0.096)
+	bow_hand_chair.position = Vector2(6200, 546)
+	bow_hand_chair.z_index = 2
+	add_child(bow_hand_chair)
+
+func _spawn_bow_tutorial_scouts() -> void:
+	for scout_position in [Vector2(6500, 579), Vector2(6900, 579)]:
+		var bow_scout := SCOUT_SCRIPT.new()
+		bow_scout.name = "BowTutorialScout"
+		bow_scout.position = scout_position
+		bow_scout.player = player
+		add_child(bow_scout)
+		bow_scout.defeated.connect(func() -> void: _on_bow_scout_defeated(bow_scout))
+		bow_scout.attack_landed.connect(func() -> void: game_audio.play_effect("enemy_attack"))
+		bow_scouts.append(bow_scout)
+
 func _mark_room_visited(room: int) -> void:
 	if not visited_rooms.has(room):
 		visited_rooms.append(room)
@@ -283,8 +337,10 @@ func _completed_rooms() -> Array[int]:
 		completed.append(3)
 	if visited_rooms.has(4) and boss_defeated:
 		completed.append(4)
-	if visited_rooms.has(5):
+	if visited_rooms.has(5) and bow_boss_defeated:
 		completed.append(5)
+	if visited_rooms.has(6) and bow_tutorial_practiced:
+		completed.append(6)
 	return completed
 
 func _make_solid(rect: Rect2, one_way: bool = false) -> StaticBody2D:
@@ -330,6 +386,16 @@ func _process(delta: float) -> void:
 		game_audio.play_boss()
 		_lock_arena()
 		_show_toast("THE HOLLOW WARDEN  ·  Watch the red charge tell", 3.0)
+	if current_room == 5 and not bow_boss.active and not bow_boss_defeated and not respawning and player.global_position.x > 4450.0:
+		bow_boss.active = true
+		bow_boss.state_time = 0.65
+		game_audio.play_boss()
+		_lock_bow_arena()
+		_show_toast("BOW HUNTER  ·  Close the distance between volleys", 3.5)
+	if current_room == 6 and player.has_bow and not bow_tutorial_practiced and player.global_position.x > 6100.0:
+		bow_tutorial_practiced = true
+		_show_toast("Press L to fire. Three shots, then press L again to reload.", 4.0)
+		_save_progress()
 	_update_hud()
 	queue_redraw()
 
@@ -351,9 +417,10 @@ func _unhandled_input(event: InputEvent) -> void:
 			_open_sigil()
 		elif current_room == 3 and not note_found and player.global_position.distance_to(NOTE_POSITION) < 65.0:
 			_open_note()
-		elif current_room == 3 and player.meditation_state.is_empty() and player.global_position.distance_to(hand_chair.global_position) < 70.0:
+		elif (current_room == 3 and player.meditation_state.is_empty() and player.global_position.distance_to(hand_chair.global_position) < 70.0) or (current_room == 6 and player.meditation_state.is_empty() and player.global_position.distance_to(bow_hand_chair.global_position) < 70.0):
+			var active_hand := hand_chair if current_room == 3 else bow_hand_chair
 			activate_hand()
-			player.begin_meditation(hand_chair.global_position)
+			player.begin_meditation(active_hand.global_position)
 			game_audio.play_effect("hand_mount")
 			hand_menu.show_menu()
 		get_viewport().set_input_as_handled()
@@ -391,6 +458,20 @@ func _check_room_transition() -> bool:
 				_begin_room_transition(3, 2990.0)
 				return true
 			if x >= 4464.0 and wall_broken:
+				_begin_room_transition(5, 4520.0)
+				return true
+		5:
+			if x <= 4436.0:
+				_begin_room_transition(4, 4390.0)
+				return true
+			if x >= 5864.0 and bow_boss_defeated:
+				_begin_room_transition(6, 5920.0)
+				return true
+		6:
+			if x <= 5836.0:
+				_begin_room_transition(5, 5780.0)
+				return true
+			if x >= 7264.0:
 				_leave_for_forest()
 				return true
 	return false
@@ -435,6 +516,16 @@ func _lock_arena() -> void:
 func _unlock_arena() -> void:
 	if is_instance_valid(arena_barrier):
 		arena_barrier.queue_free()
+
+func _lock_bow_arena() -> void:
+	if is_instance_valid(bow_arena_barrier):
+		return
+	bow_arena_barrier = _make_solid(Rect2(4450, -60, 32, 660))
+	queue_redraw()
+
+func _unlock_bow_arena() -> void:
+	if is_instance_valid(bow_arena_barrier):
+		bow_arena_barrier.queue_free()
 		arena_barrier = null
 	queue_redraw()
 
@@ -500,9 +591,9 @@ func _close_note() -> void:
 func _on_player_attacked(hitbox: Rect2) -> void:
 	game_audio.play_effect("attack")
 	if is_instance_valid(ledge_sentinel) and not ledge_sentinel.is_queued_for_deletion() and hitbox.intersects(Rect2(ledge_sentinel.global_position - Vector2(20, 27), Vector2(40, 54))):
-		ledge_sentinel.take_hit()
+		ledge_sentinel.take_hit(1.0)
 	if is_instance_valid(scout) and hitbox.intersects(Rect2(scout.global_position - Vector2(17, 20), Vector2(34, 40))):
-		scout.take_hit()
+		scout.take_hit(1.0)
 	if seal_health > 0 and hitbox.intersects(Rect2(1680, 300, 32, 300)):
 		seal_health -= 1
 		if seal_health <= 0:
@@ -510,8 +601,39 @@ func _on_player_attacked(hitbox: Rect2) -> void:
 			_show_toast("The seal breaks. Press onward.", 2.7)
 			_save_progress()
 	if boss.active and not boss_defeated and hitbox.intersects(Rect2(boss.global_position - Vector2(55, 78), Vector2(110, 120))):
-		boss.take_hit()
+		boss.take_hit(1.0)
+	if bow_boss.active and not bow_boss_defeated and hitbox.intersects(Rect2(bow_boss.global_position - Vector2(42, 55), Vector2(84, 100))):
+		bow_boss.take_hit(1.0)
 	queue_redraw()
+
+func _on_player_bow_fired(origin: Vector2, direction: Vector2) -> void:
+	game_audio.play_effect("attack")
+	var candidates: Array[Node] = []
+	if is_instance_valid(scout) and not scout.is_queued_for_deletion():
+		candidates.append(scout)
+	if is_instance_valid(ledge_sentinel) and not ledge_sentinel.is_queued_for_deletion():
+		candidates.append(ledge_sentinel)
+	if is_instance_valid(boss) and boss.active and not boss_defeated:
+		candidates.append(boss)
+	if is_instance_valid(bow_boss) and bow_boss.active and not bow_boss_defeated:
+		candidates.append(bow_boss)
+	for tutorial_scout in bow_scouts:
+		if is_instance_valid(tutorial_scout) and not tutorial_scout.is_queued_for_deletion():
+			candidates.append(tutorial_scout)
+	var shot_target: Node = null
+	var closest_distance: float = INF
+	for candidate in candidates:
+		var candidate_distance: float = origin.distance_to(candidate.global_position)
+		if candidate_distance < closest_distance:
+			closest_distance = candidate_distance
+			shot_target = candidate
+	var arrow := BOW_ARROW_SCRIPT.new()
+	add_child(arrow)
+	arrow.setup(origin, direction, shot_target)
+	if current_room == 6 and not bow_tutorial_practiced:
+		bow_tutorial_practiced = true
+		_show_toast("Good. Aim across the room and press L again after three shots to reload.", 3.2)
+		_save_progress()
 
 func _on_player_dodged() -> void:
 	game_audio.play_effect("dodge")
@@ -545,9 +667,14 @@ func _on_player_platform_dropped() -> void:
 
 func _on_player_heavy_attacked(hitbox: Rect2) -> void:
 	game_audio.play_effect("heavy_attack")
+	if is_instance_valid(ledge_sentinel) and not ledge_sentinel.is_queued_for_deletion() and hitbox.intersects(Rect2(ledge_sentinel.global_position - Vector2(20, 27), Vector2(40, 54))):
+		ledge_sentinel.take_hit(1.5)
+	if is_instance_valid(scout) and hitbox.intersects(Rect2(scout.global_position - Vector2(17, 20), Vector2(34, 40))):
+		scout.take_hit(1.5)
 	if boss.active and not boss_defeated and hitbox.intersects(Rect2(boss.global_position - Vector2(55, 78), Vector2(110, 120))):
-		boss.take_hit()
-		boss.take_hit()
+		boss.take_hit(1.5)
+	if bow_boss.active and not bow_boss_defeated and hitbox.intersects(Rect2(bow_boss.global_position - Vector2(42, 55), Vector2(84, 100))):
+		bow_boss.take_hit(1.5)
 	if boss_defeated and not wall_broken and hitbox.intersects(Rect2(3850, 465, 32, 135)):
 		wall_broken = true
 		exit_barrier.queue_free()
@@ -578,6 +705,22 @@ func _on_boss_defeated() -> void:
 	_save_progress()
 	queue_redraw()
 
+func _on_bow_boss_defeated() -> void:
+	bow_boss_defeated = true
+	game_audio.play_cave()
+	_unlock_bow_arena()
+	_spawn_will_orb(bow_boss.global_position, 50)
+	player.has_bow = true
+	player.bow_ammo = player.BOW_AMMO_MAX
+	_show_toast("BOW INHERITED - Press L to fire. Press L again when empty to reload.", 4.0)
+	_save_progress()
+	queue_redraw()
+
+func _on_bow_scout_defeated(defeated_scout: Node2D) -> void:
+	_spawn_will_orb(defeated_scout.global_position, 5)
+	_show_toast("Scout defeated. Keep practicing your bow shots.", 2.5)
+	_save_progress()
+
 func _spawn_will_orb(origin: Vector2, amount: int) -> void:
 	var orb := WILL_ORB.new()
 	orb.amount = amount
@@ -596,7 +739,11 @@ func _on_player_damaged() -> void:
 		_show_toast("Hurt? Press F to use a healing charge.", 3.0)
 
 func activate_hand() -> void:
-	checkpoint = Vector2(2610, 570)
+	if current_room == 6:
+		checkpoint = Vector2(6200, 570)
+		bow_hand_activated = true
+	else:
+		checkpoint = Vector2(2610, 570)
 	hand_activated = true
 	_respawn_regular_enemies()
 	_save_progress()
@@ -617,16 +764,19 @@ func get_fast_travel_hands() -> Array[Dictionary]:
 	var hands: Array[Dictionary] = []
 	if hand_activated:
 		hands.append({"name": "THE OPEN HAND", "room": 3, "position": Vector2(2610, 570)})
+	if bow_hand_activated:
+		hands.append({"name": "BOW ROOM HAND", "room": 6, "position": Vector2(6200, 570)})
 	return hands
 
 func fast_travel_to_hand(destination: Dictionary) -> void:
-	if not hand_activated or int(destination.get("room", -1)) != 3:
+	var destination_room: int = int(destination.get("room", -1))
+	if (destination_room == 3 and not hand_activated) or (destination_room == 6 and not bow_hand_activated):
 		return
 	transitioning_room = true
 	player.reset_movement_state()
 	player.controls_enabled = false
 	await loading_overlay.cover_room()
-	current_room = 3
+	current_room = destination_room
 	player.global_position = destination.position
 	last_safe_position = player.global_position
 	_set_camera_room()
@@ -691,6 +841,10 @@ func _save_progress() -> void:
 	data["scout_defeated"] = saved_scout_defeated or not is_instance_valid(scout) or scout.is_queued_for_deletion()
 	data["boss_defeated"] = boss_defeated
 	data["has_heavy"] = player.has_heavy
+	data["bow_boss_defeated"] = bow_boss_defeated
+	data["has_bow"] = player.has_bow
+	data["bow_tutorial_practiced"] = bow_tutorial_practiced
+	data["bow_hand_activated"] = bow_hand_activated
 	data["wall_broken"] = wall_broken
 	data["secret_found"] = secret_found
 	data["note_found"] = note_found
@@ -772,6 +926,12 @@ func _respawn() -> void:
 		boss.health = boss.max_health
 		boss.position = Vector2(3510, 553)
 		boss.attack_count = 0
+	if bow_boss.active and not bow_boss_defeated:
+		bow_boss.active = false
+		bow_boss.state = "idle"
+		bow_boss.state_time = 0.0
+		bow_boss.health = bow_boss.max_health
+		bow_boss.position = Vector2(5200, 553)
 	_show_toast("Try again. Read the enemy's tell.", 2.4)
 	_save_progress()
 
@@ -782,7 +942,11 @@ func _room_for_x(x: float) -> int:
 		return 2
 	if x < 3070.0:
 		return 3
-	return 4
+	if x < 4450.0:
+		return 4
+	if x < 5850.0:
+		return 5
+	return 6
 
 func _show_toast(message: String, duration: float) -> void:
 	toast = message
@@ -797,7 +961,10 @@ func _update_hud() -> void:
 	hud.max_healing_charges = player.max_healing_charges
 	hud.has_dash = player.has_dash
 	hud.has_heavy = player.has_heavy
-	hud.boss_health = boss.health if boss.active and not boss_defeated else 0
+	hud.has_bow = player.has_bow
+	hud.bow_ammo = player.bow_ammo
+	hud.boss_health = boss.health if boss.active and not boss_defeated else bow_boss.health if bow_boss.active and not bow_boss_defeated else 0
+	hud.boss_title = "BOW HUNTER" if bow_boss.active and not bow_boss_defeated else "THE HOLLOW WARDEN"
 	hud.finished = complete
 	hud.notice = toast if toast_time > 0.0 else ""
 	hud.queue_redraw()
@@ -811,9 +978,13 @@ func _draw() -> void:
 		for y in range(-48, 600, 32):
 			draw_rect(Rect2(3076, y, 20, 12), Color(0.33, 0.73, 0.72))
 			draw_rect(Rect2(3081, y + 4, 10, 4), Color(0.72, 0.98, 0.83))
-	for x in [0.0, 1700.0, 3070.0]:
+	for x in [0.0, 1700.0, 3070.0, 4450.0, 5850.0]:
 		draw_rect(Rect2(x - 8, 280, 16, 320), Color(0.17, 0.24, 0.31, 0.65))
 		draw_rect(Rect2(x - 28, 270, 56, 18), Color(0.31, 0.45, 0.48))
+	if is_instance_valid(bow_arena_barrier) and not bow_arena_barrier.is_queued_for_deletion():
+		draw_rect(Rect2(4450, -60, 32, 660), Color(0.12, 0.18, 0.23))
+		for y in range(-48, 600, 32):
+			draw_rect(Rect2(4456, y, 20, 12), Color(0.72, 0.39, 0.31))
 	draw_rect(Rect2(-1160, 380, 32, 220), Color(0.33, 0.30, 0.41))
 	draw_rect(Rect2(-1152, 405, 16, 170), Color(0.11, 0.17, 0.26))
 	draw_circle(Vector2(-1144, 490), 11, Color(0.81, 0.65, 0.38))
@@ -870,6 +1041,10 @@ func _draw() -> void:
 		draw_string(font, Vector2(2810, 400), "[E] READ NOTE", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color(0.93, 0.80, 0.53))
 	if boss_defeated and not wall_broken:
 		draw_string(font, Vector2(3770, 420), "HOLD [H], RELEASE TO BREAK", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color(0.84, 0.72, 0.69))
+	if not bow_boss_defeated:
+		draw_string(font, Vector2(4750, 430), "[L] FIRE  ·  CLOSE THE DISTANCE", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color(0.93, 0.80, 0.53))
+	if player.has_bow and not bow_tutorial_practiced:
+		draw_string(font, Vector2(6000, 430), "[L] THREE SHOTS  ·  [L] RELOAD", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color(0.62, 0.89, 0.68))
 	draw_string(font, Vector2(-1075, 455), "END AREA", HORIZONTAL_ALIGNMENT_LEFT, -1, 20, Color(0.88, 0.73, 0.50))
 	draw_string(font, Vector2(4090, 455), "TO THE FOREST", HORIZONTAL_ALIGNMENT_LEFT, -1, 20, Color(0.61, 0.91, 0.84))
 

@@ -4,8 +4,8 @@ signal defeated
 signal attack_landed
 
 var player: CharacterBody2D
-var health := 2
-var max_health := 2
+var health := 2.0
+var max_health := 2.0
 var hit_cooldown := 0.0
 
 func _process(delta: float) -> void:
@@ -24,10 +24,10 @@ func _process(delta: float) -> void:
 		hit_cooldown = 0.8
 	queue_redraw()
 
-func take_hit() -> void:
+func take_hit(amount: float = 1.0) -> void:
 	if health <= 0:
 		return
-	health -= 1
+	health -= amount
 	queue_redraw()
 	if health <= 0:
 		defeated.emit()

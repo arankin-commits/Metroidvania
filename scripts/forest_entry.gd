@@ -39,8 +39,8 @@ func _ready() -> void:
 		will_amount = int(saved_data.get("will", 0))
 		player_level = int(saved_data.get("level", 1))
 		visited_rooms.assign(saved_data.get("visited_rooms", [2]))
-	if not visited_rooms.has(5):
-		visited_rooms.append(5)
+	if not visited_rooms.has(7):
+		visited_rooms.append(7)
 		visited_rooms.sort()
 	_make_solid(Rect2(0, 600, 1200, 120))
 	_make_solid(Rect2(1200, 350, 40, 250))
@@ -152,7 +152,7 @@ func _completed_rooms() -> Array[int]:
 		completed.append(3)
 	if visited_rooms.has(4) and bool(saved_data.get("boss_defeated", false)):
 		completed.append(4)
-	completed.append(5)
+	completed.append(7)
 	return completed
 
 func get_fast_travel_hands() -> Array[Dictionary]:
