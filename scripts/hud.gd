@@ -8,11 +8,14 @@ var healing_charges := 3
 var max_healing_charges := 3
 var has_dash := false
 var has_heavy := false
+var has_bow := false
+var bow_ammo := 0
 var prompt := ""
 var notice := ""
 var area := "THE FORGOTTEN PASSAGE"
 var boss_health := 0
 var boss_max_health := 8
+var boss_title := "THE HOLLOW WARDEN"
 var finished := false
 
 func _ready() -> void:
@@ -40,12 +43,14 @@ func _draw() -> void:
 	draw_rect(Rect2(left + 239, 54, 6, 20), Color(0.37, 0.95, 0.84))
 	draw_rect(Rect2(left + 240, 59, 4, 8), Color(0.87, 1.0, 0.88))
 	draw_string(font, Vector2(left + 260, 71), str(will_amount), HORIZONTAL_ALIGNMENT_LEFT, 100, 20, Color(0.88, 1.0, 0.88))
+	if has_bow:
+		draw_string(font, Vector2(left + 285, 71), "BOW %d/3" % bow_ammo, HORIZONTAL_ALIGNMENT_LEFT, 100, 15, Color(0.97, 0.85, 0.58))
 	if boss_health > 0:
 		var bar_width := minf(430.0, width * 0.5)
 		var x := (width - bar_width) * 0.5
 		draw_rect(Rect2(x, 38, bar_width, 19), Color(0.12, 0.16, 0.23))
 		draw_rect(Rect2(x + 3, 41, (bar_width - 6) * float(boss_health) / float(boss_max_health), 13), Color(0.93, 0.36, 0.43))
-		draw_string(font, Vector2(x, 32), "THE HOLLOW WARDEN", HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color(1.0, 0.83, 0.68))
+		draw_string(font, Vector2(x, 32), boss_title, HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color(1.0, 0.83, 0.68))
 	if not notice.is_empty():
 		var notice_width := minf(width * 0.64, 760.0)
 		var notice_x := (width - notice_width) * 0.5

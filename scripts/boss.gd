@@ -4,8 +4,8 @@ signal defeated
 signal attack_cued(cue: String)
 
 var player: CharacterBody2D
-var health := 8
-var max_health := 8
+var health := 8.0
+var max_health := 8.0
 var active := false
 var state := "idle"
 var state_time := 0.0
@@ -70,10 +70,10 @@ func _process(delta: float) -> void:
 		player.take_damage(1, global_position.x)
 	queue_redraw()
 
-func take_hit() -> void:
+func take_hit(amount: float = 1.0) -> void:
 	if health <= 0 or not active:
 		return
-	health -= 1
+	health -= amount
 	hurt_flash = 0.16
 	if health <= 0:
 		state = "defeated"

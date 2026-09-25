@@ -4,8 +4,8 @@ signal defeated
 signal attack_landed
 
 const GRAVITY := 1250.0
-var health := 2
-var max_health := 2
+var health := 2.0
+var max_health := 2.0
 var origin_x := 0.0
 var player: CharacterBody2D
 var hit_cooldown := 0.0
@@ -43,8 +43,8 @@ func _physics_process(delta: float) -> void:
 		hit_cooldown = 0.8
 	queue_redraw()
 
-func take_hit() -> void:
-	health -= 1
+func take_hit(amount: float = 1.0) -> void:
+	health -= amount
 	if health <= 0:
 		defeated.emit()
 		queue_free()
