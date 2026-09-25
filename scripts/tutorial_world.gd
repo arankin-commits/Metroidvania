@@ -2,6 +2,7 @@ extends Node2D
 
 const PLAYER_SCRIPT = preload("res://scripts/player.gd")
 const SCOUT_SCRIPT = preload("res://scripts/scout.gd")
+const NAVIGATION_SYSTEM = preload("res://scripts/nav_system.gd")
 const BOSS_SCRIPT = preload("res://scripts/boss.gd")
 const BOW_BOSS_SCRIPT = preload("res://scripts/bow_boss.gd")
 const BOW_ARROW_SCRIPT = preload("res://scripts/bow_arrow.gd")
@@ -34,6 +35,7 @@ const NOTE_POSITION := Vector2(2870, 485)
 
 var player: CharacterBody2D
 var scout: CharacterBody2D
+var navigation_system: Node
 var ledge_sentinel: Node2D
 var boss: Node2D
 var bow_boss: Node2D
@@ -104,6 +106,9 @@ var last_safe_position := Vector2(120, 570)
 var heal_hint_shown := false
 
 func _ready() -> void:
+	navigation_system = NAVIGATION_SYSTEM.new()
+	navigation_system.name = "NavigationSystem"
+	add_child(navigation_system)
 	game_audio = GAME_AUDIO.new()
 	game_audio.name = "GameAudio"
 	add_child(game_audio)
@@ -203,6 +208,7 @@ func _ready() -> void:
 	scout.name = "Scout"
 	scout.position = Vector2(1175, 579)
 	scout.player = player
+	scout.navigation = navigation_system
 	add_child(scout)
 	scout.defeated.connect(_on_scout_defeated)
 	scout.attack_landed.connect(func() -> void: game_audio.play_effect("enemy_attack"))
@@ -266,6 +272,7 @@ func _ready() -> void:
 		loading_overlay.reveal_room()
 	_show_toast("Find your way through the forgotten passage", 3.5)
 	queue_redraw()
+	
 
 func _add_backdrop() -> void:
 	for i in ROOM_BOUNDS.size():
@@ -793,6 +800,7 @@ func _respawn_regular_enemies() -> void:
 		scout.position = Vector2(1175, 579)
 		scout.player = player
 		add_child(scout)
+		scout.navigation = navigation_system
 		scout.defeated.connect(_on_scout_defeated)
 		scout.attack_landed.connect(func() -> void: game_audio.play_effect("enemy_attack"))
 	if is_instance_valid(ledge_sentinel) and not ledge_sentinel.is_queued_for_deletion():

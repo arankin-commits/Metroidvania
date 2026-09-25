@@ -8,6 +8,7 @@ var health := 2.0
 var max_health := 2.0
 var origin_x := 0.0
 var player: CharacterBody2D
+var navigation: Node
 var hit_cooldown := 0.0
 var facing := -1
 
@@ -22,16 +23,36 @@ func _ready() -> void:
 
 func _physics_process(delta: float) -> void:
 	hit_cooldown = maxf(0.0, hit_cooldown - delta)
+
 	var direction := facing
-	if player != null and absf(player.global_position.x - global_position.x) < 230.0:
-		direction = 1 if player.global_position.x > global_position.x else -1
-	elif absf(global_position.x - origin_x) > 78.0:
-		direction = -1 if global_position.x > origin_x else 1
+
+	if navigation != null:
+		var traversal: Dictionary = navigation.update_enemy_ai_traverse(
+			self,
+			player,
+			origin_x,
+			facing
+		)
+
+		direction = int(traversal.get("direction", facing))
+
+	else:
+		# Fallback behavior in case Navigation was not connected.
+		if player != null and absf(
+			player.global_position.x - global_position.x
+		) < 230.0:
+			direction = 1 if player.global_position.x > global_position.x else -1
+
+		elif absf(global_position.x - origin_x) > 78.0:
+			direction = -1 if global_position.x > origin_x else 1
+
 	facing = direction
+
 	velocity.x = direction * 72.0
 	velocity.y += GRAVITY * delta
+
 	move_and_slide()
-	if is_on_wall():
+	if navigation == null and is_on_wall():
 		facing *= -1
 	var enemy_bounds := Rect2(global_position - Vector2(16, 17), Vector2(32, 34))
 	var player_bounds := Rect2(player.global_position - Vector2(14, 23), Vector2(28, 46)) if player != null else Rect2()
