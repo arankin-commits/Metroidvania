@@ -45,7 +45,7 @@ func _draw() -> void:
 	draw_string(font, Vector2(27, size.y - 94), area, HORIZONTAL_ALIGNMENT_LEFT, prompt_width - 26, 15, Color(0.52, 0.84, 0.83))
 	draw_string(font, Vector2(27, size.y - 65), prompt, HORIZONTAL_ALIGNMENT_LEFT, prompt_width - 26, 18, Color(0.97, 0.93, 0.78))
 	draw_rect(Rect2(0, size.y - 39, width, 39), Color(0.025, 0.055, 0.095, 0.86))
-	draw_string(font, Vector2(25, size.y - 13), "A / D MOVE    SPACE JUMP    J STRIKE    K / SHIFT DODGE    H CHARGE    E INTERACT    ESC PAUSE", HORIZONTAL_ALIGNMENT_LEFT, width - 30, 15, Color(0.67, 0.78, 0.79))
+	draw_string(font, Vector2(25, size.y - 13), "A / D MOVE    SPACE JUMP    J STRIKE    K / SHIFT DODGE    H CHARGE    E INTERACT    M / TAB MAP    ESC PAUSE", HORIZONTAL_ALIGNMENT_LEFT, width - 30, 15, Color(0.67, 0.78, 0.79))
 	if finished:
 		draw_rect(Rect2(width * 0.17, size.y * 0.29, width * 0.66, 190), Color(0.025, 0.07, 0.12, 0.94))
 		draw_rect(Rect2(width * 0.17, size.y * 0.29, width * 0.66, 3), Color(0.35, 0.89, 0.82))

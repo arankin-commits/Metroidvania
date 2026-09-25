@@ -28,6 +28,7 @@ static func load_slot(slot: int, root: String = "user://") -> Dictionary:
 		"wall_broken": bool(config.get_value("save", "wall_broken", false)),
 		"secret_found": bool(config.get_value("save", "secret_found", false)),
 		"note_found": bool(config.get_value("save", "note_found", false)),
+		"visited_rooms": Array(config.get_value("save", "visited_rooms", [2])),
 	}
 
 static func new_slot() -> Dictionary:
@@ -47,6 +48,7 @@ static func new_slot() -> Dictionary:
 		"wall_broken": false,
 		"secret_found": false,
 		"note_found": false,
+		"visited_rooms": [2],
 	}
 
 static func write_slot(slot: int, data: Dictionary, root: String = "user://") -> Error:

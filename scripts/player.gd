@@ -11,6 +11,7 @@ const SPEED := 255.0
 const GRAVITY := 1250.0
 const JUMP_SPEED := -500.0
 const DASH_SPEED := 780.0
+const FOOTSTEP = preload("res://assets/footstep.wav")
 
 var health := 5
 var max_health := 5
@@ -36,6 +37,9 @@ var jump_buffer := 0.0
 var _jump_was_down := false
 var _attack_was_down := false
 var _dash_was_down := false
+var footstep_audio: AudioStreamPlayer2D
+var footstep_timer := 0.0
+var footstep_count := 0
 
 func _ready() -> void:
 	add_to_group("mcp_watch")
@@ -55,6 +59,10 @@ func _ready() -> void:
 	camera.limit_bottom = 720
 	add_child(camera)
 	camera.make_current()
+	footstep_audio = AudioStreamPlayer2D.new()
+	footstep_audio.stream = FOOTSTEP
+	footstep_audio.volume_db = -10.0
+	add_child(footstep_audio)
 
 func _physics_process(delta: float) -> void:
 	invulnerability = maxf(0.0, invulnerability - delta)
@@ -125,6 +133,15 @@ func _physics_process(delta: float) -> void:
 			jump_buffer = 0.0
 			coyote_time = 0.0
 	move_and_slide()
+	if controls_enabled and is_on_floor() and absf(velocity.x) > 55.0 and dash_time <= 0.0:
+		footstep_timer -= delta
+		if footstep_timer <= 0.0:
+			footstep_audio.pitch_scale = 0.93 if footstep_count % 2 == 0 else 1.05
+			footstep_audio.play()
+			footstep_count += 1
+			footstep_timer = 0.32
+	else:
+		footstep_timer = 0.0
 	queue_redraw()
 
 func take_damage(amount: int, from_x: float) -> void:

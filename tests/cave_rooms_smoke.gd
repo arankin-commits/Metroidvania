@@ -23,6 +23,29 @@ func _run() -> void:
 	if world.background_rect.texture != world.CAVE_ROOM_BACKDROPS[1]:
 		_fail("Room 2 backdrop is wrong")
 		return
+	if world.visited_rooms != [2] or not world._completed_rooms().is_empty():
+		_fail("New-game map revealed unexplored or incomplete rooms")
+		return
+	if world.hand_chair.texture == null or world.hand_chair.texture_filter != CanvasItem.TEXTURE_FILTER_NEAREST:
+		_fail("Hand-chair checkpoint sprite is missing")
+		return
+	_map_key(KEY_M)
+	await process_frame
+	if not world.world_map.visible or not paused or world.world_map.visited_rooms != [2]:
+		_fail("M did not open the discovery map")
+		return
+	_map_key(KEY_TAB)
+	await process_frame
+	if world.world_map.visible or paused:
+		_fail("Tab did not close the map")
+		return
+	_map_key(KEY_M)
+	await process_frame
+	_map_key(KEY_ESCAPE)
+	await process_frame
+	if world.world_map.visible or world.pause_menu.visible or paused:
+		_fail("Esc did not close the map cleanly")
+		return
 	if world.background_rect.get_parent() != world or world.background_rect.size.x <= 1200.0:
 		_fail("Room 2 backdrop is not positioned in the scrolling world")
 		return
@@ -60,6 +83,9 @@ func _run() -> void:
 	if world.current_room != 1 or world.loading_overlay.visible or world.background_rect.texture != world.CAVE_ROOM_BACKDROPS[0]:
 		_fail("Room 2 to Room 1 transition failed")
 		return
+	if not world.visited_rooms.has(1) or not world._completed_rooms().has(1):
+		_fail("Room 1 discovery/completion was not recorded")
+		return
 	world.player.global_position = Vector2(2, 570)
 	await create_timer(0.7).timeout
 	await process_frame
@@ -96,10 +122,18 @@ func _run() -> void:
 	if not world.secret_found or not world.note_open or not world.sigil_icon.visible or not world.note_text.text.contains("Heartroot"):
 		_fail("Cave Sigil did not open its lore close-up")
 		return
+	if not world._completed_rooms().has(2):
+		_fail("Room 2 did not become complete after collecting its Sigil")
+		return
 	_interact()
 	await process_frame
 	if world.note_open or world.note_panel.visible:
 		_fail("Second interaction did not close the Cave Sigil")
+		return
+	_interact()
+	await process_frame
+	if world.note_open:
+		_fail("Collected Cave Sigil appeared again")
 		return
 	world.last_safe_position = Vector2(650, 570)
 	world.player.health = 5
@@ -122,11 +156,23 @@ func _run() -> void:
 		_fail("Room 2 to Room 3 transition failed")
 		return
 	world.player.global_position = world.NOTE_POSITION
-	world._open_note()
+	_interact()
+	await process_frame
 	if not world.note_found or not world.note_panel.visible:
 		_fail("Hidden note did not open")
 		return
-	world._close_note()
+	_interact()
+	await process_frame
+	_interact()
+	await process_frame
+	if world.note_open:
+		_fail("Read note appeared again")
+		return
+	world.player.global_position = Vector2(1945, 550)
+	await process_frame
+	if not world.player.has_dash or not world._completed_rooms().has(3):
+		_fail("Room 3 did not become complete after the note and dash pickup")
+		return
 	world.player.global_position = Vector2(3072, 570)
 	await create_timer(0.7).timeout
 	await process_frame
@@ -172,21 +218,37 @@ func _run() -> void:
 	release.keycode = KEY_H
 	release.pressed = false
 	Input.parse_input_event(release)
-	await process_frame
-	await process_frame
+	await physics_frame
+	await physics_frame
 	if not world.wall_broken:
 		_fail("Holding and releasing H did not break the cracked wall")
 		return
-	world.player.global_position = Vector2(4202, 570)
+	world.player.global_position = Vector2(4432, 570)
 	await create_timer(0.7).timeout
 	if current_scene == null or current_scene.name != "ForestEntry":
 		_fail("Forest exit did not load the forest room")
 		return
 	var forest := current_scene
-	forest.player.global_position = Vector2(50, 570)
+	if not forest.visited_rooms.has(5) or not forest._completed_rooms().has(5):
+		_fail("Forest map discovery was not recorded")
+		return
+	_map_key(KEY_TAB)
+	await process_frame
+	if not forest.world_map.visible or not paused:
+		_fail("Forest map did not open")
+		return
+	_map_key(KEY_TAB)
+	await process_frame
+	if forest.world_map.visible or paused:
+		_fail("Forest map did not close")
+		return
+	forest.player.global_position = Vector2(30, 570)
 	await create_timer(0.7).timeout
 	if current_scene == null or current_scene.name != "TutorialWorld" or current_scene.current_room != 4:
 		_fail("Forest return did not load Cave Room 4")
+		return
+	if not current_scene.visited_rooms.has(5) or not current_scene._completed_rooms().has(4):
+		_fail("Room discoveries or boss completion were lost on forest return")
 		return
 	change_scene_to_file("res://scenes/main_menu.tscn")
 	await process_frame
@@ -210,5 +272,17 @@ func _interact() -> void:
 	var release := InputEventKey.new()
 	release.physical_keycode = KEY_E
 	release.keycode = KEY_E
+	release.pressed = false
+	Input.parse_input_event(release)
+
+func _map_key(key: Key) -> void:
+	var press := InputEventKey.new()
+	press.physical_keycode = key
+	press.keycode = key
+	press.pressed = true
+	Input.parse_input_event(press)
+	var release := InputEventKey.new()
+	release.physical_keycode = key
+	release.keycode = key
 	release.pressed = false
 	Input.parse_input_event(release)

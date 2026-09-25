@@ -14,6 +14,8 @@ const CAVE_ROOM_BACKDROPS := [
 	preload("res://assets/cave_room4.png"),
 ]
 const WILL_ORB = preload("res://scripts/will_orb.gd")
+const WORLD_MAP = preload("res://scripts/world_map.gd")
+const HAND_CHAIR = preload("res://assets/hand_chair.png")
 
 const FLOOR_Y := 600.0
 const LEVEL_END := 4450.0
@@ -30,6 +32,9 @@ var background_rect: TextureRect
 var room_backgrounds: Array[TextureRect] = []
 var pause_menu: CanvasLayer
 var loading_overlay: CanvasLayer
+var world_map: CanvasLayer
+var hand_chair: Sprite2D
+var visited_rooms: Array[int] = [2]
 var platforms: Array[Rect2] = []
 var seal_body: StaticBody2D
 var exit_barrier: StaticBody2D
@@ -89,12 +94,14 @@ func _ready() -> void:
 			wall_broken = bool(data.get("wall_broken", false))
 			secret_found = bool(data.get("secret_found", false))
 			note_found = bool(data.get("note_found", false))
+			visited_rooms.assign(data.get("visited_rooms", [2]))
 	if get_tree().has_meta("cave_entry_x"):
 		checkpoint = Vector2(float(get_tree().get_meta("cave_entry_x")), 570)
 		current_room = 4
 		get_tree().remove_meta("cave_entry_x")
 	else:
 		current_room = _room_for_x(checkpoint.x)
+	_mark_room_visited(current_room)
 	last_safe_position = checkpoint
 	platforms = [
 		Rect2(-1200, FLOOR_Y, 1200, 120),
@@ -153,12 +160,18 @@ func _ready() -> void:
 	hud.name = "HUD"
 	layer.add_child(hud)
 	_add_backdrop()
+	_add_hand_chair()
 	pause_menu = preload("res://scripts/pause_menu.gd").new()
 	add_child(pause_menu)
 	loading_overlay = LOADING_OVERLAY.new()
 	add_child(loading_overlay)
+	world_map = WORLD_MAP.new()
+	add_child(world_map)
 	_build_note_panel(layer)
 	_set_camera_room()
+	if get_tree().has_meta("arriving_room_transition"):
+		get_tree().remove_meta("arriving_room_transition")
+		loading_overlay.reveal_room()
 	_show_toast("Find your way through the forgotten passage", 3.5)
 	queue_redraw()
 
@@ -178,6 +191,35 @@ func _add_backdrop() -> void:
 		add_child(backdrop)
 		room_backgrounds.append(backdrop)
 	background_rect = room_backgrounds[current_room - 1]
+
+func _add_hand_chair() -> void:
+	hand_chair = Sprite2D.new()
+	hand_chair.name = "HandChairCheckpoint"
+	hand_chair.texture = HAND_CHAIR
+	hand_chair.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	hand_chair.scale = Vector2(0.096, 0.096)
+	hand_chair.position = Vector2(77, 538)
+	hand_chair.z_index = -1
+	add_child(hand_chair)
+
+func _mark_room_visited(room: int) -> void:
+	if not visited_rooms.has(room):
+		visited_rooms.append(room)
+		visited_rooms.sort()
+
+func _completed_rooms() -> Array[int]:
+	var completed: Array[int] = []
+	if visited_rooms.has(1):
+		completed.append(1)
+	if visited_rooms.has(2) and secret_found:
+		completed.append(2)
+	if visited_rooms.has(3) and note_found and player.has_dash:
+		completed.append(3)
+	if visited_rooms.has(4) and boss_defeated:
+		completed.append(4)
+	if visited_rooms.has(5):
+		completed.append(5)
+	return completed
 
 func _make_solid(rect: Rect2) -> StaticBody2D:
 	var body := StaticBody2D.new()
@@ -235,12 +277,17 @@ func _process(delta: float) -> void:
 	queue_redraw()
 
 func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and not event.echo and event.physical_keycode in [KEY_M, KEY_TAB]:
+		if not note_open and not transitioning_room and not get_tree().paused:
+			world_map.show_map(visited_rooms, _completed_rooms(), current_room)
+			get_viewport().set_input_as_handled()
+		return
 	if event is InputEventKey and event.pressed and not event.echo and event.physical_keycode == KEY_E:
 		if note_open:
 			_close_note()
-		elif current_room == 2 and player.global_position.distance_to(SECRET_POSITION) < 65.0:
+		elif current_room == 2 and not secret_found and player.global_position.distance_to(SECRET_POSITION) < 65.0:
 			_open_sigil()
-		elif current_room == 3 and player.global_position.distance_to(NOTE_POSITION) < 65.0:
+		elif current_room == 3 and not note_found and player.global_position.distance_to(NOTE_POSITION) < 65.0:
 			_open_note()
 		return
 	if event is InputEventKey and event.pressed and not event.echo and event.physical_keycode == KEY_R:
@@ -275,7 +322,7 @@ func _check_room_transition() -> bool:
 			if x < 3070.0:
 				_begin_room_transition(3, 2990.0)
 				return true
-			if x >= 4200.0 and wall_broken:
+			if x >= 4430.0 and wall_broken:
 				_leave_for_forest()
 				return true
 	return false
@@ -284,15 +331,14 @@ func _begin_room_transition(destination: int, entry_x: float) -> void:
 	transitioning_room = true
 	player.controls_enabled = false
 	player.velocity = Vector2.ZERO
-	loading_overlay.show_room(ROOM_NAMES[destination - 1])
-	await get_tree().create_timer(0.45).timeout
+	await loading_overlay.cover_room()
 	current_room = destination
+	_mark_room_visited(current_room)
 	player.global_position = Vector2(entry_x, 570)
 	last_safe_position = player.global_position
 	_set_camera_room()
 	_save_progress()
-	await get_tree().process_frame
-	loading_overlay.hide_room()
+	await loading_overlay.reveal_room()
 	player.controls_enabled = true
 	transitioning_room = false
 
@@ -301,8 +347,8 @@ func _leave_for_forest() -> void:
 	player.controls_enabled = false
 	player.velocity = Vector2.ZERO
 	_save_progress()
-	loading_overlay.show_room("Forest Edge")
-	await get_tree().create_timer(0.45).timeout
+	await loading_overlay.cover_room()
+	get_tree().set_meta("arriving_room_transition", true)
 	get_tree().change_scene_to_file("res://scenes/forest_entry.tscn")
 
 func _set_camera_room() -> void:
@@ -362,6 +408,7 @@ func _open_note() -> void:
 	player.velocity = Vector2.ZERO
 	note_panel.visible = true
 	_save_progress()
+	queue_redraw()
 
 func _open_sigil() -> void:
 	note_open = true
@@ -374,6 +421,7 @@ func _open_sigil() -> void:
 	player.velocity = Vector2.ZERO
 	note_panel.visible = true
 	_save_progress()
+	queue_redraw()
 
 func _close_note() -> void:
 	note_open = false
@@ -465,6 +513,7 @@ func _save_progress() -> void:
 	data["wall_broken"] = wall_broken
 	data["secret_found"] = secret_found
 	data["note_found"] = note_found
+	data["visited_rooms"] = visited_rooms.duplicate()
 	var result: Error = SAVE_SLOTS.write_slot(active_save_slot, data, save_root)
 	if result != OK:
 		push_error("Could not save slot %d: %s" % [active_save_slot, error_string(result)])
@@ -561,7 +610,7 @@ func _update_hud() -> void:
 				hud.prompt = "Strike the old seal three times to reach the next room."
 		3:
 			hud.area = "CAVE 03  ·  THE HIDDEN WORD"
-			if player.global_position.distance_to(NOTE_POSITION) < 65.0:
+			if not note_found and player.global_position.distance_to(NOTE_POSITION) < 65.0:
 				hud.prompt = "Press E to read the weathered note."
 			elif x < 2110.0:
 				hud.prompt = "Touch the turquoise light to upgrade your dodge to an air dash."
@@ -579,7 +628,7 @@ func _update_hud() -> void:
 				hud.prompt = "The forest exit is beyond the broken wall."
 	if toast_time > 0.0:
 		hud.prompt = toast
-	elif current_room == 2 and player.global_position.distance_to(SECRET_POSITION) < 65.0:
+	elif current_room == 2 and not secret_found and player.global_position.distance_to(SECRET_POSITION) < 65.0:
 		hud.prompt = "Press E to inspect the Cave Sigil."
 	elif current_room == 2 and player.health < player.max_health and player.healing_charges > 0:
 		hud.prompt = "Press F to spend a healing charge and restore health."
@@ -588,7 +637,6 @@ func _update_hud() -> void:
 func _draw() -> void:
 	for rect in platforms:
 		_draw_cave_terrain(rect)
-	_draw_hand_bench(Vector2(77, 600))
 	if is_instance_valid(arena_barrier) and not arena_barrier.is_queued_for_deletion():
 		draw_rect(Rect2(3070, -60, 32, 660), Color(0.12, 0.18, 0.23))
 		for y in range(-48, 600, 32):
@@ -604,14 +652,16 @@ func _draw() -> void:
 	draw_rect(Rect2(-1160, 380, 32, 220), Color(0.33, 0.30, 0.41))
 	draw_rect(Rect2(-1152, 405, 16, 170), Color(0.11, 0.17, 0.26))
 	draw_circle(Vector2(-1144, 490), 11, Color(0.81, 0.65, 0.38))
-	draw_rect(Rect2(499, 467, 22, 20), Color(0.24, 0.24, 0.30))
-	draw_circle(SECRET_POSITION, 6, Color(0.52, 0.88, 0.79) if secret_found else Color(0.96, 0.79, 0.39))
-	draw_circle(SECRET_POSITION, 13, Color(0.96, 0.79, 0.39, 0.15))
+	if not secret_found:
+		draw_rect(Rect2(499, 467, 22, 20), Color(0.24, 0.24, 0.30))
+		draw_circle(SECRET_POSITION, 6, Color(0.96, 0.79, 0.39))
+		draw_circle(SECRET_POSITION, 13, Color(0.96, 0.79, 0.39, 0.15))
 	draw_rect(Rect2(572, 515, 9, 85), Color(0.54, 0.38, 0.26))
 	draw_rect(Rect2(560, 515, 33, 37), Color(0.71, 0.51, 0.31) if not practice_target_hit else Color(0.47, 0.70, 0.59))
 	draw_circle(Vector2(576, 533), 10, Color(0.29, 0.22, 0.24))
-	draw_rect(Rect2(2858, 480, 24, 20), Color(0.20, 0.27, 0.29))
-	draw_rect(Rect2(2864, 484, 12, 13), Color(0.74, 0.66, 0.48))
+	if not note_found:
+		draw_rect(Rect2(2858, 480, 24, 20), Color(0.20, 0.27, 0.29))
+		draw_rect(Rect2(2864, 484, 12, 13), Color(0.74, 0.66, 0.48))
 	if seal_health > 0:
 		draw_rect(Rect2(1680, 300, 32, 300), Color(0.28, 0.51, 0.57))
 		draw_rect(Rect2(1687, 316, 18, 268), Color(0.15, 0.23, 0.32))
@@ -629,9 +679,12 @@ func _draw() -> void:
 	for x in [3120.0, 3800.0]:
 		draw_rect(Rect2(x, 380, 35, 220), Color(0.17, 0.20, 0.28))
 		draw_rect(Rect2(x - 8, 370, 51, 18), Color(0.29, 0.31, 0.39))
-	draw_circle(Vector2(4200, 520), 43, Color(0.26, 0.91, 0.81, 0.12))
-	draw_circle(Vector2(4200, 520), 19, Color(0.51, 0.96, 0.81, 0.75))
-	draw_arc(Vector2(4200, 520), 42, 0, TAU, 32, Color(0.48, 0.91, 0.81, 0.8), 4)
+	draw_rect(Rect2(4370, 390, 15, 210), Color(0.27, 0.36, 0.37))
+	draw_rect(Rect2(4436, 390, 15, 210), Color(0.27, 0.36, 0.37))
+	draw_rect(Rect2(4370, 380, 81, 18), Color(0.38, 0.49, 0.47))
+	draw_rect(Rect2(4385, 398, 51, 202), Color(0.07, 0.19, 0.18, 0.6))
+	for leaf in 5:
+		draw_rect(Rect2(4390 + leaf * 10, 416 + posmod(leaf * 13, 4) * 15, 6, 13), Color(0.24, 0.49, 0.33))
 	var font := ThemeDB.fallback_font
 	draw_string(font, Vector2(310, 455), "JUMP", HORIZONTAL_ALIGNMENT_LEFT, -1, 20, Color(0.62, 0.82, 0.81))
 	draw_string(font, Vector2(1060, 500), "STRIKE", HORIZONTAL_ALIGNMENT_LEFT, -1, 20, Color(0.84, 0.72, 0.69))
@@ -668,22 +721,3 @@ func _draw_cave_terrain(rect: Rect2) -> void:
 				draw_rect(Rect2(x + 11, y + 8, 3, 3), mid)
 		if rect.size.y > 20.0 and posmod(seed, 6) == 0:
 			draw_rect(Rect2(x + 13, rect.position.y + 8, 2, 20), dark)
-
-func _draw_hand_bench(base: Vector2) -> void:
-	var outline := Color(0.06, 0.14, 0.19)
-	var stone := Color(0.43, 0.58, 0.58)
-	var highlight := Color(0.77, 0.86, 0.74)
-	var glow := Color(0.32, 0.95, 0.83, 0.20)
-	draw_circle(base + Vector2(0, -50), 46, glow)
-	draw_rect(Rect2(base + Vector2(-25, -65), Vector2(50, 55)), outline)
-	draw_rect(Rect2(base + Vector2(-21, -60), Vector2(42, 46)), stone)
-	for finger in 4:
-		var height := 21.0 + float((finger + 1) % 3) * 7.0
-		draw_rect(Rect2(base + Vector2(-20 + finger * 11, -60 - height), Vector2(9, height + 5)), outline)
-		draw_rect(Rect2(base + Vector2(-18 + finger * 11, -57 - height), Vector2(5, height)), highlight)
-	draw_rect(Rect2(base + Vector2(-36, -48), Vector2(15, 34)), outline)
-	draw_rect(Rect2(base + Vector2(-31, -44), Vector2(11, 23)), stone)
-	draw_rect(Rect2(base + Vector2(-31, -25), Vector2(62, 12)), outline)
-	draw_rect(Rect2(base + Vector2(-27, -23), Vector2(54, 6)), highlight)
-	draw_rect(Rect2(base + Vector2(-14, -13), Vector2(28, 13)), stone)
-	draw_rect(Rect2(base + Vector2(-18, -4), Vector2(36, 4)), outline)

@@ -104,6 +104,10 @@ func _slider(parent: Node, amount: float) -> HSlider:
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo and event.physical_keycode == KEY_ESCAPE:
 		get_viewport().set_input_as_handled()
+		var map: Variant = get_parent().get("world_map")
+		if map is CanvasLayer and map.visible:
+			map.hide_map()
+			return
 		if visible and options_page.visible:
 			_show_main()
 		elif visible:
@@ -113,7 +117,8 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _can_pause() -> bool:
 	var overlay: Variant = get_parent().get("loading_overlay")
-	return not (overlay is CanvasLayer and overlay.visible)
+	var map: Variant = get_parent().get("world_map")
+	return not (overlay is CanvasLayer and overlay.visible) and not (map is CanvasLayer and map.visible)
 
 func _open() -> void:
 	main_page.visible = true
