@@ -76,7 +76,7 @@ func _ready() -> void:
 	next_button = _button(header, "▶  E")
 	next_button.custom_minimum_size.x = 86
 	next_button.pressed.connect(func() -> void: _show_tab(current_tab + 1))
-	var close_button := _button(header, "CLOSE  TAB / ESC")
+	var close_button := _button(header, "CLOSE")
 	close_button.custom_minimum_size.x = 170
 	close_button.pressed.connect(close_menu)
 	var body := Control.new()
@@ -252,9 +252,9 @@ func _refresh_status() -> void:
 	var completed: Array = world._completed_rooms()
 	var seconds := int(float(world.elapsed_seconds))
 	var time_text := "%02d:%02d:%02d" % [seconds / 3600, seconds / 60 % 60, seconds % 60]
-	var area := "FOREST EDGE" if world.get("current_room") == null else "CAVE ROOM %d" % int(world.current_room)
+	var area := "THE TWISTED FOREST" if int(world.current_room) >= 5 else "CAVE ROOM %d" % int(world.current_room)
 	var attack := 2 if player.has_heavy else 1
-	status_text.text = "AREA  %s\n\nPROGRESS  %d / 5 rooms discovered  ·  %d / 5 complete\nPLAYTIME  %s\n\nLEVEL  %d\nATTACK  %d\nHP  %d / %d\nHEALING ITEMS  %d / %d\nHEALING PER ITEM  2 HP\nWILL  %d" % [area, visited.size(), completed.size(), time_text, int(world.player_level), attack, player.health, player.max_health, player.healing_charges, player.max_healing_charges, int(world.will_amount)]
+	status_text.text = "AREA  %s\n\nPROGRESS  %d / 8 rooms discovered  ·  %d / 8 complete\nPLAYTIME  %s\n\nLEVEL  %d\nATTACK  %d\nHP  %d / %d\nHEALING ITEMS  %d / %d\nHEALING PER ITEM  2 HP\nWILL  %d" % [area, visited.size(), completed.size(), time_text, int(world.player_level), attack, player.health, player.max_health, player.healing_charges, player.max_healing_charges, int(world.will_amount)]
 
 func _refresh_wills() -> void:
 	for child in will_list.get_children():

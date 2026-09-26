@@ -19,6 +19,7 @@ var options_screen: Control
 var achievements_screen: Control
 var transition_screen: Control
 var transition_label: Label
+var sound_splash: ColorRect
 var slot_buttons: Array[Button] = []
 var delete_buttons: Array[Button] = []
 var delete_dialog: ConfirmationDialog
@@ -47,7 +48,36 @@ func _ready() -> void:
 	_build_achievements()
 	_build_transition()
 	_show_screen(menu_screen)
-	music.play()
+	var html_loader_active := OS.has_feature("web") and bool(JavaScriptBridge.eval("window.metroidvaniaWebLoader === true"))
+	if html_loader_active:
+		get_tree().set_meta("sound_splash_shown", true)
+	if not get_tree().has_meta("sound_splash_shown"):
+		get_tree().set_meta("sound_splash_shown", true)
+		_show_sound_splash()
+	else:
+		music.play()
+	if html_loader_active:
+		JavaScriptBridge.eval("window.dispatchEvent(new Event('metroidvania-menu-ready'))")
+
+func _show_sound_splash() -> void:
+	sound_splash = ColorRect.new()
+	sound_splash.color = Color.BLACK
+	sound_splash.mouse_filter = Control.MOUSE_FILTER_STOP
+	sound_splash.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	add_child(sound_splash)
+	var center := CenterContainer.new()
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	sound_splash.add_child(center)
+	var message := Label.new()
+	message.text = "TURN ON SOUND FOR THE BEST EXPERIENCE"
+	message.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	message.add_theme_font_size_override("font_size", 28)
+	message.add_theme_color_override("font_color", Color.WHITE)
+	center.add_child(message)
+	await get_tree().create_timer(2.0).timeout
+	if is_instance_valid(sound_splash):
+		sound_splash.queue_free()
+		music.play()
 
 func _build_background() -> void:
 	var background := TextureRect.new()
@@ -278,10 +308,10 @@ func _start_slot(slot: int) -> void:
 	click_audio.play()
 	get_tree().set_meta("active_save_slot", slot)
 	get_tree().set_meta("save_root", save_root)
-	transition_label.text = "ENTERING THE FOREST..." if data.get("area", "") == "Forest Edge" else "ENTERING THE CAVE..."
+	transition_label.text = "ENTERING THE TWISTED FOREST..." if data.get("area", "") in ["Forest Edge", "The Twisted Forest"] else "ENTERING THE CAVE..."
 	_show_screen(transition_screen)
 	await get_tree().create_timer(0.5).timeout
-	var scene_path := "res://scenes/forest_entry.tscn" if data.get("area", "") == "Forest Edge" else "res://scenes/tutorial.tscn"
+	var scene_path := "res://scenes/forest_entry.tscn" if data.get("area", "") in ["Forest Edge", "The Twisted Forest"] else "res://scenes/tutorial.tscn"
 	get_tree().change_scene_to_file(scene_path)
 
 func _delete_slot(slot: int) -> void:

@@ -164,8 +164,8 @@ func _run() -> void:
 	if world.current_room != 1 or world.loading_overlay.visible or world.background_rect.texture != world.CAVE_ROOM_BACKDROPS[0]:
 		_fail("Room 2 to Room 1 transition failed")
 		return
-	if not world.visited_rooms.has(1) or not world._completed_rooms().has(1):
-		_fail("Room 1 discovery/completion was not recorded")
+	if not world.visited_rooms.has(1) or world._completed_rooms().has(1):
+		_fail("Room 1 should be discovered but incomplete until its reliquary is opened")
 		return
 	world.player.global_position = Vector2(16, 570)
 	await create_timer(0.7).timeout
@@ -298,8 +298,8 @@ func _run() -> void:
 	if not world.secret_found or not world.note_open or not world.sigil_icon.visible or not world.note_text.text.contains("Heartroot"):
 		_fail("Cave Sigil did not open its lore close-up")
 		return
-	if not world._completed_rooms().has(2):
-		_fail("Room 2 did not become complete after collecting its Sigil")
+	if world._completed_rooms().has(2):
+		_fail("Room 2 completed before the upper-gallery offering was collected")
 		return
 	_interact()
 	await process_frame
@@ -426,6 +426,8 @@ func _run() -> void:
 		return
 	world.scout.health = 1
 	world.boss.health = 3
+	world.player.health = 2
+	world.player.healing_charges = 1
 	world.player.global_position = Vector2(2610, 570)
 	_interact()
 	await process_frame
@@ -434,6 +436,12 @@ func _run() -> void:
 		return
 	if not is_instance_valid(world.ledge_sentinel) or world.ledge_sentinel.health != 2 or world.scout.health != 2 or world.boss.health != 3:
 		_fail("Interacting with the hand did not restore regular enemies only")
+		return
+	if world.player.health != world.player.max_health or world.player.healing_charges != world.player.max_healing_charges:
+		_fail("Interacting with the hand did not restore health and healing charges")
+		return
+	if SAVE_SLOTS.load_slot(3, TEST_ROOT).get("checkpoint_x") == 2610.0:
+		_fail("Interacting with the hand saved before the SAVE button was pressed")
 		return
 	await create_timer(0.45).timeout
 	if world.player.meditation_state != "meditate" or absf(world.player.global_position.x - 2610.0) > 2.0 or world.player.global_position.y > 515.0:
@@ -621,47 +629,8 @@ func _run() -> void:
 		return
 	world.player.global_position = Vector2(4466, 570)
 	await create_timer(0.7).timeout
-	if world.current_room != 5 or not world.bow_boss.active or not is_instance_valid(world.bow_arena_barrier) or not is_instance_valid(world.bow_arena_exit_barrier):
-		_fail("Bow Trial did not activate and lock both arena exits")
-		return
-	world.player.global_position = Vector2(5810, 570)
-	world.player.velocity = Vector2.ZERO
-	_key(KEY_D, true)
-	for i in 20:
-		await physics_frame
-	_key(KEY_D, false)
-	if world.current_room != 5 or world.player.global_position.x >= 5850.0:
-		_fail("Player walked through the right side of the archer arena")
-		return
-	world.player.health = 1
-	world.player.take_damage(1, world.bow_boss.global_position.x)
-	await create_timer(1.15).timeout
-	if world.current_room != 3 or absf(world.player.global_position.x - 2610.0) > 3.0 or is_instance_valid(world.bow_arena_barrier) or is_instance_valid(world.bow_arena_exit_barrier):
-		_fail("Archer death did not return to the checkpoint and clear the arena locks")
-		return
-	world.player.global_position = Vector2(3086, 570)
-	await create_timer(0.7).timeout
-	if world.current_room != 4:
-		_fail("Could not return to Room 4 after archer death")
-		return
-	world.player.global_position = Vector2(4466, 570)
-	await create_timer(0.7).timeout
-	if world.current_room != 5 or not world.bow_boss.active or not is_instance_valid(world.bow_arena_barrier) or not is_instance_valid(world.bow_arena_exit_barrier):
-		_fail("Could not re-enter the archer arena after death")
-		return
-	world._on_bow_boss_defeated()
-	if not world.player.has_bow or is_instance_valid(world.bow_arena_barrier) or is_instance_valid(world.bow_arena_exit_barrier):
-		_fail("Archer defeat did not award the bow and unlock both exits")
-		return
-	world.player.global_position = Vector2(5866, 570)
-	await create_timer(0.7).timeout
-	if world.current_room != 6:
-		_fail("Bow Trial exit did not lead to the Bow Tutorial")
-		return
-	world.player.global_position = Vector2(7266, 570)
-	await create_timer(0.7).timeout
 	if current_scene == null or current_scene.name != "ForestEntry":
-		_fail("Forest exit did not load the forest room")
+		_fail("Cave exit did not load the Twisted Forest")
 		return
 	var forest := current_scene
 	if forest.game_audio.current_track != "forest" or forest.game_audio.music.stream != forest.game_audio.FOREST_MUSIC:

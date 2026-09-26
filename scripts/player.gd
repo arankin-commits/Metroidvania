@@ -28,9 +28,7 @@ var has_dash := true
 var has_heavy := false
 var has_bow := false
 var bow_ammo := 0
-var bow_reload_time := 0.0
 const BOW_AMMO_MAX := 3
-const BOW_RELOAD_DURATION := 1.0
 var heavy_charge := 0.0
 var heavy_attack_time := 0.0
 var heavy_cooldown := 0.0
@@ -136,16 +134,10 @@ func _physics_process(delta: float) -> void:
 	var heavy_down := controls_enabled and has_heavy and Input.is_physical_key_pressed(KEY_H)
 	var bow_down := controls_enabled and has_bow and Input.is_physical_key_pressed(KEY_L)
 	var heal_down := controls_enabled and Input.is_physical_key_pressed(KEY_F)
-	if bow_reload_time > 0.0:
-		bow_reload_time = maxf(0.0, bow_reload_time - delta)
-		if bow_reload_time <= 0.0:
-			bow_ammo = BOW_AMMO_MAX
-	if bow_down and not _bow_was_down and bow_reload_time <= 0.0:
+	if bow_down and not _bow_was_down:
 		if bow_ammo > 0:
 			bow_ammo -= 1
 			bow_fired.emit(global_position + Vector2(18.0 * facing, -8.0), Vector2(facing, 0.0))
-		else:
-			bow_reload_time = BOW_RELOAD_DURATION
 	if heal_time > 0.0:
 		heal_time = maxf(0.0, heal_time - delta)
 		velocity.x = move_toward(velocity.x, 0.0, 1800.0 * delta)
@@ -268,7 +260,15 @@ func _try_grab_ledge() -> void:
 	var query := PhysicsRayQueryParameters2D.create(Vector2(probe_x, head_y - 22.0), Vector2(probe_x, head_y + 20.0))
 	query.exclude = [get_rid()]
 	var hit := get_world_2d().direct_space_state.intersect_ray(query)
-	if hit.is_empty():
+	if hit.is_empty() or not hit.collider is StaticBody2D:
+		return
+	var wall_is_terrain := false
+	for index in get_slide_collision_count():
+		var collision := get_slide_collision(index)
+		if collision.get_collider() == hit.collider and absf(collision.get_normal().x) >= 0.8:
+			wall_is_terrain = true
+			break
+	if not wall_is_terrain:
 		return
 	var top_y: float = hit.position.y
 	if absf(top_y - head_y) > 18.0 or global_position.y <= top_y + 4.0:
@@ -293,7 +293,6 @@ func take_damage(amount: int, from_x: float) -> void:
 		return
 	health -= amount
 	heal_time = 0.0
-	bow_reload_time = 0.0
 	ledge_grabbed = false
 	ledge_climb_time = 0.0
 	damaged.emit()
@@ -420,10 +419,6 @@ func _draw() -> void:
 		draw_arc(Vector2(0, -7), 28, -PI / 2.0, -PI / 2.0 + TAU * heavy_charge, 20, Color(1.0, 0.78, 0.36), 4)
 	if heavy_attack_time > 0.0:
 		draw_arc(Vector2(facing * 28, -6), 56, -1.1 if facing > 0 else 2.0, 1.1 if facing > 0 else 4.2, 18, Color(1.0, 0.75, 0.33), 10)
-	if bow_reload_time > 0.0:
-		var reload_progress: float = 1.0 - bow_reload_time / BOW_RELOAD_DURATION
-		draw_rect(Rect2(-28, -48, 56, 7), Color(0.04, 0.10, 0.14, 0.94), true)
-		draw_rect(Rect2(-26, -46, 52.0 * reload_progress, 3), Color(0.96, 0.78, 0.36), true)
 
 func _draw_death_animation() -> void:
 	var progress := 1.0 - death_time / DEATH_DURATION
