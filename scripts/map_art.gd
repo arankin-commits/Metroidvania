@@ -1,7 +1,6 @@
 extends RefCounted
 
-const ROOM_WIDTHS := [1200.0, 1700.0, 1370.0, 1380.0, 1400.0, 1400.0, 1200.0]
-const ROOM_NAMES := ["OLD ENTRANCE", "FIRST STEPS", "HIDDEN WORD", "HOLLOW WARDEN", "BOW HUNTER", "BOW TRAINING", "FOREST EDGE"]
+const ROOM_WIDTHS := [1200.0, 1700.0, 1370.0, 1380.0, 1200.0, 1400.0, 1400.0, 1400.0]
 const TEAL := Color("78e4d4")
 const CREAM := Color("f5e9bf")
 
@@ -12,8 +11,11 @@ static func room_center_world(room: int) -> float:
 	return center + ROOM_WIDTHS[clampi(room - 1, 0, ROOM_WIDTHS.size() - 1)] * 0.5
 
 static func layout(size: Vector2, focus_room: int = 0) -> Dictionary:
-	var scale := 0.18 if focus_room > 0 else minf(0.105, (size.x - 100.0) / 9650.0)
-	var origin_x := size.x * 0.6 - room_center_world(focus_room) * scale if focus_room > 0 else (size.x - 9650.0 * scale) * 0.5
+	var total_width := 0.0
+	for room_width in ROOM_WIDTHS:
+		total_width += room_width
+	var scale := 0.18 if focus_room > 0 else minf(0.105, (size.x - 100.0) / total_width)
+	var origin_x := size.x * 0.6 - room_center_world(focus_room) * scale if focus_room > 0 else (size.x - total_width * scale) * 0.5
 	return {"scale": scale, "origin_x": origin_x, "y": size.y * 0.44}
 
 static func draw(canvas: Control, size: Vector2, visited: Array, completed: Array, current_room: int, hands: Array, focus_room: int = 0, fast_travel: bool = false) -> void:
@@ -38,7 +40,6 @@ static func draw(canvas: Control, size: Vector2, visited: Array, completed: Arra
 			for hand in hands:
 				if int(hand.get("room", -1)) == number:
 					_draw_hand(canvas, rect.get_center() + Vector2(0, -8), 2.0)
-			canvas.draw_string(font, rect.position + Vector2(8, height - 13), ROOM_NAMES[index], HORIZONTAL_ALIGNMENT_LEFT, width - 14.0, 13, CREAM)
 		x += width
 	_draw_legend(canvas, size, fast_travel)
 

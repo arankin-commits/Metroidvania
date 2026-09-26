@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="theme-color" content="#08121d">
+	<title>$GODOT_PROJECT_NAME</title>
+	<style>
+		* { box-sizing: border-box; }
+		html, body { margin: 0; width: 100%; height: 100%; background: #000; overflow: hidden; }
+		body { color: #f5e9bf; font-family: Arial, sans-serif; }
+		#canvas { display: block; width: 100%; height: 100%; outline: none; }
+		#status { position: fixed; inset: 0; z-index: 10; display: grid; place-items: center; background: #08121d; }
+		.loading-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated; }
+		#status::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, #04102070, #04102040 35%, #030b16d9); }
+		.sound-message { position: absolute; inset: 0; z-index: 3; display: grid; place-items: center; padding: 28px; background: #000; color: #fff; text-align: center; font-size: clamp(18px, 2.4vw, 28px); line-height: 1.5; }
+		.loading-panel, #status-notice { position: relative; z-index: 2; width: min(88vw, 720px); text-align: center; }
+		h1 { margin: 0 0 48px; font-family: Georgia, serif; font-size: clamp(30px, 6vw, 70px); font-weight: 400; letter-spacing: .13em; text-shadow: 0 3px 24px #000; }
+		.loading-caption { display: flex; justify-content: space-between; margin: 0 auto 14px; width: min(100%, 420px); color: #d8ece3; font-size: 17px; }
+		#status-progress { display: block; width: min(100%, 420px); height: 10px; margin: 0 auto; border: 1px solid #78e4d470; border-radius: 0; background: #07131dcc; accent-color: #78e4d4; }
+		#status-progress::-webkit-progress-bar { background: #07131dcc; }
+		#status-progress::-webkit-progress-value { background: #78e4d4; }
+		#status-progress::-moz-progress-bar { background: #78e4d4; }
+		#status[data-phase="sound"] .loading-panel { visibility: hidden; }
+		#status[data-phase="loading"] .sound-message, #status[data-phase="error"] .sound-message { display: none; }
+		#status[data-phase="error"] .loading-panel { display: none; }
+		#status-notice { padding: 28px; background: #091420ed; border: 1px solid #78e4d470; color: #f5e9bf; line-height: 1.6; }
+		#status-notice[hidden] { display: none; }
+		#status-notice p { white-space: pre-line; }
+		button { padding: 10px 24px; border: 1px solid #78e4d4; background: #102d36; color: #f5e9bf; font: inherit; cursor: pointer; }
+		button:focus-visible { outline: 2px solid #f5e9bf; outline-offset: 4px; }
+		noscript { position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; padding: 32px; text-align: center; background: #000; color: #fff; }
+	</style>
+	$GODOT_HEAD_INCLUDE
+</head>
+<body>
+	<canvas id="canvas" tabindex="0" aria-label="Metroidvania game">Your browser does not support canvas.</canvas>
+	<div id="status" data-phase="sound" role="status" aria-live="polite">
+		<img class="loading-art" src="loading-art.png" alt="" fetchpriority="high">
+		<div class="sound-message">Turn on sound for the best experience</div>
+		<section class="loading-panel" aria-labelledby="loading-title">
+			<h1 id="loading-title">METROIDVANIA</h1>
+			<div class="loading-caption"><span>Loading...</span><span id="loading-percent"></span></div>
+			<progress id="status-progress" aria-label="Game download progress"></progress>
+		</section>
+		<div id="status-notice" hidden><p id="failure-message"></p><button type="button" onclick="window.location.reload()">Retry</button></div>
+	</div>
+	<noscript>Enable JavaScript to load Metroidvania.</noscript>
+	<script>
+	(function () {
+		'use strict';
+		// This script runs before the engine script or its large downloads complete.
+		window.metroidvaniaWebLoader = true;
+		const config = $GODOT_CONFIG;
+		const overlay = document.getElementById('status');
+		const progress = document.getElementById('status-progress');
+		const percent = document.getElementById('loading-percent');
+		let failed = false;
+		let finished = false;
+
+		function fail(error) {
+			if (failed || finished) return;
+			failed = true;
+			overlay.dataset.phase = 'error';
+			document.getElementById('failure-message').textContent = 'The game could not load.\n' + (error && error.message ? error.message : String(error));
+			document.getElementById('status-notice').hidden = false;
+			console.error(error);
+		}
+		window.metroidvaniaLoader = { fail: fail };
+
+		const soundIntro = new Promise(function (resolve) {
+			setTimeout(function () {
+				if (!failed) overlay.dataset.phase = 'loading';
+				resolve();
+			}, 2000);
+		});
+		// Wait for the actual menu, rather than exposing Godot's boot splash.
+		const menuReady = new Promise(function (resolve) {
+			window.addEventListener('metroidvania-menu-ready', resolve, { once: true });
+		});
+
+		function onProgress(current, total) {
+			if (failed || finished) return;
+			if (Number.isFinite(total) && total > 0 && Number.isFinite(current) && current >= 0) {
+				progress.max = total;
+				progress.value = Math.min(current, total);
+				percent.textContent = Math.round(progress.value / total * 100) + '%';
+			} else {
+				progress.removeAttribute('value');
+				percent.textContent = '';
+			}
+		}
+
+		window.addEventListener('DOMContentLoaded', function () {
+			if (failed) return;
+			try {
+				if (typeof Engine === 'undefined') throw new Error('The game engine download failed. Please retry.');
+				const missing = Engine.getMissingFeatures({ threads: $GODOT_THREADS_ENABLED });
+				if (missing.length) throw new Error('This browser is missing: ' + missing.join(', '));
+				const engine = new Engine(config);
+				engine.startGame({ canvas: document.getElementById('canvas'), onProgress: onProgress })
+					.then(function () { return Promise.all([soundIntro, menuReady]); })
+					.then(function () {
+						if (failed) return;
+						progress.max = 1;
+						progress.value = 1;
+						percent.textContent = '100%';
+						// Allow the menu's first frame to render under the HTML overlay.
+						requestAnimationFrame(function () {
+							requestAnimationFrame(function () {
+								finished = true;
+								overlay.remove();
+							});
+						});
+					}, fail);
+			} catch (error) {
+				fail(error);
+			}
+		}, { once: true });
+	}());
+	</script>
+	<script src="$GODOT_URL" defer onerror="window.metroidvaniaLoader.fail(new Error('The game engine download failed. Please retry.'))"></script>
+</body>
+</html>
