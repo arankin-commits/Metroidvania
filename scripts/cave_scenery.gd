@@ -4,9 +4,13 @@ const LAYOUT = preload("res://scripts/cave_layout.gd")
 var world: Node2D
 var age := 0.0
 var glow_texture: GradientTexture2D
+var gallery_art: Node2D
 
 func _ready() -> void:
 	z_index = -5
+	gallery_art=preload("res://scripts/gallery_art.gd").new()
+	gallery_art.world=world
+	add_child(gallery_art)
 	glow_texture = GradientTexture2D.new()
 	glow_texture.width = 128
 	glow_texture.height = 128
@@ -19,9 +23,13 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	age += delta
+	gallery_art.visible=world.current_room==2
 	queue_redraw()
 
 func _draw() -> void:
+	if is_instance_valid(world) and world.current_room == 2:
+		draw_rect(world.GALLERY_LAYOUT.EXTENT,Color(0.02,0.035,0.055,0.20))
+		return
 	# Recessive scenery: only playable stone receives the bright top-edge treatment.
 	for room in range(1, 5):
 		var bounds: Vector2 = LAYOUT.BOUNDS[room - 1]

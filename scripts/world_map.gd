@@ -165,5 +165,5 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _draw_map() -> void:
 	var focus_room := int(unlocked_hands[selected_hand].get("room", 0)) if fast_travel and selected_hand >= 0 else 0
-	MAP_ART.draw(panel, panel.size, visited_rooms, completed_rooms, current_room, unlocked_hands, focus_room, fast_travel)
+	MAP_ART.draw(panel, panel.size, visited_rooms, completed_rooms, current_room, unlocked_hands, focus_room, fast_travel, get_parent().player.position, get_parent().gallery_map_state())
 	panel.draw_string(ThemeDB.fallback_font, Vector2(340 if fast_travel else 30, 88), "TAB / ESC  BACK TO HAND" if fast_travel else "M / ESC  CLOSE     TAB  MENU", HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color("78e4d4"))

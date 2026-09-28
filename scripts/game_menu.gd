@@ -8,14 +8,18 @@ const TABS := ["STATUS", "WILLS", "NOTES", "ABILITIES", "MAP"]
 const ABILITIES := [
 	{"name": "Jump", "icon": "jump", "detail": "Leap over gaps and reach higher ground.", "cooldown": "None", "uses": "Unlimited"},
 	{"name": "Ground dodge", "icon": "dodge", "detail": "Shift or K on the ground. Briefly avoids damage.", "cooldown": "0.75 seconds", "uses": "Unlimited"},
-	{"name": "Air dash", "icon": "dash", "detail": "Shift or K in the air to cross gaps and pass through enemies.", "cooldown": "0.65 seconds", "uses": "Unlimited"},
+	{"name": "Air / enhanced dash", "icon": "dash", "detail": "Forest boss reward. Shift or K unlocks air dash and doubles the basic ground dash distance. No bottom-left slot.", "cooldown": "0.65 seconds air; 0.75 seconds ground", "uses": "Unlimited","unlock":"has_dash"},
 	{"name": "Ledge climb", "icon": "climb", "detail": "Catch a clear edge at head height, then press Jump or move toward it.", "cooldown": "None", "uses": "Unlimited"},
 	{"name": "Drop through", "icon": "drop", "detail": "Hold S or Down and press Jump on a thin platform.", "cooldown": "None", "uses": "Unlimited"},
 	{"name": "Attack", "icon": "attack", "detail": "Press J or X to strike on the ground, in the air, or while hanging.", "cooldown": "0.30 seconds", "uses": "Unlimited"},
 	{"name": "Healing", "icon": "heal", "detail": "Press F to restore 2 HP after a short meditation. Damage interrupts it.", "cooldown": "0.65 second cast", "uses": "Healing charges"},
+	{"name":"Goblin Scimitar","icon":"attack","detail":"Cave boss reward. Press 1 to equip; J swings, U thrusts.","cooldown":"0.75 seconds (thrust)","uses":"Unlimited","unlock":"has_scimitar"},
+	{"name":"Bow and arrow","icon":"bow","detail":"Forest boss reward. Press 2 to equip; J or L fires. U flips forward and fires three downward targeting arrows. Meditate to refill.","cooldown":"1.8 seconds (volley)","uses":"Arrows","unlock":"has_bow"},
+	{"name":"Stone Gauntlet","icon":"heavy","detail":"Temple guardian reward. Press 3 to equip; J punches. Tap U for a fireball beam; hold U and release for four stronger rapid-fire beams.","cooldown":"0.85 seconds (beam)","uses":"Unlimited","unlock":"has_gauntlet"},
+	{"name":"Charged wall breaking","icon":"heavy","detail":"Cave boss reward. Hold H and release at full charge to break amber-cracked walls. This passive unlock has no bottom-left slot.","cooldown":"0.65 seconds","uses":"Unlimited","unlock":"has_heavy"},
 ]
 const BOSS_WILLS := [
-	{"name": "Charged heavy attack", "icon": "heavy", "detail": "Won from the Hollow Warden. Hold H to charge, then release to break cracked stone and strike hard.", "cooldown": "0.65 seconds", "uses": "Unlimited"},
+	{"name": "Will of Wrath", "icon": "heavy", "detail": "Taking damage increases all outgoing damage by 25% for 4 seconds. Repeated damage refreshes the duration without stacking. Dodged hits do not trigger it.", "cooldown": "None", "uses": "Passive"},
 ]
 
 var world: Node2D
@@ -253,13 +257,13 @@ func _refresh_status() -> void:
 	var seconds := int(float(world.elapsed_seconds))
 	var time_text := "%02d:%02d:%02d" % [seconds / 3600, seconds / 60 % 60, seconds % 60]
 	var area := "THE TWISTED FOREST" if int(world.current_room) >= 5 else "CAVE ROOM %d" % int(world.current_room)
-	var attack := 2 if player.has_heavy else 1
-	status_text.text = "AREA  %s\n\nPROGRESS  %d / 8 rooms discovered  ·  %d / 8 complete\nPLAYTIME  %s\n\nLEVEL  %d\nATTACK  %d\nHP  %d / %d\nHEALING ITEMS  %d / %d\nHEALING PER ITEM  2 HP\nWILL  %d" % [area, visited.size(), completed.size(), time_text, int(world.player_level), attack, player.health, player.max_health, player.healing_charges, player.max_healing_charges, int(world.will_amount)]
+	var attack: float=player.damage_multiplier()
+	status_text.text = "AREA  %s\n\nPROGRESS  %d / 10 rooms discovered  ·  %d / 10 complete\nPLAYTIME  %s\n\nLEVEL  %d\nATTACK  %.2f\nHP  %.1f / %.1f\nHEALING ITEMS  %d / %d\nHEALING PER ITEM  2 HP\nWILL  %d" % [area, visited.size(), completed.size(), time_text, int(world.player_level), attack, player.health, player.max_health, player.healing_charges, player.max_healing_charges, int(world.will_amount)]
 
 func _refresh_wills() -> void:
 	for child in will_list.get_children():
 		child.queue_free()
-	if not world.player.has_heavy:
+	if not world.player.has_wrath:
 		_label(will_list, "No boss Wills gained yet.", 20, CREAM)
 		will_icon.visible = false
 		will_name.text = "NO WILLS YET"
@@ -280,7 +284,7 @@ func _select_will(index: int) -> void:
 	will_icon.show_ability(str(data.icon))
 	will_name.text = str(data.name).to_upper()
 	will_detail.text = str(data.detail)
-	will_cooldown.text = "COOLDOWN  %s  ·  %.2f remaining" % [data.cooldown, world.player.heavy_cooldown]
+	will_cooldown.text = "ACTIVE  %.2f seconds remaining" % world.player.wrath_time
 	will_uses.text = "USES  %s" % data.uses
 
 func _refresh_abilities() -> void:
@@ -300,6 +304,8 @@ func _select_ability(index: int) -> void:
 	ability_icon.show_ability(str(data.icon))
 	ability_name.text = str(data.name).to_upper()
 	ability_detail.text = str(data.detail)
+	if data.has("unlock") and not bool(world.player.get(str(data.unlock))):
+		ability_detail.text="LOCKED - "+ability_detail.text
 	var current := ""
 	match str(data.icon):
 		"dodge", "dash":
@@ -345,7 +351,7 @@ func _draw_map() -> void:
 	var visited: Array = world.visited_rooms
 	var completed: Array = world._completed_rooms()
 	var room := 5 if world.get("current_room") == null else int(world.current_room)
-	MAP_ART.draw(map_canvas, map_canvas.size, visited, completed, room, world.get_fast_travel_hands())
+	MAP_ART.draw(map_canvas, map_canvas.size, visited, completed, room, world.get_fast_travel_hands(), 0, false, world.player.position,world.gallery_map_state())
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not visible or not (event is InputEventKey) or not event.pressed or event.echo:
