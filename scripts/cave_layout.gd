@@ -4,7 +4,7 @@ extends RefCounted
 const NAMES := ["THE SEALED WATCH", "THE SPLIT GALLERY", "THE HAND'S REFUGE", "WARDEN'S HALL"]
 const BOUNDS := [Vector2(-1200, 0), Vector2(0, 1700), Vector2(1700, 3070), Vector2(3070, 4450)]
 const NOTE := Vector2(2920, 334)
-const GALLERY_CACHE := Vector2(805, 340)
+const GALLERY_CACHE = preload("res://scripts/split_gallery_layout.gd").OFFERING
 const WATCH_CACHE := Vector2(-530, 339)
 const WINCH := Vector2(2510, 559)
 const BRIDGE := Rect2(2160, 600, 290, 24)
@@ -24,6 +24,9 @@ static func platforms() -> Array[Rect2]:
 		Rect2(560, 445, 130, 24), Rect2(730, 365, 160, 24), Rect2(935, 430, 100, 24),
 		# Refuge: climb right, double back left, then cross to the note alcove.
 		Rect2(2680, 440, 100, 24), Rect2(2810, 365, 160, 24),
+		# The Refuge chasm has a physical basin and ordinary jumpable return ledges.
+		Rect2(2160, 690, 290, 384), Rect2(2180, 560, 80, 130),
+		Rect2(2360, 640, 90, 50),
 		# Quiet transition into the forest after the arena and heavy-attack gate.
 		Rect2(4020, 540, 130, 60), Rect2(4190, 505, 100, 95),
 	]

@@ -16,29 +16,47 @@ func _run() -> void:
 	await process_frame
 	await process_frame
 	var world := current_scene
+	world.gallery_encounters.set_active(false)
 	world.scout.set_physics_process(false)
 	world.ledge_sentinel.set_process(false)
 	world.player.invulnerability = 1000.0
 	await physics_frame
+	# Inspect each scoped room without triggering travel from the probe position.
+	world.set_process(false)
 	for room in range(1, 5):
+		world.current_room = room
+		world._set_camera_room()
+		await physics_frame
 		var bounds: Vector2 = world.ROOM_BOUNDS[room - 1]
 		var x := (bounds.x + bounds.y) * 0.5
-		var query := PhysicsRayQueryParameters2D.create(Vector2(x, 350), Vector2(x, -100))
+		var query := PhysicsRayQueryParameters2D.create(Vector2(x, -1800) if room == 2 else Vector2(x, 350), Vector2(x, -2000) if room == 2 else Vector2(x, -100))
 		query.exclude = [world.player.get_rid()]
 		var hit: Dictionary = world.get_world_2d().direct_space_state.intersect_ray(query)
-		if hit.is_empty() or hit.collider.name != "Room%dRoof" % room:
+		if hit.is_empty() or (hit.collider.get_parent() != world.gallery if room == 2 else hit.collider.name != "Room%dRoof" % room):
 			_fail("Room %d's visible ceiling has no working collision" % room)
 			return
-	# Traverse each new ascending connection using the real movement controller.
-	for hop in [
-		[Vector2(520, 502), Vector2(620, 422)],
-		[Vector2(675, 422), Vector2(805, 342)],
-		[Vector2(865, 342), Vector2(980, 407)],
-	]:
-		await _jump_to(world, hop[0], hop[1])
-		if failed:
-			return
-	world.player.global_position = world.CAVE_LAYOUT.GALLERY_CACHE
+	world.current_room = 2
+	world._set_camera_room()
+	await physics_frame
+	world.set_process(true)
+	world.gallery_encounters.set_active(false)
+	world.scout.set_physics_process(false)
+	world.scout.collision_layer = 0
+	# Reach the offering through the actual balcony, central ascent and upper route.
+	world.player.position = Vector2(1150,1387)
+	world.player.reset_movement_state()
+	for i in 8:
+		await physics_frame
+	for route_name in ["balcony_ascent", "chain_well", "offering_ascent"]:
+		var route: PackedVector2Array = world.gallery.LAYOUT.routes()[route_name]
+		if route_name == "offering_ascent":
+			await _walk_gallery_to(world, Vector2(1740, -923))
+		for point in route:
+			await _walk_gallery_to(world, point + Vector2(0, -23))
+			if failed:
+				return
+			if route_name == "offering_ascent" and point.x == 600:
+				break
 	_interact(world)
 	if not world.gallery_cache_found or world.will_amount != 12:
 		_fail("The upper route did not award its offering")
@@ -161,3 +179,18 @@ func _fail(message: String) -> void:
 	failed = true
 	push_error(message)
 	quit(1)
+
+func _walk_gallery_to(world: Node2D, destination: Vector2) -> void:
+	var budget := int(absf(destination.x - world.player.position.x) / 255.0 * 60) + 120
+	for i in budget:
+		var dx: float = destination.x - world.player.position.x
+		_key(KEY_D, dx > 3)
+		_key(KEY_A, dx < -3)
+		await physics_frame
+		if absf(dx) < 20 and absf(world.player.position.y - destination.y) < 22 and world.player.is_on_floor():
+			_key(KEY_A, false)
+			_key(KEY_D, false)
+			return
+	_key(KEY_A, false)
+	_key(KEY_D, false)
+	_fail("Offering approach is blocked at %s (ended %s)" % [destination, world.player.position])

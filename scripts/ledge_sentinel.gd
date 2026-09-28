@@ -8,6 +8,9 @@ var health := 2.0
 var max_health := 2.0
 var hit_cooldown := 0.0
 
+func _ready() -> void:
+	add_to_group("combat_targets")
+
 func _process(delta: float) -> void:
 	hit_cooldown = maxf(0.0, hit_cooldown - delta)
 	if player == null or health <= 0:
@@ -17,7 +20,7 @@ func _process(delta: float) -> void:
 	if player.dash_time > 0.0:
 		return
 	if hit_cooldown <= 0.0 and bounds.intersects(player_bounds):
-		var health_before: int = player.health
+		var health_before: float = player.health
 		player.take_damage(1, global_position.x)
 		if player.health < health_before:
 			attack_landed.emit()

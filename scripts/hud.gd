@@ -1,7 +1,8 @@
 extends Control
 
-var health := 5
-var max_health := 5
+var health := 5.0
+var max_health := 5.0
+var equipped_weapon:="starter"
 var level := 1
 var will_amount := 0
 var healing_charges := 3
@@ -13,7 +14,7 @@ var bow_ammo := 0
 var prompt := ""
 var notice := ""
 var area := "THE FORGOTTEN PASSAGE"
-var boss_health := 0
+var boss_health := 0.0
 var boss_max_health := 8
 var boss_title := "THE HOLLOW WARDEN"
 var finished := false
@@ -87,12 +88,10 @@ func _draw_fist(origin: Vector2, available: bool) -> void:
 
 func _draw_ability_strip() -> void:
 	var entries: Array[Dictionary] = [
-		{"kind": "attack", "key": "J", "amount": "∞"},
+		{"kind": equipped_weapon if equipped_weapon!="starter" else "attack", "key": "J", "amount": "%d/3"%bow_ammo if equipped_weapon=="bow" else "∞"},
 	]
-	if has_heavy:
-		entries.append({"kind": "heavy", "key": "H", "amount": "∞"})
-	if has_bow:
-		entries.append({"kind": "bow", "key": "L", "amount": "%d/%d" % [bow_ammo, 3]})
+	if equipped_weapon!="starter":
+		entries.append({"kind":equipped_weapon,"key":"U","amount":"%d/3"%bow_ammo if equipped_weapon=="bow" else "∞"})
 	var center_y := size.y - 58.0
 	for index in entries.size():
 		_draw_ability_circle(Vector2(52.0 + index * 79.0, center_y), entries[index])
@@ -105,7 +104,7 @@ func _draw_ability_circle(center: Vector2, entry: Dictionary) -> void:
 	draw_arc(center, 31, 0, TAU, 40, Color(0.23, 0.55, 0.52), 3)
 	draw_arc(center, 27, -PI * 0.5, PI * 0.70, 25, teal, 2)
 	match str(entry.kind):
-		"attack":
+		"attack", "scimitar":
 			draw_line(center + Vector2(-12, 14), center + Vector2(12, -13), gold, 4)
 			draw_line(center + Vector2(-18, 6), center + Vector2(-5, 19), teal, 4)
 		"heavy":
@@ -115,6 +114,9 @@ func _draw_ability_circle(center: Vector2, entry: Dictionary) -> void:
 			draw_arc(center + Vector2(-5, 0), 17, -PI * 0.5, PI * 0.5, 20, gold, 3)
 			draw_line(center + Vector2(-5, -17), center + Vector2(-5, 17), teal, 2)
 			draw_line(center + Vector2(-9, 0), center + Vector2(14, 0), gold, 3)
+		"gauntlet":
+			draw_rect(Rect2(center-Vector2(14,12),Vector2(28,25)),gold,false,4)
+			for x in [-9,-2,5]: draw_line(center+Vector2(x,-12),center+Vector2(x,1),teal,3)
 	draw_string(font, center + Vector2(-4, 25), str(entry.key), HORIZONTAL_ALIGNMENT_LEFT, 12, 12, Color.WHITE)
 	var badge := center + Vector2(23, 23)
 	draw_circle(badge, 17, Color(0.015, 0.045, 0.065, 0.96))

@@ -30,7 +30,7 @@ func _run() -> void:
 	if forest.current_room != 7 or forest.last_hand_room != 3:
 		_fail("The forest lost the cave hand checkpoint")
 		return
-	forest._change_room(8, 4080.0)
+	forest._change_room(8, forest.BOUNDS[3].x + 80.0)
 	if not forest.transitioning:
 		_fail("The forest room transition did not start")
 		return
@@ -47,7 +47,7 @@ func _run() -> void:
 	forest = current_scene
 	forest.bow_boss.take_hit(10.0)
 	await process_frame
-	forest.player.global_position = Vector2(4000.0, 570.0)
+	forest.player.global_position = Vector2(forest.BOUNDS[2].x+15, 570.0)
 	forest._check_transition()
 	if not forest.transitioning:
 		_fail("Walking to the room edge did not start the transition")

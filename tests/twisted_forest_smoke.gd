@@ -19,14 +19,14 @@ func _run() -> void:
 	await process_frame
 	await process_frame
 	var forest := current_scene
-	if forest.current_room != 5 or forest.BOUNDS.size() != 4 or not forest.visited_rooms.has(5):
+	if forest.current_room != 5 or forest.BOUNDS.size() != 6 or not forest.visited_rooms.has(5):
 		_fail("The Twisted Forest did not begin in its first room")
 		return
-	await forest._change_room(6, 1280.0)
+	await forest._change_room(6, 3680.0)
 	if forest.current_room != 6 or not forest.visited_rooms.has(6):
 		_fail("Forest Room 2 did not transition or appear on the map")
 		return
-	await forest._change_room(7, 2680.0)
+	await forest._change_room(7, forest.BOUNDS[2].x + 80.0)
 	await create_timer(0.1).timeout
 	if not forest.bow_boss.active or not is_instance_valid(forest.arena_entrance) or not is_instance_valid(forest.arena_exit):
 		_fail("The Bow Hunter did not start in Forest Room 3 (room=%d, active=%s, entrance=%s, exit=%s)" % [forest.current_room, forest.bow_boss.active, is_instance_valid(forest.arena_entrance), is_instance_valid(forest.arena_exit)])
@@ -52,7 +52,7 @@ func _run() -> void:
 	if forest.player.bow_ammo != 0:
 		_fail("Bow arrows reloaded without meditation")
 		return
-	await forest._change_room(8, 4080.0)
+	await forest._change_room(8, forest.BOUNDS[3].x + 80.0)
 	forest.player.global_position = Vector2(forest.HAND_X, 570)
 	forest._set_camera()
 	await process_frame
