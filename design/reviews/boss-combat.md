@@ -2,8 +2,9 @@
 
 All routes and arena shells are unchanged. The three simplified encounters now
 implement the user's goblin/scimitar, forest archer and stone guardian brief.
-Actors use native drawn pixel silhouettes and phase-driven attack poses/effects;
-no borrowed character artwork or generated bitmap assets were introduced.
+The forest/temple actors use native drawn pixel silhouettes and phase-driven effects.
+The Cave Boss now uses the user's supplied character direction in a registered
+generated sprite atlas; see [Cave Boss art review](cave-boss-art.md).
 
 ## Progression and controls
 

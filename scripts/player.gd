@@ -15,7 +15,13 @@ const SPEED := 255.0
 const GRAVITY := 1250.0
 const JUMP_SPEED := -500.0
 const DASH_SPEED := 780.0
+const PRESENTATION = preload("res://scripts/player_presentation.gd")
 const FOOTSTEP = preload("res://assets/footstep.wav")
+
+var visual_time := 0.0
+var visual_state := ""
+var visual_state_time := 0.0
+var weapon_visible_time := 0.0
 
 var health := 5.0
 var max_health := 5.0
@@ -54,6 +60,10 @@ var controls_enabled := true
 var invulnerability := 0.0
 var attack_time := 0.0
 var attack_style:="swing"
+var sword_combo_step := -1
+var sword_combo_window := 0.0
+var sword_combo_weapon := ""
+var sword_hit_delay := -1.0
 var attack_cooldown := 0.0
 var dash_time := 0.0
 var dash_cooldown := 0.0
@@ -128,14 +138,32 @@ func damage_multiplier() -> float:
 
 func _normal_attack() -> void:
 	attack_style="punch" if equipped_weapon=="gauntlet" else "bow" if equipped_weapon=="bow" else "swing"
-	attack_time=.17
+	if attack_style == "swing":
+		if sword_combo_window <= 0.0 or sword_combo_weapon != equipped_weapon:
+			sword_combo_step = 0
+		else:
+			sword_combo_step = (sword_combo_step + 1) % 3
+		sword_combo_weapon = equipped_weapon
+		sword_combo_window = 0.8
+		# Contact belongs to the active sword frame, after the supplied windup.
+		sword_hit_delay = 0.075 if sword_combo_step == 1 else 0.15
+	else:
+		_reset_sword_combo()
+	attack_time=.3 if attack_style == "swing" else .17
 	attack_cooldown=.3
 	if equipped_weapon=="bow" and has_bow:
 		if bow_ammo>0:
 			bow_ammo-=1
 			bow_fired.emit(global_position+Vector2(facing*18,-8),Vector2(facing,0))
 		return
-	attacked.emit(Rect2(global_position+Vector2(10 if facing>0 else -82,-28),Vector2(72,56)))
+	if attack_style != "swing":
+		attacked.emit(Rect2(global_position+Vector2(10 if facing>0 else -82,-28),Vector2(72,56)))
+
+func _reset_sword_combo() -> void:
+	sword_combo_step = -1
+	sword_combo_window = 0.0
+	sword_combo_weapon = ""
+	sword_hit_delay = -1.0
 
 func _tick_weapon_ability(delta: float) -> void:
 	var down:=controls_enabled and not ledge_grabbed and heal_time<=0 and Input.is_physical_key_pressed(KEY_U)
@@ -172,6 +200,10 @@ func _friendly_shot(kind: String,direction: Vector2,amount: float,down:=false) -
 	shot.global_position=global_position+Vector2(facing*18,-8)
 	if down:
 		shot.homing_down=true
+		shot.forest_magic=true
+		shot.hover_time=1.0
+		shot.lifetime+=shot.hover_time
+		shot.direction=Vector2.DOWN
 		var nearest:=INF
 		for candidate in get_tree().get_nodes_in_group("combat_targets"):
 			if candidate.get("health")!=null and candidate.health<=0: continue
@@ -183,11 +215,26 @@ func _friendly_shot(kind: String,direction: Vector2,amount: float,down:=false) -
 	get_parent().add_child(shot)
 
 func _physics_process(delta: float) -> void:
+	visual_time += delta
+	PRESENTATION.advance(self, delta)
+	sword_combo_window = maxf(0.0, sword_combo_window - delta)
+	if sword_combo_window <= 0.0 or sword_combo_weapon != equipped_weapon:
+		_reset_sword_combo()
+	weapon_visible_time = maxf(0.0, weapon_visible_time - delta)
+	if attack_time > 0 or heavy_charge > 0 or heavy_attack_time > 0:
+		weapon_visible_time = 3.0
+	if heavy_charge > 0 or heavy_attack_time > 0 or (attack_time > 0 and attack_style != "swing"):
+		_reset_sword_combo()
 	if death_active:
 		death_time = maxf(0.0, death_time - delta)
 		velocity = Vector2.ZERO
 		queue_redraw()
 		return
+	if sword_hit_delay >= 0.0:
+		sword_hit_delay -= delta
+		if sword_hit_delay <= 0.00001:
+			sword_hit_delay = -1.0
+			attacked.emit(Rect2(global_position+Vector2(10 if facing>0 else -82,-28),Vector2(72,56)))
 	if not meditation_state.is_empty():
 		_advance_meditation(delta)
 		return
@@ -404,10 +451,20 @@ func _try_grab_ledge() -> void:
 	velocity = Vector2.ZERO
 	queue_redraw()
 
+func take_arrow_chain_damage(amount: float, from_x: float) -> void:
+	var before:=health
+	take_damage(amount,from_x)
+	if health<before:
+		# Only rapid-fire and hostile Flipping Volley use this response.
+		# No launch: standing in the firing lane can take the whole sequence.
+		invulnerability=.1
+		velocity=Vector2.ZERO
+
 func take_damage(amount: float, from_x: float) -> void:
 	if invulnerability > 0.0 or health <= 0 or amount<=0:
 		return
 	health -= amount
+	_reset_sword_combo()
 	if has_wrath: wrath_time=WRATH_DURATION
 	volley_time=0
 	beam_remaining=0
@@ -430,6 +487,7 @@ func heal_full() -> void:
 	queue_redraw()
 
 func reset_movement_state() -> void:
+	_reset_sword_combo()
 	velocity = Vector2.ZERO
 	death_active = false
 	death_time = 0.0
@@ -500,33 +558,13 @@ func _draw() -> void:
 		_draw_death_animation()
 		return
 	var alpha := 0.55 if invulnerability > 0.0 and Engine.get_physics_frames() % 6 < 3 else 1.0
-	var cloak := Color(0.13, 0.80, 0.79, alpha)
-	var dark := Color(0.08, 0.16, 0.25, alpha)
 	if not meditation_state.is_empty():
-		var pulse := 0.24 + 0.08 * sin(float(Engine.get_physics_frames()) * 0.12)
+		var pulse := 0.24 + 0.08 * sin(visual_time * 7.2)
 		draw_circle(Vector2(0, -4), 30, Color(0.28, 0.95, 0.83, pulse))
-		draw_rect(Rect2(-13, -15, 26, 30), cloak)
-		draw_rect(Rect2(-11, -28, 22, 18), dark)
-		draw_rect(Rect2(-5, -21, 4, 3), Color(1.0, 0.87, 0.52, alpha))
-		draw_rect(Rect2(3, -21, 4, 3), Color(1.0, 0.87, 0.52, alpha))
-		draw_rect(Rect2(-18, 11, 36, 8), dark)
-		draw_rect(Rect2(-21, 2, 14, 6), cloak)
-		draw_rect(Rect2(7, 2, 14, 6), cloak)
+		PRESENTATION.draw(self, alpha)
 		return
 	draw_circle(Vector2(0, -6), 24, Color(0.08, 0.79, 0.82, 0.12 * alpha))
-	draw_colored_polygon(PackedVector2Array([Vector2(-13, -16), Vector2(13, -16), Vector2(18, 22), Vector2(0, 13), Vector2(-18, 22)]), cloak)
-	draw_rect(Rect2(-11, -24, 22, 19), dark)
-	draw_circle(Vector2(facing * 5, -16), 3, Color(1.0, 0.88, 0.45, alpha))
-	draw_line(Vector2(-9, 23), Vector2(-9, 31), dark, 5)
-	draw_line(Vector2(9, 23), Vector2(9, 31), dark, 5)
-	if ledge_grabbed or ledge_climb_time > 0.0:
-		var reach := 0.0 if ledge_grabbed else 1.0 - ledge_climb_time / 0.32
-		draw_rect(Rect2(8, -26 - reach * 5.0, 7, 18), dark)
-		draw_rect(Rect2(13, -32 - reach * 5.0, 8, 7), Color(0.78, 0.85, 0.67, alpha))
-		draw_rect(Rect2(-12, -24 - reach * 5.0, 7, 17), dark)
-		draw_rect(Rect2(-13, -31 - reach * 5.0, 8, 7), Color(0.78, 0.85, 0.67, alpha))
-		if ledge_climb_time > 0.0:
-			draw_rect(Rect2(-13, 18 - reach * 9.0, 27, 7), cloak)
+	PRESENTATION.draw(self, alpha)
 	if heal_time > 0.0:
 		var pulse := 1.0 - heal_time / HEAL_DURATION
 		var glow := Color(0.53, 1.0, 0.73, 0.22 + 0.46 * pulse)
@@ -537,11 +575,9 @@ func _draw() -> void:
 		draw_rect(Rect2(16 + pulse * 8.0, -17, 5, 5), glow)
 	if attack_time > 0.0:
 		if attack_style=="thrust":
-			draw_line(Vector2(facing*10,-6),Vector2(facing*140,-6),Color("e1d8ad"),5)
+			draw_line(Vector2(facing*10,-6),Vector2(facing*140,-6),Color("c6f5ff"),3)
 		elif attack_style=="punch":
 			draw_rect(Rect2(Vector2(15 if facing>0 else -65,-18),Vector2(50,22)),Color("a4c3b9"))
-		elif attack_style!="bow":
-			draw_arc(Vector2(facing * 18, -6), 40, -1.0 if facing > 0 else 2.1, 1.1 if facing > 0 else 4.2, 16, Color(1.0, 0.86, 0.45), 7)
 	if ability_charge>0:
 		draw_arc(Vector2(0,-7),29,-PI*.5,-PI*.5+TAU*ability_charge,20,Color("ffb773"),4)
 	if wrath_time>0:
@@ -551,19 +587,14 @@ func _draw() -> void:
 			draw_circle(Vector2(-facing * (18 + i * 13), 0), 10 - i * 2, Color(0.13, 0.80, 0.79, 0.25))
 	if heavy_charge > 0.0:
 		draw_arc(Vector2(0, -7), 28, -PI / 2.0, -PI / 2.0 + TAU * heavy_charge, 20, Color(1.0, 0.78, 0.36), 4)
-	if heavy_attack_time > 0.0:
-		draw_arc(Vector2(facing * 28, -6), 56, -1.1 if facing > 0 else 2.0, 1.1 if facing > 0 else 4.2, 18, Color(1.0, 0.75, 0.33), 10)
 
 func _draw_death_animation() -> void:
 	var progress := 1.0 - death_time / DEATH_DURATION
 	var collapse := minf(1.0, progress * 2.2)
 	var fade := 1.0 - clampf((progress - 0.38) / 0.52, 0.0, 1.0)
-	var head_y := -17.0 + collapse * 28.0
-	var body_y := -15.0 + collapse * 24.0
 	draw_circle(Vector2(0, 2), 22.0 + progress * 20.0, Color(0.20, 0.89, 0.85, 0.24 * fade))
-	draw_rect(Rect2(-12, body_y, 24, 31.0 - collapse * 13.0), Color(0.10, 0.64, 0.67, fade))
-	draw_rect(Rect2(-10, head_y - 9.0, 20, 16), Color(0.08, 0.16, 0.25, fade))
-	draw_rect(Rect2(-5, head_y - 2.0, 10, 3), Color(1.0, 0.68, 0.47, fade))
+	# The new traveller remains identifiable while folding into the seated pose.
+	PRESENTATION.draw(self, fade, 15 if collapse > 0.5 else 0)
 	for index in 12:
 		var angle := TAU * float(index) / 12.0
 		var distance := 8.0 + progress * (18.0 + float(index % 4) * 8.0)

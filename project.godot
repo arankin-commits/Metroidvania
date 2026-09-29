@@ -20,8 +20,9 @@ MCPGameBridge="res://addons/godot_mcp/game_bridge/mcp_game_bridge.gd"
 
 [display]
 
+window/size/window_width_override=768
+window/size/window_height_override=432
 window/stretch/mode="viewport"
-window/stretch/scale_mode="integer"
 
 [editor_plugins]
 

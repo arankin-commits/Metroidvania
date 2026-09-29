@@ -81,3 +81,5 @@ The approved fourteen-zone plan, final screenshots and test record are in [Split
 Forest Room 2 now includes Section 11: solid stairs from the Section 10.2 floor, with its highest-gallery right wall retained. The main hand sits before Bow Hunter; a separate temple guardian chamber connects to the LEFT of the Section 10.1 hand sanctuary. See [final concourse review](design/reviews/forest-final-concourse.md) for layout, assets, prompts and verification.
 
 The [boss combat review](design/reviews/boss-combat.md) records the move sets, rewards, dash progression, verification and running-game screenshots. Forest and temple passive Wills remain unspecified.
+
+The Web PCK is **67.91 MB**, including the Cave Boss sprite atlas. Its export preset selects audited runtime resources rather than all project resources; development artwork and reviews stay in the workspace. Run `python tools/web_pack_audit.py --refresh-export` after adding content, export Web, then run `python tools/web_pack_audit.py --verify`. See the [pack size audit](design/reviews/web-pack-size.md) for inventory and isolated packaged-resource verification.

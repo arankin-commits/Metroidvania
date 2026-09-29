@@ -252,7 +252,7 @@ func _process(delta: float) -> void:
 		arena_entrance = _solid(Rect2(BOUNDS[2].x, -60, 32, 660))
 		arena_exit = _solid(Rect2(BOUNDS[2].y, -60, 32, 660))
 		game_audio.play_boss()
-		_show_toast("BOW HUNTER  ·  Close the distance between volleys", 3.5)
+		_show_toast("FOREST GUARDIAN  ·  Close the distance between volleys", 3.5)
 	if current_room == 8 and player.has_bow and not bow_tutorial_practiced and not bow_hint_shown:
 		bow_hint_shown = true
 		_show_toast("Press L to fire. Meditate at the hand to refill arrows.", 4.0)
@@ -421,7 +421,7 @@ func _leave_temple_hand() -> void:
 
 func _on_attack(hitbox: Rect2) -> void:
 	for enemy in get_tree().get_nodes_in_group("forest_boss_summons"):
-		if is_instance_valid(enemy) and hitbox.intersects(Rect2(enemy.global_position-Vector2(17,20),Vector2(34,40))): enemy.take_hit(player.damage_multiplier())
+		if is_instance_valid(enemy) and not enemy.is_queued_for_deletion() and hitbox.intersects(enemy.combat_bounds()): enemy.take_hit(player.damage_multiplier())
 	game_audio.play_effect("attack")
 	if bow_boss.active and not bow_boss_defeated and hitbox.intersects(bow_boss.combat_bounds()):
 		bow_boss.take_hit(1.0*player.damage_multiplier())
@@ -432,7 +432,7 @@ func _on_attack(hitbox: Rect2) -> void:
 
 func _on_heavy(hitbox: Rect2) -> void:
 	for enemy in get_tree().get_nodes_in_group("forest_boss_summons"):
-		if is_instance_valid(enemy) and hitbox.intersects(Rect2(enemy.global_position-Vector2(17,20),Vector2(34,40))): enemy.take_hit(1.5*player.damage_multiplier())
+		if is_instance_valid(enemy) and not enemy.is_queued_for_deletion() and hitbox.intersects(enemy.combat_bounds()): enemy.take_hit(1.5*player.damage_multiplier())
 	if current_room==10 and temple_guardian.active and hitbox.intersects(temple_guardian.combat_bounds()): temple_guardian.take_hit(1.5*player.damage_multiplier())
 	game_audio.play_effect("heavy_attack")
 	if bow_boss.active and not bow_boss_defeated and hitbox.intersects(bow_boss.combat_bounds()):
@@ -608,7 +608,7 @@ func _update_hud() -> void:
 	hud.area = "THE TWISTED FOREST"
 	hud.boss_health = bow_boss.health if bow_boss.active and not bow_boss_defeated else 0
 	hud.boss_max_health = int(bow_boss.max_health)
-	hud.boss_title = "BOW HUNTER"
+	hud.boss_title = "FOREST GUARDIAN"
 	if current_room==10 and temple_guardian.active and not temple_guardian_defeated:
 		hud.boss_health=temple_guardian.health
 		hud.boss_max_health=int(temple_guardian.max_health)

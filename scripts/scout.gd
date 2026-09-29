@@ -16,12 +16,15 @@ var patrol_bounds := Vector2(-INF, INF)
 var awareness_height := INF
 var spawn_grace:=0.0
 
+func body_size() -> Vector2: return Vector2(32,34)
+func combat_bounds() -> Rect2: return Rect2(global_position-Vector2(18,28),Vector2(36,56))
+
 func _ready() -> void:
 	add_to_group("mcp_watch")
 	add_to_group("combat_targets")
 	origin_x = global_position.x
 	var shape := RectangleShape2D.new()
-	shape.size = Vector2(32, 34)
+	shape.size = body_size()
 	var collision := CollisionShape2D.new()
 	collision.shape = shape
 	add_child(collision)
@@ -66,7 +69,7 @@ func _physics_process(delta: float) -> void:
 	position.x = clampf(position.x, patrol_bounds.x, patrol_bounds.y)
 	if navigation == null and is_on_wall():
 		facing *= -1
-	var enemy_bounds := Rect2(global_position - Vector2(16, 17), Vector2(32, 34))
+	var enemy_bounds := Rect2(global_position-body_size()/2,body_size())
 	var player_bounds := Rect2(player.global_position - Vector2(14, 23), Vector2(28, 46)) if player != null else Rect2()
 	if player != null and hit_cooldown <= 0.0 and enemy_bounds.grow(4.0).intersects(player_bounds):
 		var health_before: float = player.health

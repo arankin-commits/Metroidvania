@@ -40,6 +40,9 @@ func choose_attack() -> String:
 func attack_phases(_name: String) -> Array[Dictionary]:
 	return []
 
+func limit_ground_motion(destination: Vector2) -> Vector2:
+	return destination
+
 func begin_attack(name: String) -> void:
 	attack_name=name
 	last_attack=name
@@ -67,6 +70,8 @@ func _next_phase() -> void:
 	if phase.get("target_jump",false): motion_end.x=clampf(player.global_position.x,arena_bounds.x,arena_bounds.y)
 	if phase.get("retreat",false): motion_end.x=clampf(player.global_position.x-attack_direction*330,arena_bounds.x,arena_bounds.y)
 	if phase.get("over_player",false): motion_end.x=clampf(player.global_position.x+attack_direction*220,arena_bounds.x,arena_bounds.y)
+	if phase.has("move") and float(phase.get("height",0))==0:
+		motion_end=limit_ground_motion(motion_end)
 	attack_cued.emit(str(phase.get("cue","enemy_attack")))
 	if phase.has("projectile"): fire(str(phase.projectile),float(phase.get("projectile_damage",phase.get("damage",1))),bool(phase.get("down",false)))
 	if phase.get("summon",false) and has_method("summon_enemies"): call("summon_enemies")
@@ -80,8 +85,10 @@ func _physics_process(delta: float) -> void:
 		if state_time<=0: begin_attack(choose_attack())
 	else:
 		var t:=clampf(1-state_time/phase_length,0,1)
+		var previous_position:=global_position
 		if phase.has("move") or phase.get("target_jump",false) or phase.get("retreat",false) or phase.get("over_player",false):
-			position=motion_start.lerp(motion_end,t)
+			var motion_progress:=1.0-pow(1.0-t,3.0) if phase.get("ease_out",false) else t
+			position=motion_start.lerp(motion_end,motion_progress)
 			position.y-=sin(t*PI)*float(phase.get("height",0))
 		if phase.get("volley",false):
 			var next:=int(phase.get("shots",0))
@@ -90,6 +97,9 @@ func _physics_process(delta: float) -> void:
 				phase["shots"]=next+1
 		if phase.has("hit") and not struck:
 			var box:=attack_box()
+			# Moving melee sweeps its active volume, so a fast lunge cannot skip a
+			# player between physics ticks. Anticipation/recovery remain harmless.
+			if phase.has("move"): box=box.merge(Rect2(box.position+previous_position-global_position,box.size))
 			if box.intersects(Rect2(player.global_position-Vector2(14,23),Vector2(28,46))):
 				var before: float=player.health
 				player.take_damage(float(phase.get("damage",1)),global_position.x)
@@ -104,7 +114,7 @@ func attack_box() -> Rect2:
 	if attack_direction<0: local.position.x=-local.end.x
 	return Rect2(global_position+local.position,local.size)
 
-func fire(kind: String,damage_amount: float,down:=false) -> void:
+func fire(kind: String,damage_amount: float,down:=false) -> Node2D:
 	var shot:=PROJECTILE.new()
 	shot.owner_actor=self
 	shot.target=player
@@ -115,7 +125,7 @@ func fire(kind: String,damage_amount: float,down:=false) -> void:
 	if kind=="wind":
 		shot.direction=Vector2(attack_direction,0)
 		shot.speed=440
-		shot.radius=18
+		shot.radius=PROJECTILE.WIND_RADIUS
 	elif kind=="beam":
 		shot.speed=600
 		shot.radius=21
@@ -126,9 +136,11 @@ func fire(kind: String,damage_amount: float,down:=false) -> void:
 		shot.lifetime=2.4
 	if down:
 		shot.homing_down=true
-		shot.direction.y=maxf(.15,shot.direction.y)
-		shot.direction=shot.direction.normalized()
+		shot.hover_time=1.0
+		shot.lifetime+=shot.hover_time
+		shot.direction=Vector2.DOWN
 	get_parent().add_child(shot)
+	return shot
 
 func take_hit(amount: float=1.0) -> void:
 	if health<=0 or not active or invulnerability>0 or phase.get("invulnerable",false): return

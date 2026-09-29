@@ -172,6 +172,14 @@ stored in [references/forest-room2](references/forest-room2/README.md).
 - Compose at gameplay camera scale. Arches, rock openings, light, and sparse foreground
   shapes should frame useful destinations or deliberate future gates. Show some
   destinations before arrival without revealing the whole interconnected room at once.
+  Verify the presented game window as well as the internal viewport texture. A
+  viewport capture can show the complete composition while the actual embedded
+  window clips it. Keep the authored logical resolution stable and scale its whole
+  view to fit smaller windows, preserving aspect ratio and nearest-neighbor sampling.
+  Integer scaling with a minimum of1x cannot fit a window below the logical size;
+  test undersized, native and differently proportioned windows, including menu titles,
+  HUD edges and input alignment. Check the final window transform, not just a resized
+  copy of the internal render texture, before claiming screen framing is correct.
   Paint enough scenery above every elevated ledge for the camera to follow a full
   normal jump at the actual viewport and zoom, including ledges beside section joins.
   Never suppress upward camera movement to conceal missing artwork. Extend the
@@ -236,12 +244,92 @@ stored in [references/forest-room2](references/forest-room2/README.md).
 
 ## Animation and hitbox clarity
 
+- The Forest Guardian reference is a moss-covered hooded kobold archer with luminous
+  blue eyes, branch bow and stocked quiver. Its summon channel/emergence, aiming/full
+  charge/release, five rapid shots, arrow pull/slash/stab, leap/dash/landing and volley
+  poses remain distinct. Preserve the three woodland allies and reference arrow,
+  root and impact effects separately when a storyboard panel contains effects rather
+  than the boss. The authored facings use independent registered cutouts; isolate
+  neighboring silhouettes before packing cells, and verify each pose in the arena.
+  Reference impact panels may contain arrows still descending above the contact
+  burst. Render only the burst on collision; replaying the whole panel at a target
+  invents an apparent follow-up attack. Preserve the source and separate its roles.
 - Match visible attack timing and reach to the real active hitbox. Wind-up and recovery
   must be distinguishable from damaging frames; decorative trails must not imply extra
   damage range. Projectiles and impact effects must agree with actual contact.
+  Do not turn damage bounds into generic bright arcs, rings or wedges on every
+  melee strike. Use the weapon pose and motion as the primary cue. Any added trail
+  must follow that weapon's actual sweep and the reference's effect language;
+  reserve visible hitbox outlines for explicit debug views.
+  Afterimages, dust, wind and impact debris are essential combat cues when the
+  reference calls for them. Rejecting generic hitbox arcs does NOT mean removing
+  those effects. Build a textured, tapering blade wake along the authored sweep,
+  with successive fading weapon/body afterimages; distinguish a rising/overhead
+  cut, reverse swing, horizontal spin and straight thrust by their trajectories.
+  Forceful grounded motion kicks dust backward from actual feet; landing erupts
+  dust and stone outward from actual ground contact. Traveling wind has a bright
+  contact core and softer layered trailing ribbons. Stagger emission and decay,
+  rather than showing a fixed outline throughout the active phase. Keep the current
+  silhouette and steel crisp over translucent wakes, limit lingering clutter, and
+  inspect anticipation, release, contact and recovery in motion in both directions.
+  Decorative dust/debris must never gain collision or imply a new damaging lane.
+  If a reference depends on smoky curls, mottled highlights and crimson streaks,
+  a smooth procedural band is not a sufficient visual match. Use an isolated
+  textured VFX asset, verify genuine alpha and matte-free edges, then animate its
+  direction, release and decay. Keep a crisp contacting crest and subdued broader
+  wakes separate, and register any ground-skimming slash above the floor plane.
+  Match effect scale relative to its actor in the reference, not just its texture
+  shape. Check both at gameplay zoom; resizing a bright contacting crest requires
+  reviewing its damage footprint, launch height and leading wall clearance together.
+  A blade aura must register to the actual steel outline in each facing and pose,
+  build during anticipation, and flare on release. Render its glow behind the steel
+  so the weapon remains legible; remove detached indicators when the blade itself
+  carries the charge cue. Do not mirror aura coordinates across independently
+  authored character views.
+  Give a heavy attack weight through timing and body commitment: a deliberate
+  build, fast release, brief contact hold and slower follow-through/recovery.
+  Synchronize the blade flare and low attack sound with release. Apply any contact
+  pause only after real damage, clear it on encounter reset, and keep controls
+  responsive. Bigger generic effects or increased damage alone do not convey mass.
 - Align standing feet, ledge-gripping hands, landing poses, and weapon origins with the
   controller and collision measurements in the room note. Do not change movement or
   hitboxes merely to accommodate a new sprite.
+  The approved hooded traveller reference is stored in
+  `references/player/character-animation-reference.png`. Preserve the previous
+  58-pixel standing hood-to-boot silhouette and the separate 28-by-46 controller
+  body. Measure visible body height rather than the atlas canvas, blade trails or
+  raised cape. Register boots at the controller's floor contact; calibrate a
+  generated standing variation if its body scale differs. Keep the new identity
+  through healing, meditation and death, and preserve earned weapon/ability gates.
+  Map every reference combo hit to its own ordinary-attack pose: horizontal,
+  upward, then downward. A single working slash does not verify the combo, and
+  assigning the remaining poses only to heavy attacks leaves the normal chain
+  incomplete. Verify successive real input presses, both facings and chain reset.
+  For character atlases, measure each delivered pose instead of trusting a generated
+  grid. Use a shared body scale and foot pivot, preserve space for the complete blade,
+  and exclude neighboring silhouettes from every crop. Verify real alpha, opaque
+  interiors, transparent gutters and grounded foot alignment across all poses before
+  importing. A painted checkerboard is not transparency.
+  Preserve every supplied animation frame unless the user explicitly authorizes
+  removing frames. Do not silently reduce a reference sequence to representative
+  poses, discard transition frames, or replace the complete sequence with a smaller
+  generated atlas. Retain the supplied frame order when preparing runtime assets.
+  Record per-sequence counts and source regions in a frame catalog; verify every
+  catalog entry appears in ordered runtime playback, including each slash's
+  preparation and recovery. The traveller sheet supplies 67 character frames
+  across 15 sequences; keep its extended horizontal wake with the active frame.
+  Keep anticipation, active and recovery poses tied to the actual combat phases;
+  render damaging trails within
+  their authored volume and verify facing in both directions at gameplay scale.
+  Anatomical handedness belongs to the character, not the screen direction. A
+  horizontal reflection swaps weapon hands and asymmetric equipment. When a hand
+  is specified, author opposite facing poses separately; trace shoulder, elbow,
+  wrist and grip in every pose, including overheads, spins and airborne frames.
+  Check exactly two arms and a free opposite hand. Generation prompts are not
+  evidence of correctness: inspect the delivered sheet and its running animations.
+  For advancing melee, anticipate the full lunge and sweep the active collision
+  between physics positions. Stop the body before walls; keep windup/recovery
+  harmless. Bright projectile cores describe contact; faint wakes are decoration.
 - Keep the traveller identifiable during damage, healing, charge, dash, and ledge states.
   Effects and animation should clarify the state without prolonged disappearance or
   hiding nearby threats. Verify these states in motion, not only in still images.
