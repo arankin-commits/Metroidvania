@@ -20,21 +20,22 @@ func _run() -> void:
 	if world.game_audio.current_track != "cave" or world.game_audio.music.stream != world.game_audio.CAVE_MUSIC:
 		_fail("Cave music did not start with the biome")
 		return
-	if world.current_room != 2 or world.player.position.distance_to(world.GALLERY_LAYOUT.START)>8:
-		_fail("New game did not spawn in Cave Room 2")
+	if world.current_room != 1 or world.player.position.distance_to(world.CAVE_LAYOUT.START)>8 or not world.player.waking_up:
+		_fail("New game did not wake in Cave Room 1")
 		return
-	if world.background_rect.texture != world.CAVE_ROOM_BACKDROPS[1]:
-		_fail("Room 2 backdrop is wrong")
+	if world.background_rect.texture != world.CAVE_ROOM_BACKDROPS[0]:
+		_fail("Room 1 backdrop is wrong")
 		return
-	if world.visited_rooms != [2] or not world._completed_rooms().is_empty():
+	if world.visited_rooms != [1] or not world._completed_rooms().is_empty():
 		_fail("New-game map revealed unexplored or incomplete rooms")
 		return
+	world.player._advance_wake(4.0)
 	if world.hand_chair.texture == null or world.hand_chair.texture_filter != CanvasItem.TEXTURE_FILTER_NEAREST:
 		_fail("Hand-chair checkpoint sprite is missing")
 		return
 	_map_key(KEY_M)
 	await process_frame
-	if not world.world_map.visible or not paused or world.world_map.visited_rooms != [2]:
+	if not world.world_map.visible or not paused or world.world_map.visited_rooms != [1]:
 		_fail("M did not open the discovery map")
 		return
 	var map_music_position: float = world.game_audio.music.get_playback_position()
@@ -109,10 +110,11 @@ func _run() -> void:
 	if world.world_map.visible or world.pause_menu.visible or paused:
 		_fail("Esc did not close the map cleanly")
 		return
+	await world._begin_room_transition(2,world.GALLERY_LAYOUT.ENTRANCE.x)
 	if world.background_rect.get_parent() != world or world.background_rect.size.x <= 1200.0:
 		_fail("Room 2 backdrop is not positioned in the scrolling world")
 		return
-	if world.checkpoint.x != 120.0 or world.hand_chair.position.x != 2610.0:
+	if world.checkpoint != world.CAVE_LAYOUT.START or world.hand_chair.position.x != 2610.0:
 		_fail("The first visible hand checkpoint is not in Cave Room 3")
 		return
 	await create_timer(0.2).timeout
@@ -332,9 +334,10 @@ func _run() -> void:
 		_fail("Combat death did not preserve the starting checkpoint flow")
 		return
 	await create_timer(1.15).timeout
-	if world.current_room != 2 or world.player.position.distance_to(world.GALLERY_LAYOUT.START)>8:
+	if world.current_room != 1 or world.player.position.distance_to(world.CAVE_LAYOUT.START)>8:
 		_fail("Death before using the hand did not return to the starting spawn")
 		return
+	await world._begin_room_transition(2,world.GALLERY_LAYOUT.ENTRANCE.x)
 	world.player.global_position = Vector2(5016, -1527)
 	await create_timer(0.7).timeout
 	if world.current_room != 3:

@@ -27,6 +27,7 @@ func _process(delta: float) -> void:
 	queue_redraw()
 
 func _draw() -> void:
+	if is_instance_valid(world) and world.current_room==1: return
 	if is_instance_valid(world) and world.current_room == 2:
 		draw_rect(world.GALLERY_LAYOUT.EXTENT,Color(0.02,0.035,0.055,0.20))
 		return

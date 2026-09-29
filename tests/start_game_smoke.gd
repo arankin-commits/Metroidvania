@@ -18,6 +18,7 @@ func _run() -> void:
 	data["hand_activated"] = true
 	data["room"] = 3
 	data["has_dash"] = true
+	data["bow_boss_defeated"] = true
 	data["seal_broken"] = true
 	data["scout_defeated"] = true
 	if SAVE_SLOTS.write_slot(2, data, TEST_ROOT) != OK:

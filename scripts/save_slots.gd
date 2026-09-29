@@ -22,6 +22,7 @@ static func load_slot(slot: int, root: String = "user://") -> Dictionary:
 		"checkpoint_x": float(config.get_value("save", "checkpoint_x", 120.0)),
 		"checkpoint_y": float(config.get_value("save", "checkpoint_y",570.0)),
 		"hand_activated": bool(config.get_value("save", "hand_activated", false)),
+		"opening_seen": bool(config.get_value("save", "opening_seen", true)),
 		"last_hand_room": int(config.get_value("save", "last_hand_room", 8 if bool(config.get_value("save", "forest_hand_activated", false)) else 3 if bool(config.get_value("save", "hand_activated", false)) else 2)),
 		"has_dash": bool(config.get_value("save","bow_boss_defeated",false)),
 		"has_scimitar": bool(config.get_value("save","boss_defeated",false)),
@@ -64,15 +65,16 @@ static func load_slot(slot: int, root: String = "user://") -> Dictionary:
 static func new_slot() -> Dictionary:
 	return {
 		"area": AREA_NAME,
-		"room": 2,
+		"room": 1,
 		"seconds": 0.0,
 		"level": 1,
 		"will": 0,
 		"healing_charges": 3,
-		"checkpoint_x": 120.0,
-		"checkpoint_y": -1602.0,
+		"checkpoint_x": -640.0,
+		"checkpoint_y": 577.0,
 		"hand_activated": false,
-		"last_hand_room": 2,
+		"last_hand_room": 1,
+		"opening_seen": false,
 		"has_dash": false,
 		"has_scimitar": false,
 		"has_wrath": false,
@@ -108,7 +110,7 @@ static func new_slot() -> Dictionary:
 		"gallery_east_open": false,
 		"gallery_heavy_open": false,
 		"watch_cache_found": false,
-		"visited_rooms": [2],
+		"visited_rooms": [1],
 	}
 
 static func write_slot(slot: int, data: Dictionary, root: String = "user://") -> Error:

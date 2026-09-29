@@ -10,7 +10,7 @@ const SAVE_SLOTS = preload("res://scripts/save_slots.gd")
 const LOADING_OVERLAY = preload("res://scripts/loading_overlay.gd")
 const GALLERY_BACKGROUND = preload("res://assets/split_gallery_background.png")
 const CAVE_ROOM_BACKDROPS := [
-	preload("res://assets/cave_room1.png"),
+	preload("res://assets/cave_room1_opening.png"),
 	GALLERY_BACKGROUND,
 	preload("res://assets/cave_room3.png"),
 	preload("res://assets/cave_room4.png"),
@@ -49,7 +49,7 @@ var hand_chair: Sprite2D
 var hand_menu: CanvasLayer
 var game_audio: Node
 var game_menu: CanvasLayer
-var visited_rooms: Array[int] = [2]
+var visited_rooms: Array[int] = [1]
 var platforms: Array[Rect2] = []
 var ledge_wall: StaticBody2D
 var drop_platform_body: StaticBody2D
@@ -57,9 +57,10 @@ var seal_body: StaticBody2D
 var exit_barrier: StaticBody2D
 var arena_barrier: StaticBody2D
 var seal_health := 3
-var checkpoint := GALLERY_LAYOUT.START
+var checkpoint := CAVE_LAYOUT.START
 var hand_activated := false
-var last_hand_room := 2
+var last_hand_room := 1
+var opening_seen := false
 var boss_defeated := false
 var complete := false
 var respawning := false
@@ -87,7 +88,7 @@ var data_equipped_weapon:="starter"
 var saved_seal_broken := false
 var saved_scout_defeated := false
 var sentinel_defeated := false
-var current_room := 2
+var current_room := 1
 var transitioning_room := false
 var wall_broken := false
 var secret_found := false
@@ -129,10 +130,11 @@ func _ready() -> void:
 		save_root = str(get_tree().get_meta("save_root", "user://"))
 		var data: Dictionary = SAVE_SLOTS.load_slot(active_save_slot, save_root)
 		if not data.is_empty():
+			opening_seen=bool(data.get("opening_seen",true))
 			current_room = clampi(int(data.get("room", 2)), 1, 4)
 			hand_activated = bool(data.get("hand_activated", false))
 			last_hand_room = int(data.get("last_hand_room", 3 if hand_activated else 2))
-			checkpoint = Vector2(float(data.get("checkpoint_x", 2610.0)),float(data.get("checkpoint_y",570.0))) if hand_activated else GALLERY_LAYOUT.START
+			checkpoint = Vector2(float(data.get("checkpoint_x", 2610.0)),float(data.get("checkpoint_y",570.0))) if hand_activated else CAVE_LAYOUT.START
 			elapsed_seconds = float(data.get("seconds", 0.0))
 			will_amount = int(data.get("will", 0))
 			player_level = int(data.get("level", 1))
@@ -169,6 +171,8 @@ func _ready() -> void:
 			gallery_heavy_open = bool(data.get("gallery_heavy_open",false))
 			visited_rooms.assign(data.get("visited_rooms", [2]))
 	var spawn_position := checkpoint
+	var arriving_via_entry:=get_tree().has_meta("cave_entry_x")
+	if hand_activated or arriving_via_entry: opening_seen=true
 	if get_tree().has_meta("cave_entry_x"):
 		var entry_x := float(get_tree().get_meta("cave_entry_x"))
 		spawn_position = Vector2(entry_x,GALLERY_LAYOUT.START.y if entry_x>=0 and entry_x<1700 else 570)
@@ -219,6 +223,12 @@ func _ready() -> void:
 	player.drop_platform = drop_platform_body
 	player.drop_region = Rect2(GALLERY_LAYOUT.DROP.position - Vector2(0, 8), Vector2(GALLERY_LAYOUT.DROP.size.x, 26))
 	add_child(player)
+	player.wake_finished.connect(func() -> void:
+		opening_seen=true
+		_show_toast(CAVE_LAYOUT.NAMES[0],3.0)
+		_save_progress())
+	if not opening_seen and not hand_activated and not arriving_via_entry:
+		player.begin_waking_up()
 	player.attacked.connect(_on_player_attacked)
 	player.heavy_attacked.connect(_on_player_heavy_attacked)
 	player.bow_fired.connect(_on_player_bow_fired)
@@ -292,6 +302,7 @@ func _ready() -> void:
 		get_tree().remove_meta("arriving_room_transition")
 		loading_overlay.reveal_room()
 	_show_toast(CAVE_LAYOUT.NAMES[current_room - 1], 3.0)
+	if player.waking_up: toast_time=0.0
 	queue_redraw()
 	
 
@@ -303,6 +314,10 @@ func _add_backdrop() -> void:
 		backdrop.z_index = -100
 		backdrop.position = Vector2(bounds.x, -60)
 		backdrop.size = Vector2(bounds.y - bounds.x, 780)
+		if i==0:
+			# Preserve aspect ratio and register the supplied floor edge to collision.
+			backdrop.position.y=600.0-780.0*1200.0/1651.0
+			backdrop.size=Vector2(1200,953.0*1200.0/1651.0)
 		backdrop.texture = CAVE_ROOM_BACKDROPS[i]
 		backdrop.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 		backdrop.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
@@ -380,7 +395,7 @@ func _process(delta: float) -> void:
 		save_timer = 0.0
 		_save_progress()
 	toast_time = maxf(0.0, toast_time - delta)
-	if transitioning_room or note_open:
+	if transitioning_room or note_open or player.waking_up:
 		_update_hud()
 		return
 	if _check_room_transition():
@@ -851,6 +866,7 @@ func _save_progress() -> void:
 	data["checkpoint_x"] = checkpoint.x
 	data["checkpoint_y"] = checkpoint.y
 	data["hand_activated"] = hand_activated
+	data["opening_seen"] = opening_seen
 	data["last_hand_room"] = last_hand_room
 	data["has_dash"] = player.has_dash
 	data.merge(player.combat_save_data(),true)
@@ -961,6 +977,7 @@ func _update_hud() -> void:
 	hud.queue_redraw()
 
 func _cave_prompt() -> String:
+	if player.waking_up: return ""
 	var position := player.global_position
 	if not player.meditation_state.is_empty():
 		return ""
@@ -1022,6 +1039,7 @@ func _draw() -> void:
 			draw_rect(Rect2(tip + Vector2(6, -20), Vector2(28, 5)), Color(0.075, 0.12, 0.15))
 			draw_polyline(PackedVector2Array([tip + Vector2(8, -62), tip + Vector2(8, -44), tip + Vector2(24, -44), tip + Vector2(24, -30)]), Color(0.025, 0.045, 0.065), 4)
 	for rect in platforms:
+		if rect==Rect2(-1200,600,1200,120): continue
 		_draw_cave_terrain(rect)
 	_draw_room_objects()
 	draw_rect(Rect2(2567, 594, 86, 6), Color(0.035, 0.075, 0.10, 0.62))

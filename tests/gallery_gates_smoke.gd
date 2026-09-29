@@ -11,6 +11,8 @@ func _run() -> void:
 	await process_frame
 	await physics_frame
 	world=current_scene
+	world.player._advance_wake(4.0)
+	await world._begin_room_transition(2,world.GALLERY_LAYOUT.ENTRANCE.x)
 	_freeze_encounters()
 	# The old low doorway is sealed; the replacement still connects to Room 1.
 	world.player.position=Vector2(-16,570)
@@ -22,7 +24,7 @@ func _run() -> void:
 	world._check_room_transition()
 	for i in 90:
 		await physics_frame
-	if world.current_room!=1 or absf(world.player.position.y-577)>10 or world.checkpoint!=world.GALLERY_LAYOUT.START:
+	if world.current_room!=1 or absf(world.player.position.y-577)>10 or world.checkpoint!=world.CAVE_LAYOUT.START:
 		_fail("The moved entrance changed its neighbor or death checkpoint")
 		return
 	world.player.position=Vector2(16,570)
@@ -140,6 +142,9 @@ func _run() -> void:
 
 func _freeze_encounters() -> void:
 	world.set_process(false)
+	# Reload now starts in Room 1 until a hand is activated; this fixture tests Room 2.
+	world.current_room=2
+	world._set_camera_room()
 	world.gallery_encounters.set_active(false)
 	if is_instance_valid(world.ledge_sentinel):
 		world.ledge_sentinel.set_process(false)

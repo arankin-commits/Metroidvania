@@ -230,7 +230,10 @@ upper-left entrance and central-wall proposals.
 ### Current approved Split Gallery topology (2026-09-26)
 
 - Room 1 receives into Room 2 at (80,1473), floor y=1500. New games and deaths
-  before any hand use (120,1473). Room 3 receives from the upper-right floor y=-1500;
+  before any hand use Room 1's `CAVE_LAYOUT.START` (-640,577), floor y=600.
+  The supplied bloody Room 1 plate and eight-pose wake play once for four seconds
+  on a fresh slot. `opening_seen` saves completion; legacy saves, activated hands
+  and biome returns bypass the opening. Room 3 receives from the upper-right floor y=-1500;
   returning into Room 2 uses (4920,-1527). Neighbor receiving positions remain
   Room 1 (-80,570) and Room 3 (1780,570). Both map views align these connections.
 - Main ascent: Broken Balcony -> foundation approach -> full Chain Well -> offering
@@ -305,6 +308,17 @@ have no bottom-left HUD slots; that strip contains the equipped weapon and its a
 | Cave goblin, large ape-like silhouette with scimitar | Long-range jump slam closes distance and damages its landing footprint; close combo1: two swings, thrust, spinning swing; close combo2: three swings then longer overhead; mid-range thrust then swing; charged forward swing emits a wind projectile dealing half its melee damage | Goblin Scimitar with thrust; charged wall breaking; Will of Wrath |
 | Forest Guardian, hooded kobold archer | Three-enemy summon wave; charged long-range arrow (twice ordinary arrow damage); five-arrow rapid fire; three-hit arrow-knife combo with forward momentum; retreat air dash with cooldown; below half health, dash over player and create three arrows that hover in place for one second, then track the player without ever traveling upwards | Bow with flipping volley (same one-second hover and downward-only targeting); air/enhanced dash; passive Will unspecified |
 | Stone temple guardian, left of temple hand | Fast rocket fist returns along a chain; charged massive projectile with the other hand bracing its wrist; at half health introduce firing; below half health randomly choose firing or rocket fist at range; randomly choose three-hit punches or slam at close range | Stone Gauntlet: punch, fireball beam, charged stronger rapid-fire beams; passive Will unspecified |
+
+The Temple Guardian mini boss reference is preserved at
+`references/temple-boss/temple-guardian-design-sheet.png`, supplied from
+`C:\NCAT\metroid\Bosses\temple mini boss.png`. Its attack/phase labels are the
+temple encounter's reference brief. The guardian now uses thirteen supplied action
+poses, a 144px standing silhouette, and torso damage bounds124x144 with feet at
+local y47/floor600. At the first half-health attack selection, a protected0.45s
+transition introduces the braced shot. The original six-health encounter, arena,
+Stone Gauntlet reward and checkpoint/persistence behavior remain authoritative.
+Asset registration, attack timing and verification are recorded in
+[the Temple Guardian review](reviews/temple-guardian.md).
 
 The Forest Guardian reference is preserved at
 `references/forest-boss/forest-boss-design-sheet.png`. Flipping Volley creates
@@ -434,6 +448,9 @@ From `scripts/player.gd`: speed 255 px/s, jump velocity -500 px/s, gravity 1250 
 body 28 × 46 px, earned air dash 780 px/s for 0.23 seconds. See the progression rule
 above for the starting ground dodge and forest-boss unlock; older route review
 fixtures that grant an air dash do not establish starting availability.
+Heavy charging caps ordinary horizontal movement at 50% speed (127.5 px/s),
+including the first charging frame; releasing restores the normal speed target.
+Use uncharged movement for the normal jump-reach measurements below.
 The approved hooded player artwork preserves the previous 58 px visible standing
 height; its registered boots meet the existing body bottom at local y=23. Sprite
 canvas size, airborne cape and sword wakes do not change the 28 × 46 body or these
@@ -1214,11 +1231,13 @@ room entry nor proximity activates a checkpoint; chair interaction does. Existin
 hand flags/IDs and last-hand semantics survive moving the art and rooms.
 
 Bow Hunter behavior and inherited bow/ammo stay intact. Temple guardian is a scoped
-six-health variant of the existing charge/slam encounter, with arena movement bounds
+six-health encounter using the supplied chain punch, charged shot, punch combo and
+slam reference, with arena movement bounds
 22900..23900. Cave Warden retains its original default bounds3150..3760. Guardian
 defeat persists independently as temple_guardian_defeated across saves, reload,
 cave travel and death; it completes room10 without granting another bow or an
-unrequested traversal ability. Entering its arena does not replace the temple hand.
+unrequested traversal ability; its combat reward is the Stone Gauntlet described
+in the current progression brief. Entering its arena does not replace the temple hand.
 
 Unique artwork: shared recessed panorama2172x724 maps x5000..18000,y-950..1300;
 boss hand1672x940 has measured source floor657; Bow Hunter1672x941 floor606;

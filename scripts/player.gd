@@ -10,8 +10,10 @@ signal died
 signal ledge_climbed
 signal platform_dropped
 signal jumped
+signal wake_finished
 
 const SPEED := 255.0
+const HEAVY_CHARGE_SPEED_MULTIPLIER := 0.5
 const GRAVITY := 1250.0
 const JUMP_SPEED := -500.0
 const DASH_SPEED := 780.0
@@ -52,6 +54,7 @@ var has_bow := false
 var bow_ammo := 0
 const BOW_AMMO_MAX := 3
 var heavy_charge := 0.0
+var heavy_ready_time := 0.0
 var heavy_attack_time := 0.0
 var heavy_cooldown := 0.0
 var _heavy_was_down := false
@@ -96,9 +99,33 @@ var meditation_chair := Vector2.ZERO
 const DEATH_DURATION := 0.85
 var death_active := false
 var death_time := 0.0
+const WAKE_DURATION := 4.0
+var waking_up := false
+var wake_elapsed := 0.0
+
+func begin_waking_up() -> void:
+	reset_movement_state()
+	waking_up=true
+	wake_elapsed=0.0
+	controls_enabled=false
+	facing=1
+
+func _advance_wake(delta: float) -> void:
+	wake_elapsed=minf(WAKE_DURATION,wake_elapsed+delta)
+	velocity=Vector2.ZERO
+	if wake_elapsed>=WAKE_DURATION-.000001:
+		waking_up=false
+		controls_enabled=true
+		visual_state=""
+		visual_state_time=0.0
+		wake_finished.emit()
+	queue_redraw()
 
 func _ready() -> void:
 	add_to_group("mcp_watch")
+	var charge_material := ShaderMaterial.new()
+	charge_material.shader = PRESENTATION.CHARGE_FLASH
+	material = charge_material
 	var shape := RectangleShape2D.new()
 	shape.size = Vector2(28, 46)
 	var collision := CollisionShape2D.new()
@@ -215,6 +242,9 @@ func _friendly_shot(kind: String,direction: Vector2,amount: float,down:=false) -
 	get_parent().add_child(shot)
 
 func _physics_process(delta: float) -> void:
+	if waking_up:
+		_advance_wake(delta)
+		return
 	visual_time += delta
 	PRESENTATION.advance(self, delta)
 	sword_combo_window = maxf(0.0, sword_combo_window - delta)
@@ -371,13 +401,16 @@ func _physics_process(delta: float) -> void:
 			dash_cooldown = 0.65
 			invulnerability = maxf(invulnerability, 0.25)
 	if heavy_down and heavy_cooldown <= 0.0:
+		var was_ready := heavy_charge >= 1.0
 		heavy_charge = minf(1.0, heavy_charge + delta / 0.8)
+		heavy_ready_time = heavy_ready_time + delta if was_ready else 0.0
 	elif _heavy_was_down:
 		if heavy_charge >= 1.0 and controls_enabled:
 			heavy_attack_time = 0.25
 			heavy_cooldown = 0.65
 			heavy_attacked.emit(Rect2(global_position + Vector2(10 if facing > 0 else -106, -40), Vector2(96, 80)))
 		heavy_charge = 0.0
+		heavy_ready_time = 0.0
 	_dash_was_down = dash_down
 	_bow_was_down = bow_down
 	_heavy_was_down = heavy_down
@@ -392,7 +425,10 @@ func _physics_process(delta: float) -> void:
 			direction = float(Input.is_physical_key_pressed(KEY_D) or Input.is_physical_key_pressed(KEY_RIGHT)) - float(Input.is_physical_key_pressed(KEY_A) or Input.is_physical_key_pressed(KEY_LEFT))
 		if direction != 0.0:
 			facing = 1 if direction > 0 else -1
-		velocity.x = move_toward(velocity.x, direction * SPEED, 1700.0 * delta)
+		var movement_speed := SPEED * HEAVY_CHARGE_SPEED_MULTIPLIER if heavy_charge > 0.0 else SPEED
+		velocity.x = move_toward(velocity.x, direction * movement_speed, 1700.0 * delta)
+		if heavy_charge > 0.0:
+			velocity.x = clampf(velocity.x, -movement_speed, movement_speed)
 		velocity.y += GRAVITY * delta
 		if jump_buffer > 0.0 and coyote_time > 0.0:
 			velocity.y = JUMP_SPEED
@@ -461,7 +497,7 @@ func take_arrow_chain_damage(amount: float, from_x: float) -> void:
 		velocity=Vector2.ZERO
 
 func take_damage(amount: float, from_x: float) -> void:
-	if invulnerability > 0.0 or health <= 0 or amount<=0:
+	if waking_up or invulnerability > 0.0 or health <= 0 or amount<=0:
 		return
 	health -= amount
 	_reset_sword_combo()
@@ -487,7 +523,14 @@ func heal_full() -> void:
 	queue_redraw()
 
 func reset_movement_state() -> void:
+	waking_up=false
+	wake_elapsed=0.0
 	_reset_sword_combo()
+	heavy_charge = 0.0
+	heavy_ready_time = 0.0
+	heavy_attack_time = 0.0
+	heavy_cooldown = 0.0
+	_heavy_was_down = false
 	velocity = Vector2.ZERO
 	death_active = false
 	death_time = 0.0
@@ -554,6 +597,10 @@ func _advance_meditation(delta: float) -> void:
 	queue_redraw()
 
 func _draw() -> void:
+	material.set_shader_parameter("white_flash", PRESENTATION.charge_flash(self))
+	if waking_up:
+		PRESENTATION.draw_wake(self)
+		return
 	if death_active:
 		_draw_death_animation()
 		return
@@ -580,13 +627,9 @@ func _draw() -> void:
 			draw_rect(Rect2(Vector2(15 if facing>0 else -65,-18),Vector2(50,22)),Color("a4c3b9"))
 	if ability_charge>0:
 		draw_arc(Vector2(0,-7),29,-PI*.5,-PI*.5+TAU*ability_charge,20,Color("ffb773"),4)
-	if wrath_time>0:
-		draw_rect(Rect2(-17,-28,34,54),Color("ee8867"),false,2)
 	if dash_time > 0.0:
 		for i in 3:
 			draw_circle(Vector2(-facing * (18 + i * 13), 0), 10 - i * 2, Color(0.13, 0.80, 0.79, 0.25))
-	if heavy_charge > 0.0:
-		draw_arc(Vector2(0, -7), 28, -PI / 2.0, -PI / 2.0 + TAU * heavy_charge, 20, Color(1.0, 0.78, 0.36), 4)
 
 func _draw_death_animation() -> void:
 	var progress := 1.0 - death_time / DEATH_DURATION

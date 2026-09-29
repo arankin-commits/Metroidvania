@@ -1,0 +1,26 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/enemies/reference_enemy.gd" id="1"]
+[ext_resource type="SpriteFrames" path="res://assets/characters/enemies/kobold_archer.tres" id="2"]
+
+[sub_resource type="RectangleShape2D" id="Body"]
+size = Vector2(32, 65)
+
+[node name="kobold_archer" type="CharacterBody2D"]
+collision_layer = 2
+collision_mask = 1
+script = ExtResource("1")
+enemy_kind = "kobold_archer"
+
+[node name="Visual" type="Node2D" parent="."]
+
+[node name="Sprite" type="AnimatedSprite2D" parent="Visual"]
+texture_filter = 1
+position = Vector2(-128, -224)
+sprite_frames = ExtResource("2")
+animation = &"idle"
+centered = false
+
+[node name="Collision" type="CollisionShape2D" parent="."]
+position = Vector2(0, -32.5)
+shape = SubResource("Body")

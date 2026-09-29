@@ -3,6 +3,7 @@ extends RefCounted
 # Room geometry is authored in world pixels. See design/ROOM_DESIGN_MEMORY.md.
 const NAMES := ["THE SEALED WATCH", "THE SPLIT GALLERY", "THE HAND'S REFUGE", "WARDEN'S HALL"]
 const BOUNDS := [Vector2(-1200, 0), Vector2(0, 1700), Vector2(1700, 3070), Vector2(3070, 4450)]
+const START := Vector2(-640,577)
 const NOTE := Vector2(2920, 334)
 const GALLERY_CACHE = preload("res://scripts/split_gallery_layout.gd").OFFERING
 const WATCH_CACHE := Vector2(-530, 339)

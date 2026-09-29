@@ -30,6 +30,9 @@ func _ready() -> void:
 	rotation=direction.angle()
 	add_to_group("combat_projectiles")
 
+func return_position() -> Vector2:
+	return owner_actor.global_position
+
 func _physics_process(delta: float) -> void:
 	if is_instance_valid(owner_actor) and (owner_actor.health<=0 or (not friendly and not owner_actor.active)):
 		queue_free()
@@ -48,8 +51,9 @@ func _physics_process(delta: float) -> void:
 		queue_redraw()
 		if delta <= 0.000001: return
 	if return_time>=0 and elapsed>=return_time and is_instance_valid(owner_actor):
-		direction=(owner_actor.global_position-global_position).normalized()
-		if global_position.distance_to(owner_actor.global_position)<25:
+		var destination := return_position()
+		direction=(destination-global_position).normalized()
+		if global_position.distance_to(destination)<25:
 			queue_free()
 			return
 	elif homing_down:
