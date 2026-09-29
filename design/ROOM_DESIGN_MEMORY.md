@@ -303,8 +303,97 @@ have no bottom-left HUD slots; that strip contains the equipped weapon and its a
 | Encounter | Authored moves | Rewards |
 |---|---|---|
 | Cave goblin, large ape-like silhouette with scimitar | Long-range jump slam closes distance and damages its landing footprint; close combo1: two swings, thrust, spinning swing; close combo2: three swings then longer overhead; mid-range thrust then swing; charged forward swing emits a wind projectile dealing half its melee damage | Goblin Scimitar with thrust; charged wall breaking; Will of Wrath |
-| Forest Bow Hunter | Three-enemy summon wave; charged long-range arrow; five-arrow rapid fire; three-hit arrow-knife combo; retreat air dash with cooldown; below half health, dash over player and fire three targeting arrows that never travel upwards | Bow with flipping volley; air/enhanced dash; passive Will unspecified |
+| Forest Guardian, hooded kobold archer | Three-enemy summon wave; charged long-range arrow (twice ordinary arrow damage); five-arrow rapid fire; three-hit arrow-knife combo with forward momentum; retreat air dash with cooldown; below half health, dash over player and create three arrows that hover in place for one second, then track the player without ever traveling upwards | Bow with flipping volley (same one-second hover and downward-only targeting); air/enhanced dash; passive Will unspecified |
 | Stone temple guardian, left of temple hand | Fast rocket fist returns along a chain; charged massive projectile with the other hand bracing its wrist; at half health introduce firing; below half health randomly choose firing or rocket fist at range; randomly choose three-hit punches or slam at close range | Stone Gauntlet: punch, fireball beam, charged stronger rapid-fire beams; passive Will unspecified |
+
+The Forest Guardian reference is preserved at
+`references/forest-boss/forest-boss-design-sheet.png`. Flipping Volley creates
+three arrows during the overhead dash. Each arrow independently hovers at its
+spawn position for one full second, with no movement, tracking or contact damage
+before release; then it continuously tracks the current target position while
+maintaining a positive downward velocity. It cannot climb back toward a target
+above it. The hover adds to lifetime rather than shortening normal flight time.
+Encounter reset/death must clear hovering arrows too. Ordinary charged/rapid
+arrows do not inherit this delay. The earned Bow ability uses the same behavior.
+The Guardian uses 20 supplied character poses in each independently authored facing,
+three distinct woodland ally sprites, and 12 extracted arrow/root/impact effects.
+Summons retain scout AI but stand118.8px tall,20% taller than the99px boss. Resize
+their body collision and damage bounds together, with feet anchored to floor600.
+Normal melee, heavy melee and projectiles must query each summon's combat_bounds;
+never retain a separate fixed scout-sized target box in the room's attack handlers.
+Never select or animate summoning while any member of the previous wave lives;
+resummon only after the wave is defeated. Never exceed one living wave of three.
+Only hostile rapid-fire and Flipping Volley arrows use0.1s hit immunity and no launch
+knockback, so a stationary player can take the complete sequence. Charged arrows and
+every other attack retain normal1s immunity and knockback. Existing normal immunity
+still blocks a rapid/volley arrow; these arrows never bypass it.
+Dash ghosts and landing dust are decorative
+and clear on encounter reset. Active body contact damages the player. Its arena,
+routes, checkpoint behavior and defeat rewards remain authoritative and unchanged.
+
+The user's Cave Boss design sheet is preserved at
+[references/cave-boss/cave-boss-design-sheet.png](references/cave-boss/cave-boss-design-sheet.png).
+It establishes the intended character appearance and attack poses: a massive hunched,
+ape-like goblin with long arms, short sturdy legs, charcoal skin/fur, bone face armor,
+red eyes, worn leather bindings, ragged dark-red cloth and a large chipped scimitar.
+Use its idle, walk, run and attack silhouettes as the character reference. Its attack
+sequences agree with the table above, including a spin that hits front and back and
+half-damage projectile wind. The sheet is design reference, not a ready-made animation
+atlas or a new arena layout. Preserve existing routes, rewards and authored damage rules.
+The Cave Boss uses `assets/characters/cave_goblin_atlas.png` and
+`assets/characters/cave_goblin_left_atlas.png`: sixteen registered RGBA poses per
+authored facing, derived from this reference. The scimitar belongs to the anatomical
+LEFT hand throughout; select the opposite sheet instead of reflecting the character.
+`goblin_boss.gd` selects anticipation, active and recovery poses. Generic orange
+melee arcs/rings/thrust wedges and preview lines were rejected and removed; retain
+the reference's textured, tapering blade afterimages (distinct sweep/overhead/spin/
+thrust trajectories), brief body ghosts, grounded movement dust and landing debris.
+These are transient combat art, not damage-bound outlines: `goblin_combat_fx.gd`
+registers them to actor motion/feet, renders behind the crisp actor, caps counts,
+and clears on reset/deactivation/death. Dust and debris have no collision or damage.
+They linger briefly into recovery; this must not suggest an extended damage window.
+Charged anticipation/release use a
+red blade-hugging aura registered separately to each view's steel outline; the
+detached red arc above the charging boss is removed. The aura builds over the1.3s
+windup and flares ivory-red during release, disappearing for recovery/other attacks.
+Thrust is a dash attack: advance140px
+over0.22s; ordinary swings advance28px, overhead44px, spin32px over0.16s each.
+Charged swing bursts64px over0.12s with cubic ease-out, then holds its release
+pose0.08s and drops into a low follow-through0.18s before1.05s recovery. A landed
+melee contact pauses only the boss for0.055s; misses do not pause. Reset/deactivation
+clears the pause; world time and player controls are not frozen. Charge uses the
+existing warden_charge_tell cue and heavy_attack on release. These are tunable
+implementation measurements.
+Anticipation/recovery have no attack damage or forward movement. The active, living
+Cave Boss deals1 damage on body overlap in any state, through the player's normal
+invulnerability/dodge protection and knockback. Its132x108 body bounds own contact,
+not its scimitar or VFX; inactive/defeated bosses cannot hurt by contact.
+Ground motion respects arena bounds
+and casts the body against solid terrain; moving melee sweeps between physics ticks.
+Wind uses `assets/effects/goblin_wind.png`, a textured ivory leading crescent with
+long smoky gray curled afterimages, drawn195x108 at(-141,-54) in projectile space.
+The slash is three times the original scale, approximately the standing boss's
+height, as requested. The leading crest registers at the radius54 contact core;
+tails and an additional dim300x108 rear curl are decorative. Its lower edge stays
+above the arena floor at the normal launch height. Wall checks lead with the crest,
+so the enlarged slash stops before its bright front penetrates solid terrain.
+Charged release uses `assets/effects/goblin_charge_wake.png`, a thick ivory-peach
+outer crescent with crimson inner streaks and a fine trailing back trace, drawn
+242x152 behind the actor, ending at the ground plane. These isolated reference-led
+textures replace the earlier geometric charged/wind bands. Preserve their actual
+alpha; `tools/build_goblin_effects.gd` records measured crops/matte decontamination.
+Wind retains
+speed440px/s and half melee damage. Routes and rewards remain unchanged.
+The atlases use288px cells in1152px sheets. Their
+shared foot pivot maps to local y47, matching arena floor600 at boss home_y553.
+The measured crops and matte preparation are reproducible with
+`tools/build_cave_boss_atlas.gd`; its source is a design asset excluded from export.
+Atlas alpha/cell isolation/foot registration and original combat/progression checks
+pass. `cave_boss_momentum_smoke.gd` checks both combo directions and wall stopping.
+Live arena review covered both facings, thrust, overhead, spin, charged wind,
+jump and impact. See [Cave Boss art review](reviews/cave-boss-art.md) for generation
+prompts and evidence. This is a compact pose animation set, not a fully inbetweened
+walk/run animation; those source poses are reserved for future locomotion behavior.
 
 Guardian is invulnerable ONLY while charging its firing move. Protection ends
 when the projectile launches, not after the projectile disappears or recovery ends.
@@ -345,6 +434,10 @@ From `scripts/player.gd`: speed 255 px/s, jump velocity -500 px/s, gravity 1250 
 body 28 × 46 px, earned air dash 780 px/s for 0.23 seconds. See the progression rule
 above for the starting ground dodge and forest-boss unlock; older route review
 fixtures that grant an air dash do not establish starting availability.
+The approved hooded player artwork preserves the previous 58 px visible standing
+height; its registered boots meet the existing body bottom at local y=23. Sprite
+canvas size, airborne cape and sword wakes do not change the 28 × 46 body or these
+movement measurements. See the traveller rule in ART_DESIGN_MEMORY for the reference.
 
 - An unobstructed normal jump rises about **100 px** and takes about **0.8 seconds**
   to return to its starting height. Ideal horizontal reach is about **204 px** before

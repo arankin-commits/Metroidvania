@@ -1,4 +1,10 @@
 extends Node2D
+const WIND_TEXTURE=preload("res://assets/effects/goblin_wind.png")
+const WIND_RADIUS=54.0
+const FOREST_CHARGED = preload("res://assets/effects/forest_charged_arrow.png")
+const FOREST_RAPID = [preload("res://assets/effects/forest_rapid_arrow_1.png"), preload("res://assets/effects/forest_rapid_arrow_2.png"), preload("res://assets/effects/forest_rapid_arrow_3.png"), preload("res://assets/effects/forest_rapid_arrow_4.png"), preload("res://assets/effects/forest_rapid_arrow_5.png")]
+const FOREST_VOLLEY = preload("res://assets/effects/forest_volley_arrow.png")
+const FOREST_IMPACT = preload("res://scripts/forest_guardian_impact.gd")
 
 var direction:=Vector2.RIGHT
 var speed:=520.0
@@ -10,12 +16,18 @@ var owner_actor: Node
 var kind:="arrow"
 var friendly:=false
 var homing_down:=false
+var hover_time:=0.0
+var forest_magic:=false
+var charged_arrow:=false
+var arrow_frame:=0
+var short_hit_recovery:=false
 var return_time:=-1.0
 var elapsed:=0.0
 var hit_targets: Array[Node]=[]
 
 func _ready() -> void:
 	z_index=6
+	rotation=direction.angle()
 	add_to_group("combat_projectiles")
 
 func _physics_process(delta: float) -> void:
@@ -27,21 +39,37 @@ func _physics_process(delta: float) -> void:
 	if lifetime<=0:
 		queue_free()
 		return
+	# Volley arrows telegraph in place before tracking. Use only the part of
+	# this tick after release, so movement never starts before one full second.
+	if hover_time > 0.0:
+		var held:=minf(delta,hover_time)
+		hover_time=maxf(0.0,hover_time-held)
+		delta-=held
+		queue_redraw()
+		if delta <= 0.000001: return
 	if return_time>=0 and elapsed>=return_time and is_instance_valid(owner_actor):
 		direction=(owner_actor.global_position-global_position).normalized()
 		if global_position.distance_to(owner_actor.global_position)<25:
 			queue_free()
 			return
-	elif homing_down and is_instance_valid(target):
-		var desired: Vector2=(target.global_position-global_position).normalized()
-		desired.y=maxf(0.15,desired.y)
-		direction=direction.lerp(desired.normalized(),minf(1.0,delta*3)).normalized()
+	elif homing_down:
+		if is_instance_valid(target):
+			var desired: Vector2=(target.global_position-global_position).normalized()
+			desired.y=maxf(0.15,desired.y)
+			direction=direction.lerp(desired.normalized(),minf(1.0,delta*3)).normalized()
 		direction.y=maxf(0.05,direction.y)
 		direction=direction.normalized()
 	var previous:=global_position
 	global_position+=direction*speed*delta
-	var ray:=PhysicsRayQueryParameters2D.create(previous,global_position,1)
-	if not get_world_2d().direct_space_state.intersect_ray(ray).is_empty():
+	var wall_offset:=direction*radius if kind=="wind" else Vector2.ZERO
+	var ray:=PhysicsRayQueryParameters2D.create(previous+wall_offset,global_position+wall_offset,1)
+	# Wall probes must not consume the wind/volley's target contact before
+	# the swept damage check below gets to apply it.
+	if (kind=="wind" or homing_down or forest_magic) and is_instance_valid(target) and target is CollisionObject2D:
+		ray.exclude=[target.get_rid()]
+	var wall_hit:=get_world_2d().direct_space_state.intersect_ray(ray)
+	if not wall_hit.is_empty():
+		forest_impact(wall_hit.position)
 		queue_free()
 		return
 	var candidates: Array[Node]=[]
@@ -55,8 +83,11 @@ func _physics_process(delta: float) -> void:
 		var bounds: Rect2=candidate.combat_bounds() if candidate.has_method("combat_bounds") else Rect2(candidate.global_position-Vector2(18,28),Vector2(36,56))
 		var nearest:=Geometry2D.get_closest_point_to_segment(candidate.global_position,previous,global_position)
 		if bounds.grow(radius).has_point(nearest):
+			forest_impact(nearest)
 			hit_targets.append(candidate)
 			if friendly: candidate.take_hit(damage)
+			elif short_hit_recovery and candidate.has_method("take_arrow_chain_damage"):
+				candidate.take_arrow_chain_damage(damage,previous.x)
 			else: candidate.take_damage(damage,previous.x)
 			if return_time<0:
 				queue_free()
@@ -64,11 +95,28 @@ func _physics_process(delta: float) -> void:
 	rotation=direction.angle()
 	queue_redraw()
 
+func forest_impact(point: Vector2) -> void:
+	if not forest_magic: return
+	var effect:=FOREST_IMPACT.new()
+	effect.owner_actor=owner_actor
+	effect.variant=arrow_frame%2
+	get_parent().add_child(effect)
+	effect.global_position=point
+
 func _draw() -> void:
 	var ink:=Color("f3d78a") if friendly else Color("f5ba83")
+	if homing_down:
+		ink=Color("a8faff")
+		if hover_time>0:
+			draw_circle(Vector2.ZERO,radius+5,Color(0.2,0.9,1.0,0.16+0.08*sin(elapsed*10)))
+	if forest_magic and kind=="arrow":
+		if homing_down: draw_texture_rect(FOREST_VOLLEY,Rect2(-24,-6,40,12),false)
+		elif charged_arrow: draw_texture_rect(FOREST_CHARGED,Rect2(-160,-18,180,36),false)
+		else: draw_texture_rect(FOREST_RAPID[clampi(arrow_frame,0,4)],Rect2(-46,-8,62,16),false)
+		return
 	match kind:
 		"wind":
-			draw_arc(Vector2(-8,0),22,-1.1,1.1,12,ink,5)
+			draw_wind()
 		"beam":
 			draw_rect(Rect2(-25,-radius,50,radius*2),Color("ee8148"))
 			draw_rect(Rect2(-18,-radius*.45,36,radius*.9),Color("fff0ae"))
@@ -84,3 +132,12 @@ func _draw() -> void:
 		_:
 			draw_line(Vector2(-14,0),Vector2(12,0),ink,3)
 			draw_colored_polygon(PackedVector2Array([Vector2(16,0),Vector2(8,-5),Vector2(8,5)]),ink)
+
+func draw_wind() -> void:
+	# The ivory leading crest stays at the radius54 contact core; smoky
+	# trailing curls are translucent decoration, not extra damage range.
+	draw_texture_rect(WIND_TEXTURE,Rect2(-273,-54,300,108),false,Color(.63,.66,.69,.25))
+	draw_texture_rect(WIND_TEXTURE,Rect2(-141,-54,195,108),false,Color.WHITE)
+	for i in 3:
+		var y:=sin(elapsed*19+i*2.3)*30
+		draw_rect(Rect2(-105-i*15,y,3,2),Color(.91,.89,.82,.3))

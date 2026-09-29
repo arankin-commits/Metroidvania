@@ -93,7 +93,7 @@ func run() -> void:
 	for name in ["spin_combo","overhead_combo","mid_combo","jump_slam","charge_swing"]:
 		clear_shots()
 		goblin.position=Vector2(1500,553)
-		player.position=Vector2(1560,577)
+		player.position=Vector2(1600,577)
 		player.velocity=Vector2.ZERO
 		player.invulnerability=0
 		var before: float=player.health
@@ -108,6 +108,7 @@ func run() -> void:
 	player.position=Vector2(1100,577); player.velocity=Vector2.ZERO; player.invulnerability=0
 	var wind:=preload("res://scripts/combat_projectile.gd").new()
 	wind.position=Vector2(1000,577); wind.direction=Vector2.RIGHT; wind.damage=.5; wind.target=player; wind.kind="wind"
+	wind.radius=preload("res://scripts/combat_projectile.gd").WIND_RADIUS
 	arena.add_child(wind)
 	var before: float=player.health
 	await frames(30)
@@ -206,7 +207,7 @@ func persistence() -> void:
 	SLOTS.write_slot(1,data,SAVE_ROOT)
 	if SLOTS.load_slot(1,SAVE_ROOT).has_dash: fail("Legacy dash flag bypasses boss unlock"); return
 	set_meta("save_root",SAVE_ROOT); set_meta("active_save_slot",1)
-	change_scene_to_file("res://scenes/tutorial.tscn"); await frames(3)
+	change_scene_to_file("res://scenes/tutorial.tscn"); await scene_changed; await frames(3)
 	var cave:=current_scene
 	if cave.player.has_dash: fail("Cave grants early enhanced dash"); return
 	# Existing Refuge basin ledges provide a normal-jump crossing; no geometry edit.
@@ -233,7 +234,7 @@ func persistence() -> void:
 	data=SLOTS.load_slot(1,SAVE_ROOT)
 	if not data.has_scimitar or not data.has_wrath or data.has_dash: fail("Cave rewards incorrect"); return
 	set_meta("forest_entry_room",8)
-	change_scene_to_file("res://scenes/forest_entry.tscn"); await frames(3)
+	change_scene_to_file("res://scenes/forest_entry.tscn"); await scene_changed; await frames(3)
 	var forest:=current_scene
 	forest._on_hunter_defeated()
 	forest._on_guardian_defeated()
@@ -241,11 +242,11 @@ func persistence() -> void:
 	forest._save_progress()
 	data=SLOTS.load_slot(1,SAVE_ROOT)
 	if not data.has_dash or not data.has_gauntlet or not data.has_bow: fail("Forest/temple rewards not saved"); return
-	change_scene_to_file("res://scenes/tutorial.tscn"); await frames(3)
+	change_scene_to_file("res://scenes/tutorial.tscn"); await scene_changed; await frames(3)
 	cave=current_scene
 	if not cave.player.has_dash or not cave.player.has_gauntlet or cave.player.equipped_weapon!="gauntlet": fail("Biome return loses rewards/loadout"); return
 	cave._save_progress()
-	change_scene_to_file("res://scenes/main_menu.tscn"); await frames(3)
+	change_scene_to_file("res://scenes/main_menu.tscn"); await scene_changed; await frames(3)
 	SLOTS.delete_slot(1,SAVE_ROOT)
 	print("BOSS_COMBAT_SMOKE_PASS")
 	quit()
