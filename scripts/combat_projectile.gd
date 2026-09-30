@@ -67,10 +67,14 @@ func _physics_process(delta: float) -> void:
 	global_position+=direction*speed*delta
 	var wall_offset:=direction*radius if kind=="wind" else Vector2.ZERO
 	var ray:=PhysicsRayQueryParameters2D.create(previous+wall_offset,global_position+wall_offset,1)
-	# Wall probes must not consume the wind/volley's target contact before
-	# the swept damage check below gets to apply it.
-	if (kind=="wind" or homing_down or forest_magic) and is_instance_valid(target) and target is CollisionObject2D:
-		ray.exclude=[target.get_rid()]
+	# Wall probes must not consume target contact before swept check
+	var excludes: Array[RID] = []
+	if is_instance_valid(target) and target is CollisionObject2D:
+		excludes.append(target.get_rid())
+	for p in get_tree().get_nodes_in_group("player"):
+		if p is CollisionObject2D and not excludes.has(p.get_rid()):
+			excludes.append(p.get_rid())
+	ray.exclude = excludes
 	var wall_hit:=get_world_2d().direct_space_state.intersect_ray(ray)
 	if not wall_hit.is_empty():
 		forest_impact(wall_hit.position)
@@ -86,7 +90,16 @@ func _physics_process(delta: float) -> void:
 		if candidate.get("active")!=null and not candidate.active: continue
 		var bounds: Rect2=candidate.combat_bounds() if candidate.has_method("combat_bounds") else Rect2(candidate.global_position-Vector2(18,28),Vector2(36,56))
 		var nearest:=Geometry2D.get_closest_point_to_segment(candidate.global_position,previous,global_position)
-		if bounds.grow(radius).has_point(nearest):
+		var touches: bool = bounds.grow(radius).has_point(nearest)
+		var candidate_dashing: bool = not friendly and candidate.get("dash_time") != null and (candidate.dash_time > 0.0 or (candidate.get("invulnerability") != null and candidate.invulnerability > 0.0 and candidate.get("dash_cooldown") != null and candidate.dash_cooldown > 0.3))
+		if not touches and kind == "wind" and candidate_dashing:
+			var wind_min_x := global_position.x - (280.0 if direction.x > 0 else 0.0)
+			var wind_rect := Rect2(wind_min_x, global_position.y - radius, 280.0, radius * 2.0)
+			touches = bounds.intersects(wind_rect)
+		if touches:
+			if candidate_dashing:
+				hit_targets.append(candidate)
+				continue
 			forest_impact(nearest)
 			hit_targets.append(candidate)
 			if friendly: candidate.take_hit(damage)

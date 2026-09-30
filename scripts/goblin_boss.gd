@@ -122,7 +122,7 @@ func visual_pose() -> int:
 	return int(visual_clock*2.0)%2
 
 func _draw() -> void:
-	if health<=0: return
+	if health<=0 or not visible: return
 	var index:=visual_pose()
 	var source:=Rect2((index%4)*FRAME_SIZE,(index/4)*FRAME_SIZE,FRAME_SIZE,FRAME_SIZE)
 	# Feet register at local y47, exactly the existing arena floor at home_y553.

@@ -78,12 +78,12 @@ func run() -> void:
 	if basic<30 or absf(enhanced/basic-2)>0.05: fail("Ground dash is not exactly half before boss: %s/%s"%[basic,enhanced]); return
 	player.reset_movement_state()
 	player.position=Vector2(1000,350)
-	player.has_dash=false
+	player.has_air_dash=false
 	await frames(1)
 	key(KEY_K,true); await frames(2); key(KEY_K,false)
 	if player.dash_time>0: fail("Pre-boss air dash available"); return
 	await frames(1)
-	player.has_dash=true; key(KEY_K,true); await frames(2); key(KEY_K,false)
+	player.has_air_dash=true; key(KEY_K,true); await frames(2); key(KEY_K,false)
 	if player.dash_time<=0: fail("Post-boss air dash missing"); return
 	player.reset_movement_state()
 	player.position=Vector2(1560,577)
@@ -203,9 +203,9 @@ func persistence() -> void:
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(SAVE_ROOT))
 	var data:=SLOTS.new_slot()
 	# Legacy true flag must not override forest boss progression.
-	data["has_dash"]=true
+	data["has_air_dash"]=true
 	SLOTS.write_slot(1,data,SAVE_ROOT)
-	if SLOTS.load_slot(1,SAVE_ROOT).has_dash: fail("Legacy dash flag bypasses boss unlock"); return
+	if SLOTS.load_slot(1,SAVE_ROOT).has_air_dash: fail("Legacy air dash flag bypasses boss unlock"); return
 	set_meta("save_root",SAVE_ROOT); set_meta("active_save_slot",1)
 	change_scene_to_file("res://scenes/tutorial.tscn"); await scene_changed; await frames(3)
 	var cave:=current_scene
@@ -229,10 +229,10 @@ func persistence() -> void:
 		key(KEY_D,false); key(KEY_SPACE,false)
 		if not arrived: fail("Unchanged Refuge route cannot be crossed without air dash at %s, ended %s"%[destination,cave.player.position]); return
 		await frames(12)
-	if cave.player.has_dash: fail("Normal chasm route granted air dash"); return
+	if cave.player.has_air_dash: fail("Normal chasm route granted air dash"); return
 	cave._on_boss_defeated()
 	data=SLOTS.load_slot(1,SAVE_ROOT)
-	if not data.has_scimitar or not data.has_wrath or data.has_dash: fail("Cave rewards incorrect"); return
+	if not data.has_scimitar or not data.has_wrath or data.has_air_dash: fail("Cave rewards incorrect"); return
 	set_meta("forest_entry_room",8)
 	change_scene_to_file("res://scenes/forest_entry.tscn"); await scene_changed; await frames(3)
 	var forest:=current_scene
@@ -241,10 +241,10 @@ func persistence() -> void:
 	forest.player.equipped_weapon="gauntlet"
 	forest._save_progress()
 	data=SLOTS.load_slot(1,SAVE_ROOT)
-	if not data.has_dash or not data.has_gauntlet or not data.has_bow: fail("Forest/temple rewards not saved"); return
+	if not data.has_air_dash or not data.has_gauntlet or not data.has_bow: fail("Forest/temple rewards not saved"); return
 	change_scene_to_file("res://scenes/tutorial.tscn"); await scene_changed; await frames(3)
 	cave=current_scene
-	if not cave.player.has_dash or not cave.player.has_gauntlet or cave.player.equipped_weapon!="gauntlet": fail("Biome return loses rewards/loadout"); return
+	if not cave.player.has_air_dash or not cave.player.has_gauntlet or cave.player.equipped_weapon!="gauntlet": fail("Biome return loses rewards/loadout"); return
 	cave._save_progress()
 	change_scene_to_file("res://scenes/main_menu.tscn"); await scene_changed; await frames(3)
 	SLOTS.delete_slot(1,SAVE_ROOT)

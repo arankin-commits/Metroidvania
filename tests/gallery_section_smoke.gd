@@ -173,7 +173,7 @@ func _jump(from: Vector2, to: Vector2) -> bool:
 		var dx: float = to.x - world.player.position.x
 		_key(KEY_D, dx > 5)
 		_key(KEY_A, dx < -5)
-		if i == 3:
+		if i == 25:
 			_key(KEY_SPACE, false)
 		await physics_frame
 		if i > 10 and world.player.is_on_floor() and absf(dx) < 28 and absf(world.player.position.y - to.y) < 8:

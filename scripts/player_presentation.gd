@@ -2,6 +2,7 @@ extends RefCounted
 
 # Artwork only: the controller, body and attack volumes remain authoritative.
 const ATLAS = preload("res://assets/characters/hooded_player_atlas.png")
+const INJURED_ATLAS = preload("res://assets/characters/hooded_player_atlas_injured.png")
 const CELL := 128
 const FOOT := Vector2(64, 96)
 const FRAME_RECT := Rect2(-64, -73, 128, 128)
@@ -26,9 +27,11 @@ const SEQUENCES := {
 }
 
 const COMPLETE = preload("res://assets/characters/hooded_player_complete.png")
+const INJURED_COMPLETE = preload("res://assets/characters/hooded_player_complete_injured.png")
 const COMPLETE_CELL := 224
 const COMPLETE_RECT := Rect2(-96, -137, 224, 224)
 const HEAVY = preload("res://assets/characters/hooded_player_heavy.png")
+const INJURED_HEAVY = preload("res://assets/characters/hooded_player_heavy_injured.png")
 const HEAVY_CELL := 192
 const HEAVY_RECT := Rect2(-72, -105, 192, 192)
 const CHARGE_FLASH = preload("res://scripts/player_charge_flash.gdshader")
@@ -79,7 +82,7 @@ static func sequence(player: CharacterBody2D) -> String:
 		return ["slash_horizontal", "slash_upward", "slash_downward"][maxi(0, player.sword_combo_step)]
 	if player.dash_time > 0.0: return prefix + "dash"
 	if not player.is_on_floor(): return prefix + ("jump" if player.velocity.y < -30 else "fall")
-	if absf(player.velocity.x) > 180: return prefix + "run"
+	if absf(player.velocity.x) > 180 and not player.is_injured: return prefix + "run"
 	if absf(player.velocity.x) > 10: return prefix + "walk"
 	return prefix + "idle"
 
@@ -119,6 +122,9 @@ static func pose(player: CharacterBody2D) -> int:
 
 static func draw(player: CharacterBody2D, alpha: float, override_pose := -1) -> void:
 	var index := pose(player) if override_pose < 0 else override_pose
+	var complete_texture: Texture2D = INJURED_COMPLETE if player.is_injured else COMPLETE
+	var special_texture: Texture2D = INJURED_ATLAS if player.is_injured else ATLAS
+	var heavy_texture: Texture2D = INJURED_HEAVY if player.is_injured else HEAVY
 	player.draw_set_transform(Vector2.ZERO, 0.0, Vector2(player.facing, 1))
 	if index < 0 and (player.heavy_charge > 0.0 or player.heavy_attack_time > 0.0):
 		index = heavy_frame(player)
@@ -137,15 +143,15 @@ static func draw(player: CharacterBody2D, alpha: float, override_pose := -1) -> 
 			lower.size.y -= crop
 			var walk_source := Rect2(Vector2(walk_index % 8, walk_index / 8) * COMPLETE_CELL + Vector2(0, crop), lower.size)
 			lower.position.x += CHARGE_WALK_LEG_OFFSETS[charge_walk_slot(player)]
-			player.draw_texture_rect_region(COMPLETE, lower, walk_source, Color(1, 1, 1, alpha))
-			player.draw_texture_rect_region(HEAVY, upper, heavy_source, Color(1, 1, 1, alpha))
+			player.draw_texture_rect_region(complete_texture, lower, walk_source, Color(1, 1, 1, alpha))
+			player.draw_texture_rect_region(heavy_texture, upper, heavy_source, Color(1, 1, 1, alpha))
 		else:
-			draw_region(player, HEAVY, HEAVY_RECT, HEAVY_CELL, 3, index, alpha)
+			draw_region(player, heavy_texture, HEAVY_RECT, HEAVY_CELL, 3, index, alpha)
 	elif index >= 0:
-		player.draw_texture_rect_region(ATLAS, FRAME_RECT,
+		player.draw_texture_rect_region(special_texture, FRAME_RECT,
 			Rect2(Vector2(index % 4, index / 4) * CELL, Vector2(CELL, CELL)), Color(1, 1, 1, alpha))
 	else:
 		index = frame_index(player)
-		player.draw_texture_rect_region(COMPLETE, COMPLETE_RECT,
+		player.draw_texture_rect_region(complete_texture, COMPLETE_RECT,
 			Rect2(Vector2(index % 8, index / 8) * COMPLETE_CELL, Vector2(COMPLETE_CELL, COMPLETE_CELL)), Color(1, 1, 1, alpha))
 	player.draw_set_transform(Vector2.ZERO)

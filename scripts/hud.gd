@@ -2,6 +2,7 @@ extends Control
 
 var health := 5.0
 var max_health := 5.0
+var is_injured := false
 var equipped_weapon:="starter"
 var level := 1
 var will_amount := 0
@@ -33,9 +34,18 @@ func _draw() -> void:
 	draw_rect(Rect2(left + 12, 29, 32, 40), Color(0.08, 0.17, 0.23))
 	draw_rect(Rect2(left + 10, 36, 36, 26), Color(0.08, 0.17, 0.23))
 	draw_string(font, Vector2(left + 6, 56), str(level), HORIZONTAL_ALIGNMENT_CENTER, 44, 22, Color(0.97, 0.92, 0.72))
+	var bar_length := 206.0
+	var fill_ratio: float = clampf(float(health) / 5.0, 0.0, 1.0)
 	draw_rect(Rect2(left + 66, 35, 212, 12), Color(0.43, 0.67, 0.66))
-	draw_rect(Rect2(left + 69, 38, 206, 6), Color(0.07, 0.12, 0.17))
-	draw_rect(Rect2(left + 69, 38, floorf(206.0 * float(health) / float(maxi(1, max_health))), 6), Color(0.88, 0.33, 0.41))
+	draw_rect(Rect2(left + 69, 38, bar_length, 6), Color(0.07, 0.12, 0.17))
+	draw_rect(Rect2(left + 69, 38, floorf(bar_length * fill_ratio), 6), Color(0.88, 0.33, 0.41))
+	if is_injured:
+		var cap_x := left + 69.0 + bar_length * 0.5
+		var cap_width := bar_length * 0.5
+		draw_rect(Rect2(cap_x, 38, cap_width, 6), Color(0.18, 0.06, 0.08, 0.85))
+		for h in range(int(cap_x) + 4, int(cap_x + cap_width) - 2, 8):
+			draw_line(Vector2(h, 44), Vector2(h + 4, 38), Color(0.42, 0.12, 0.15, 0.75), 1.5)
+		draw_line(Vector2(cap_x, 36), Vector2(cap_x, 46), Color(0.70, 0.22, 0.24), 2.0)
 	for i in max_healing_charges:
 		_draw_fist(Vector2(left + 69 + i * 27, 53), i < healing_charges)
 	draw_rect(Rect2(left + 233, 55, 18, 18), Color(0.20, 0.70, 0.68, 0.30))

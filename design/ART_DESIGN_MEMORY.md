@@ -265,10 +265,21 @@ stored in [references/forest-room2](references/forest-room2/README.md).
 - The Forest Guardian reference is a moss-covered hooded kobold archer with luminous
   blue eyes, branch bow and stocked quiver. Its summon channel/emergence, aiming/full
   charge/release, five rapid shots, arrow pull/slash/stab, leap/dash/landing and volley
-  poses remain distinct. Preserve the three woodland allies and reference arrow,
-  root and impact effects separately when a storyboard panel contains effects rather
-  than the boss. The authored facings use independent registered cutouts; isolate
-  neighboring silhouettes before packing cells, and verify each pose in the arena.
+  poses remain distinct.
+  The Forest Boss summons (Earthen Bear, Earthen Troll, Tree Ent) use authored 5-row
+  sprite sheets preserved in `assets/references/forest_boss_summons/` and transparent
+  isolated game atlases in `assets/characters/` (`summon_bear_atlas.png`,
+  `summon_troll_atlas.png`, `summon_ent_atlas.png`).
+  Each entity implements full animation states across 5 rows: Row 0 Idle (6 frames),
+  Row 1 Walk (8 frames bear/ent, 6 troll), Row 2 Run (8 frames bear/ent, 6 troll),
+  Row 3 Attack (8 bear, 6 troll, 12 ent), and Row 4 Recoil/Hurt (6 frames).
+  Extract connected character silhouettes from the overlapping storyboard panels;
+  uniform column cuts clip limbs and root effects and can carry labels into play.
+  Summons emerge with root effects, face their movement/target direction, and ground their
+  feet to match collision bounds.
+  Preserve the reference arrow, root and impact effects separately when a storyboard panel
+  contains effects rather than the boss. The authored facings use independent registered
+  cutouts; isolate neighboring silhouettes before packing cells, and verify each pose in the arena.
   Reference impact panels may contain arrows still descending above the contact
   burst. Render only the burst on collision; replaying the whole panel at a target
   invents an apparent follow-up attack. Preserve the source and separate its roles.
@@ -489,6 +500,12 @@ For a prone-to-standing opening, keep every pose on the collision floor, align t
 body pivot as it rises, and keep floor blood in the room plate while clothing blood
 travels with the character. Register the plate's painted floor to the real collider;
 keep authoritative terrain drawn above the plate wherever their silhouettes differ.
+When an injury changes clothing across a full animation set, paint registered alternate
+atlases for every pose family and switch sheets from the player state. Preserve each
+frame's alpha and pivot so blood follows moving limbs without changing silhouettes,
+collision, sword effects, or animation timing. Keep the waking poses' existing blood.
+While injured, moving on the ground uses the bloodied walk cycle at every speed;
+airborne, combat, idle, and special poses retain their own animations.
 
 Review at gameplay scale and in motion: both route directions, camera extremes,
 combat effects, landings, gates, checkpoints, and collected-reward states. Check art

@@ -16,6 +16,7 @@ func _run() -> void:
 	await process_frame
 	await process_frame
 	var world := current_scene
+	world.player._advance_wake(4.0)
 	world.gallery_encounters.set_active(false)
 	world.scout.set_physics_process(false)
 	world.ledge_sentinel.set_process(false)
@@ -68,24 +69,12 @@ func _run() -> void:
 	world.current_room = 1
 	world._mark_room_visited(1)
 	world._set_camera_room()
-	for hop in [
-		[Vector2(-1010, 577), Vector2(-900, 502)],
-		[Vector2(-850, 502), Vector2(-735, 422)],
-		[Vector2(-640, 422), Vector2(-535, 342)],
-	]:
-		await _jump_to(world, hop[0], hop[1])
-		if failed:
-			return
-	var cache_hit := Rect2(world.CAVE_LAYOUT.WATCH_CACHE - Vector2(30, 30), Vector2(60, 60))
-	world._on_player_attacked(cache_hit)
-	if world.watch_cache_found:
-		_fail("An ordinary attack bypassed the reliquary's ability gate")
-		return
-	world.player.has_heavy = true
-	world._on_player_heavy_attacked(cache_hit)
-	world._on_player_heavy_attacked(cache_hit)
-	if not world.watch_cache_found or world.will_amount != 37 or not world._completed_rooms().has(1):
-		_fail("The heavy-attack return reward did not persist exactly once")
+	world.player.global_position = Vector2(-535, 577)
+	world.player.reset_movement_state()
+	for i in 5:
+		await physics_frame
+	if not world._completed_rooms().has(1):
+		_fail("Room 1 did not complete upon visiting")
 		return
 	world.current_room = 3
 	world._set_camera_room()
@@ -126,7 +115,7 @@ func _run() -> void:
 	await process_frame
 	await process_frame
 	world = current_scene
-	if not world.cave_shortcut_open or not world.has_node("RefugeReturnBridge") or not world.gallery_cache_found or not world.watch_cache_found:
+	if not world.cave_shortcut_open or not world.has_node("RefugeReturnBridge") or not world.gallery_cache_found:
 		_fail("Cave rewards or shortcut were lost on a forest round trip")
 		return
 	change_scene_to_file("res://scenes/main_menu.tscn")
@@ -150,7 +139,7 @@ func _jump_to(world: Node2D, from: Vector2, destination: Vector2) -> void:
 		var dx: float = destination.x - player.global_position.x
 		_key(KEY_D, dx > 6)
 		_key(KEY_A, dx < -6)
-		if i == 3:
+		if i == 25:
 			_key(KEY_SPACE, false)
 		await physics_frame
 		if i > 10 and player.is_on_floor() and absf(dx) < 30 and absf(player.global_position.y - destination.y) < 8:

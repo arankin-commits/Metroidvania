@@ -6,7 +6,6 @@ const BOUNDS := [Vector2(-1200, 0), Vector2(0, 1700), Vector2(1700, 3070), Vecto
 const START := Vector2(-640,577)
 const NOTE := Vector2(2920, 334)
 const GALLERY_CACHE = preload("res://scripts/split_gallery_layout.gd").OFFERING
-const WATCH_CACHE := Vector2(-530, 339)
 const WINCH := Vector2(2510, 559)
 const BRIDGE := Rect2(2160, 600, 290, 24)
 const EXIT_WALL := Rect2(3850, 300, 32, 300)
@@ -19,8 +18,7 @@ static func platforms() -> Array[Rect2]:
 		Rect2(380, 525, 155, 18), Rect2(1040, 510, 120, 90),
 		Rect2(1350, 520, 170, 18), Rect2(2010, 470, 150, 130),
 		Rect2(2730, 520, 150, 18),
-		# Watch: optional climb to a cache that responds to the Warden's Will.
-		Rect2(-970, 525, 145, 30), Rect2(-785, 445, 165, 30), Rect2(-605, 365, 155, 30),
+		# Watch: cache rests at floor level, responding to the Warden's Will.
 		# Gallery: an upper loop over the pit, returning above the sentinel.
 		Rect2(560, 445, 130, 24), Rect2(730, 365, 160, 24), Rect2(935, 430, 100, 24),
 		# Refuge: climb right, double back left, then cross to the note alcove.

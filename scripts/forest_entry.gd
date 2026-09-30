@@ -149,12 +149,15 @@ func _ready() -> void:
 	player = PLAYER.new()
 	player.position = Vector2(HAND_X, 570) if current_room == 8 else ARRIVAL_LAYOUT.entry() if current_room == 5 else Vector2(BOUNDS[current_room - 5].x + 90, 570)
 	if current_room==9: player.position=DASH_LAYOUT.HAND
-	player.has_dash = bow_boss_defeated
+	player.has_dash = bool(saved_data.get("has_dash", true))
+	player.set_injured(bool(saved_data.get("is_injured", false)))
 	player.has_heavy = bool(saved_data.get("has_heavy", false))
 	player.has_bow = bool(saved_data.get("has_bow", bow_boss_defeated))
 	player.bow_ammo = int(saved_data.get("bow_ammo", 3)) if player.has_bow else 0
 	player.load_combat_progress(saved_data)
+	player.has_air_dash = bool(saved_data.get("has_air_dash", bow_boss_defeated))
 	player.healing_charges = int(saved_data.get("healing_charges", 3))
+	player.z_index = 3
 	add_child(player)
 	player.drop_platform=forest_split_hall.drop_platform
 	player.drop_region=Rect2(SPLIT_LAYOUT.DROP.position-Vector2(0,8),Vector2(SPLIT_LAYOUT.DROP.size.x,26))
@@ -460,9 +463,9 @@ func _on_hunter_defeated() -> void:
 	game_audio.play_forest()
 	_unlock_arena()
 	player.has_bow = true
-	player.has_dash=true
+	player.has_air_dash = true
 	player.bow_ammo = player.BOW_AMMO_MAX
-	_show_toast("BOW + AIR/ENHANCED DASH INHERITED - 2 equip bow; U flipping volley", 5.0)
+	_show_toast("BOW & AIR DASH INHERITED - 2 equip bow; U flipping volley; Dash in air", 5.0)
 	_save_progress()
 
 func _on_death() -> void:
@@ -498,7 +501,10 @@ func _on_death() -> void:
 	current_room = last_hand_room
 	player.global_position = DASH_LAYOUT.HAND if current_room==9 else Vector2(HAND_X,570)
 	player.reset_movement_state()
+	player.set_injured(false)
+	player.has_dash = true
 	player.heal_full()
+	player.healing_charges = player.max_healing_charges
 	_set_camera()
 	player.controls_enabled = true
 	death_pending = false
@@ -512,6 +518,8 @@ func activate_hand() -> void:
 	else:
 		forest_hand_activated = true
 		last_hand_room = 8
+	player.set_injured(false)
+	player.has_dash = true
 	player.heal_full()
 	player.healing_charges = player.max_healing_charges
 	if player.has_bow:
@@ -539,6 +547,8 @@ func fast_travel_to_hand(destination: Dictionary) -> void:
 	var room := int(destination.get("room", -1))
 	if room == 3:
 		transitioning = true
+		player.reset_movement_state()
+		player.controls_enabled = false
 		_save_progress()
 		await loading_overlay.cover_room()
 		if death_pending:
@@ -546,20 +556,41 @@ func fast_travel_to_hand(destination: Dictionary) -> void:
 		get_tree().set_meta("arriving_room_transition", true)
 		get_tree().set_meta("cave_entry_x", 2610.0)
 		get_tree().change_scene_to_file("res://scenes/tutorial.tscn")
-	elif room==9 and temple_hand_activated:
-		await _change_room(9,DASH_LAYOUT.HAND.x)
-	elif room == 8 and forest_hand_activated:
+	elif room == 9 and temple_hand_activated:
 		transitioning = true
+		player.controls_enabled = false
+		player.velocity = Vector2.ZERO
 		await loading_overlay.cover_room()
 		if death_pending:
 			return
-		current_room = 8
-		player.global_position = Vector2(HAND_X, 570)
+		current_room = 9
+		_mark_room_visited(current_room)
+		player.global_position = DASH_LAYOUT.HAND
+		player.reset_movement_state()
 		_set_camera()
 		_save_progress()
 		await loading_overlay.reveal_room()
 		if death_pending:
 			return
+		player.controls_enabled = true
+		transitioning = false
+	elif room == 8 and forest_hand_activated:
+		transitioning = true
+		player.controls_enabled = false
+		player.velocity = Vector2.ZERO
+		await loading_overlay.cover_room()
+		if death_pending:
+			return
+		current_room = 8
+		_mark_room_visited(current_room)
+		player.global_position = Vector2(HAND_X, 570)
+		player.reset_movement_state()
+		_set_camera()
+		_save_progress()
+		await loading_overlay.reveal_room()
+		if death_pending:
+			return
+		player.controls_enabled = true
 		transitioning = false
 
 func _mark_room_visited(room: int) -> void:
@@ -572,7 +603,7 @@ func _completed_rooms() -> Array[int]:
 	for room in [5, 6]:
 		if visited_rooms.has(room):
 			completed.append(room)
-	if visited_rooms.has(1) and bool(saved_data.get("watch_cache_found", false)):
+	if visited_rooms.has(1):
 		completed.append(1)
 	if visited_rooms.has(2) and bool(saved_data.get("secret_found", false)) and bool(saved_data.get("gallery_cache_found", false)):
 		completed.append(2)
@@ -596,6 +627,7 @@ func _show_toast(message: String, duration: float) -> void:
 func _update_hud() -> void:
 	hud.health = player.health
 	hud.max_health = player.max_health
+	hud.is_injured = player.is_injured
 	hud.level = player_level
 	hud.will_amount = will_amount
 	hud.healing_charges = player.healing_charges
@@ -628,6 +660,7 @@ func _save_progress() -> void:
 	data["will"] = will_amount
 	data["level"] = player_level
 	data["healing_charges"] = player.healing_charges
+	data["is_injured"] = player.is_injured
 	data["has_dash"] = player.has_dash
 	data.merge(player.combat_save_data(),true)
 	data["has_heavy"] = player.has_heavy

@@ -292,21 +292,23 @@ not advance sound playback by the same elapsed time as gameplay timers.
 
 ## Current movement measurements
 
-### Boss combat and reward progression (2026-09-28)
+### Boss combat and reward progression (2026-09-28, updated 2026-09-30)
 
 This approved user brief supersedes earlier starting-air-dash, Warden-pattern and
 temporary charge/slam guardian descriptions. Preserve all existing route geometry.
-Before defeating the forest boss, the player has ONLY a basic ground dodge:
-225px/s for0.17s (nominal38.25px), half the former ground dash distance.
-Forest boss defeat unlocks enhanced ground dash450px/s for0.17s and air dash
-780px/s for0.23s. No earlier reward, legacy has_dash=true field, room entry or hand
-interaction grants these upgrades. Air/enhanced dash and charged wall breaking
+On a new game run, the player begins injured (capped at half max health, basic injured
+ground dodge at 225px/s for 0.17s, bloodied cloak).
+Interacting with the first Hand Chair restores the player: health is uncapped to full,
+blood is cleansed, healing charges refill, and enhanced ground dash (450px/s for 0.17s)
+is permanently unlocked.
+Air dash (780px/s for 0.23s) is strictly gated behind defeating the Forest Boss (Bow Hunter).
+The player cannot air dash before beating the forest boss. Air dash and charged wall breaking
 have no bottom-left HUD slots; that strip contains the equipped weapon and its ability.
 
 | Encounter | Authored moves | Rewards |
 |---|---|---|
 | Cave goblin, large ape-like silhouette with scimitar | Long-range jump slam closes distance and damages its landing footprint; close combo1: two swings, thrust, spinning swing; close combo2: three swings then longer overhead; mid-range thrust then swing; charged forward swing emits a wind projectile dealing half its melee damage | Goblin Scimitar with thrust; charged wall breaking; Will of Wrath |
-| Forest Guardian, hooded kobold archer | Three-enemy summon wave; charged long-range arrow (twice ordinary arrow damage); five-arrow rapid fire; three-hit arrow-knife combo with forward momentum; retreat air dash with cooldown; below half health, dash over player and create three arrows that hover in place for one second, then track the player without ever traveling upwards | Bow with flipping volley (same one-second hover and downward-only targeting); air/enhanced dash; passive Will unspecified |
+| Forest Guardian, hooded kobold archer | Three-enemy summon wave (Earthen Bear, Earthen Troll, Tree Ent with authored animations); charged long-range arrow (twice ordinary arrow damage); five-arrow rapid fire; three-hit arrow-knife combo with forward momentum; retreat air dash with cooldown; below half health, dash over player and create three arrows that hover in place for one second, then track the player without ever traveling upwards | Bow with flipping volley (same one-second hover and downward-only targeting); air dash (780px/s for 0.23s); passive Will unspecified |
 | Stone temple guardian, left of temple hand | Fast rocket fist returns along a chain; charged massive projectile with the other hand bracing its wrist; at half health introduce firing; below half health randomly choose firing or rocket fist at range; randomly choose three-hit punches or slam at close range | Stone Gauntlet: punch, fireball beam, charged stronger rapid-fire beams; passive Will unspecified |
 
 The Temple Guardian mini boss reference is preserved at
@@ -484,14 +486,14 @@ expansion should add useful inter-room loops as well as these local routes.
 
 | Room | Identity and purpose | Route and payoff | Return behavior |
 | --- | --- | --- | --- |
-| 1: The Sealed Watch | Quiet memorial chamber with a closed outer gate | Three ascending shelves lead to an amber-cracked reliquary; heavy attack grants 25 Will | The reward invites a return after the Warden; the future End Area remains closed |
+| 1: The Sealed Watch | Quiet memorial chamber with a closed outer gate | Open stone floor leading to the sealed outer gate | The future End Area remains closed |
 | 2: The Split Gallery | Traversal and combat beneath suspended stone galleries | Broken Balcony keeps the jump and sentinel; Chain Well branches toward the western Sigil memorial and upper 12-Will offering. Crown Passage reaches the upper-right seal. Eastern Overlook and Drop Bay reconnect through the scout, Undercroft and eastern ascent | Memorial and Fallen Slabs routes reconnect with known space; two far-side winches open local shortcuts; the heavy-gated service shaft and basal tunnel accelerate Room 3-to-1 return |
 | 3: The Hand's Refuge | Cold chasm followed by a warm, sheltered rest | First cross using the existing climb and air dash. Operate the far-side winch; climb a turning route above the hand to the note | The bridge removes the repeated dash across the chasm; the ledge climb remains |
 | 4: Warden's Hall | Tall ruined chamber with an open fighting floor | Large recessed arch frames the boss. The ceiling-connected wall teaches the inherited heavy attack; steps and green growth lead toward the forest | The opened wall stays open; the hand remains immediately before the encounter |
 
 ```mermaid
 flowchart LR
-    W[Sealed Watch: future gate + heavy reliquary] --- G[Split Gallery: stacked traversal and combat]
+    W[Sealed Watch: future gate] --- G[Split Gallery: stacked traversal and combat]
     G --- R[Hand's Refuge: climb + dash + safe hand]
     R --- H[Warden's Hall: boss + heavy gate]
     H --- F[Twisted Forest]
@@ -517,7 +519,7 @@ Save fields include `cave_shortcut_open`, `gallery_cache_found`, `watch_cache_fo
 `gallery_west_open`, `gallery_east_open`, `gallery_heavy_open`, `checkpoint_y` and
 `gallery_defeated` (stable regular-enemy IDs).
 Missing reward/shortcut flags in old saves default to false; old hand checkpoint y
-defaults to 570. Room 1 completion requires its reliquary;
+defaults to 570. Room 1 completion requires visiting;
 Room 2 requires the Sigil and offering; Room 3 requires the note; Room 4 requires the
 Warden. The bridge and both gallery winches are utility shortcuts, not completion collectibles.
 Claims and their Will increments save together so leaving a room cannot lose an
@@ -1275,7 +1277,7 @@ chamber/transition work units. Running-game route reviews followed units 4, 7, 1
 - `tests/gallery_space_audit.gd` samples body-clear center space against actual physics
   using the same controller dimensions and jump envelope for both layouts.
 - `tests/cave_design_smoke.gd` checks scoped solid roofs, drives the larger offering
-  ascent, and retains the heavy reliquary, Room 3 note, bridge and biome-persistence checks.
+  ascent, and retains Room 1 visit completion, Room 3 note, bridge and biome-persistence checks.
 - `tests/cave_rooms_smoke.gd` retains jump/combat, drop gravity and near-wall movement,
   Sigil/lore, room fade/spawn, hand, boss, heavy wall, map and forest
   checks. Drop, Sigil and exit fixtures moved with the authored objects. Tests for the
