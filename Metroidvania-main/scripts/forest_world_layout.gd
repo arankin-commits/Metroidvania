@@ -1,0 +1,12 @@
+extends RefCounted
+
+# Artwork sections belong to one room; only outer bounds transition.
+const ROOM2_EXTENSION := 1800.0
+const ROOM2_SECTION3_EXTENSION:=1000.0
+const ROOM2_SECTION4_EXTENSION:=1200.0
+const ROOM2_SECTION5_EXTENSION:=1200.0
+const ROOM2_SECTION6_EXTENSION:=1200.0
+const ROOM2_SECTION7_EXTENSION:=1200.0
+const ROOM2_SECTION8_EXTENSION:=1200.0
+const BOUNDS := [Vector2(0,3600),Vector2(3600,18000),Vector2(19400,21000),Vector2(18000,19400),Vector2(24000,25400),Vector2(22800,24000)]
+const HAND_X := 18620.0

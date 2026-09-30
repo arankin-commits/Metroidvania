@@ -4,9 +4,12 @@ signal defeated
 signal attack_landed
 
 var player: CharacterBody2D
-var health := 2
-var max_health := 2
+var health := 2.0
+var max_health := 2.0
 var hit_cooldown := 0.0
+
+func _ready() -> void:
+	add_to_group("combat_targets")
 
 func _process(delta: float) -> void:
 	hit_cooldown = maxf(0.0, hit_cooldown - delta)
@@ -17,17 +20,17 @@ func _process(delta: float) -> void:
 	if player.dash_time > 0.0:
 		return
 	if hit_cooldown <= 0.0 and bounds.intersects(player_bounds):
-		var health_before: int = player.health
+		var health_before: float = player.health
 		player.take_damage(1, global_position.x)
 		if player.health < health_before:
 			attack_landed.emit()
 		hit_cooldown = 0.8
 	queue_redraw()
 
-func take_hit() -> void:
+func take_hit(amount: float = 1.0) -> void:
 	if health <= 0:
 		return
-	health -= 1
+	health -= amount
 	queue_redraw()
 	if health <= 0:
 		defeated.emit()

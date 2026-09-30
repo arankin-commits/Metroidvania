@@ -14,6 +14,7 @@ func _run() -> void:
 	var data: Dictionary = SAVE_SLOTS.new_slot()
 	data["seconds"] = 3610.0
 	data["checkpoint_x"] = 2610.0
+	data["checkpoint_y"] = 570.0
 	data["hand_activated"] = true
 	data["room"] = 3
 	data["has_dash"] = true

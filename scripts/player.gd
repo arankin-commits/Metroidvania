@@ -17,20 +17,34 @@ const JUMP_SPEED := -500.0
 const DASH_SPEED := 780.0
 const FOOTSTEP = preload("res://assets/footstep.wav")
 
-var health := 5
-var max_health := 5
+var health := 5.0
+var max_health := 5.0
 var healing_charges := 3
 var max_healing_charges := 3
 var _heal_was_down := false
 var heal_time := 0.0
 const HEAL_DURATION := 0.65
-var has_dash := true
+var has_dash := false
+var has_scimitar:=false
+var has_gauntlet:=false
+var has_wrath:=false
+var equipped_weapon:="starter"
+var wrath_time:=0.0
+const WRATH_DURATION:=4.0
+const WRATH_MULTIPLIER:=1.25
+const FRIENDLY_PROJECTILE=preload("res://scripts/combat_projectile.gd")
+var ability_charge:=0.0
+var ability_cooldown:=0.0
+var _ability_was_down:=false
+var volley_time:=0.0
+var volley_start:=Vector2.ZERO
+var volley_shots:=0
+var beam_remaining:=0
+var beam_interval:=0.0
 var has_heavy := false
 var has_bow := false
 var bow_ammo := 0
-var bow_reload_time := 0.0
 const BOW_AMMO_MAX := 3
-const BOW_RELOAD_DURATION := 1.0
 var heavy_charge := 0.0
 var heavy_attack_time := 0.0
 var heavy_cooldown := 0.0
@@ -39,6 +53,7 @@ var facing := 1
 var controls_enabled := true
 var invulnerability := 0.0
 var attack_time := 0.0
+var attack_style:="swing"
 var attack_cooldown := 0.0
 var dash_time := 0.0
 var dash_cooldown := 0.0
@@ -59,6 +74,7 @@ var ledge_climb_to := Vector2.ZERO
 var ledge_top := Vector2.ZERO
 var drop_platform: StaticBody2D
 var drop_region := Rect2()
+var drop_depth := 32.0
 var drop_ignore_timer := 0.0
 var drop_exception_active := false
 var meditation_state := ""
@@ -94,6 +110,78 @@ func _ready() -> void:
 	footstep_audio.volume_db = -10.0
 	add_child(footstep_audio)
 
+func load_combat_progress(data: Dictionary) -> void:
+	# Defeat owns unlocks; legacy saves with has_dash=true cannot grant them early.
+	has_dash=bool(data.get("bow_boss_defeated",false))
+	has_scimitar=bool(data.get("boss_defeated",false))
+	has_gauntlet=bool(data.get("temple_guardian_defeated",false))
+	has_wrath=has_scimitar
+	equipped_weapon=str(data.get("equipped_weapon","scimitar" if has_scimitar else "starter"))
+	if (equipped_weapon=="bow" and not has_bow) or (equipped_weapon=="gauntlet" and not has_gauntlet) or (equipped_weapon=="scimitar" and not has_scimitar):
+		equipped_weapon="scimitar" if has_scimitar else "starter"
+
+func combat_save_data() -> Dictionary:
+	return {"has_scimitar":has_scimitar,"has_gauntlet":has_gauntlet,"has_wrath":has_wrath,"equipped_weapon":equipped_weapon,"has_dash":has_dash}
+
+func damage_multiplier() -> float:
+	return WRATH_MULTIPLIER if has_wrath and wrath_time>0 else 1.0
+
+func _normal_attack() -> void:
+	attack_style="punch" if equipped_weapon=="gauntlet" else "bow" if equipped_weapon=="bow" else "swing"
+	attack_time=.17
+	attack_cooldown=.3
+	if equipped_weapon=="bow" and has_bow:
+		if bow_ammo>0:
+			bow_ammo-=1
+			bow_fired.emit(global_position+Vector2(facing*18,-8),Vector2(facing,0))
+		return
+	attacked.emit(Rect2(global_position+Vector2(10 if facing>0 else -82,-28),Vector2(72,56)))
+
+func _tick_weapon_ability(delta: float) -> void:
+	var down:=controls_enabled and not ledge_grabbed and heal_time<=0 and Input.is_physical_key_pressed(KEY_U)
+	if equipped_weapon=="gauntlet" and has_gauntlet:
+		if down and ability_cooldown<=0: ability_charge=minf(1,ability_charge+delta/.8)
+		elif _ability_was_down and ability_cooldown<=0:
+			if ability_charge>=1:
+				beam_remaining=4
+				beam_interval=0
+			else: _friendly_shot("beam",Vector2(facing,0),1.0)
+			ability_cooldown=.85
+			ability_charge=0
+	elif down and not _ability_was_down and ability_cooldown<=0:
+		if equipped_weapon=="scimitar" and has_scimitar:
+			attack_style="thrust"
+			attack_time=.22
+			ability_cooldown=.75
+			attacked.emit(Rect2(global_position+Vector2(10 if facing>0 else -140,-18),Vector2(130,28)))
+		elif equipped_weapon=="bow" and has_bow and bow_ammo>0:
+			bow_ammo-=1
+			volley_start=global_position
+			volley_time=.65
+			volley_shots=0
+			ability_cooldown=1.8
+	_ability_was_down=down
+
+func _friendly_shot(kind: String,direction: Vector2,amount: float,down:=false) -> void:
+	var shot:=FRIENDLY_PROJECTILE.new()
+	shot.kind=kind
+	shot.friendly=true
+	shot.damage=amount*damage_multiplier()
+	shot.radius=13 if kind=="beam" else 6
+	shot.direction=direction
+	shot.global_position=global_position+Vector2(facing*18,-8)
+	if down:
+		shot.homing_down=true
+		var nearest:=INF
+		for candidate in get_tree().get_nodes_in_group("combat_targets"):
+			if candidate.get("health")!=null and candidate.health<=0: continue
+			if candidate.get("active")!=null and not candidate.active: continue
+			var distance:=global_position.distance_to(candidate.global_position)
+			if distance<nearest:
+				nearest=distance
+				shot.target=candidate
+	get_parent().add_child(shot)
+
 func _physics_process(delta: float) -> void:
 	if death_active:
 		death_time = maxf(0.0, death_time - delta)
@@ -105,7 +193,12 @@ func _physics_process(delta: float) -> void:
 		return
 	if drop_ignore_timer > 0.0:
 		drop_ignore_timer = maxf(0.0, drop_ignore_timer - delta)
-	if drop_exception_active and drop_ignore_timer <= 0.0 and global_position.y - 23.0 > drop_region.end.y + 2.0 and is_instance_valid(drop_platform):
+	# A closed cave can catch a drop before the whole body clears the shelf.
+	# Use actual shelf depth. Landing wholly below can release early; side/upper
+	# separation waits for the timer so switchbacks cannot reattach prematurely.
+	var drop_bounds := Rect2(drop_region.position+Vector2(0,8),Vector2(drop_region.size.x,drop_depth))
+	var body_bounds := Rect2(global_position-Vector2(14,23),Vector2(28,46))
+	if drop_exception_active and (drop_ignore_timer <= 0.0 or (is_on_floor() and body_bounds.position.y>=drop_bounds.end.y)) and not body_bounds.intersects(drop_bounds) and is_instance_valid(drop_platform):
 		remove_collision_exception_with(drop_platform)
 		floor_block_on_wall = true
 		drop_exception_active = false
@@ -125,6 +218,31 @@ func _physics_process(delta: float) -> void:
 	attack_cooldown = maxf(0.0, attack_cooldown - delta)
 	heavy_attack_time = maxf(0.0, heavy_attack_time - delta)
 	heavy_cooldown = maxf(0.0, heavy_cooldown - delta)
+	wrath_time=maxf(0,wrath_time-delta)
+	ability_cooldown=maxf(0,ability_cooldown-delta)
+	if controls_enabled:
+		if Input.is_physical_key_pressed(KEY_1) and has_scimitar: equipped_weapon="scimitar"
+		if Input.is_physical_key_pressed(KEY_2) and has_bow: equipped_weapon="bow"
+		if Input.is_physical_key_pressed(KEY_3) and has_gauntlet: equipped_weapon="gauntlet"
+	_tick_weapon_ability(delta)
+	if beam_remaining>0:
+		beam_interval-=delta
+		if beam_interval<=0:
+			_friendly_shot("beam",Vector2(facing,0),2.0)
+			beam_remaining-=1
+			beam_interval=.14
+	if volley_time>0:
+		volley_time=maxf(0,volley_time-delta)
+		var t:=1-volley_time/.65
+		var destination:=volley_start+Vector2(facing*150,0)
+		var next:=volley_start.lerp(destination,t)-Vector2(0,sin(t*PI)*80)
+		move_and_collide(next-global_position)
+		velocity=Vector2.ZERO
+		if volley_shots<3 and t>=.25+volley_shots*.18:
+			_friendly_shot("arrow",Vector2(facing*.5,1).normalized(),1.0,true)
+			volley_shots+=1
+		queue_redraw()
+		return
 	dash_cooldown = maxf(0.0, dash_cooldown - delta)
 	if is_on_floor():
 		coyote_time = 0.10
@@ -136,16 +254,10 @@ func _physics_process(delta: float) -> void:
 	var heavy_down := controls_enabled and has_heavy and Input.is_physical_key_pressed(KEY_H)
 	var bow_down := controls_enabled and has_bow and Input.is_physical_key_pressed(KEY_L)
 	var heal_down := controls_enabled and Input.is_physical_key_pressed(KEY_F)
-	if bow_reload_time > 0.0:
-		bow_reload_time = maxf(0.0, bow_reload_time - delta)
-		if bow_reload_time <= 0.0:
-			bow_ammo = BOW_AMMO_MAX
-	if bow_down and not _bow_was_down and bow_reload_time <= 0.0:
+	if bow_down and not _bow_was_down:
 		if bow_ammo > 0:
 			bow_ammo -= 1
 			bow_fired.emit(global_position + Vector2(18.0 * facing, -8.0), Vector2(facing, 0.0))
-		else:
-			bow_reload_time = BOW_RELOAD_DURATION
 	if heal_time > 0.0:
 		heal_time = maxf(0.0, heal_time - delta)
 		velocity.x = move_toward(velocity.x, 0.0, 1800.0 * delta)
@@ -153,7 +265,7 @@ func _physics_process(delta: float) -> void:
 		move_and_slide()
 		if heal_time <= 0.0:
 			healing_charges -= 1
-			health = mini(max_health, health + 2)
+			health = minf(max_health, health + 2)
 			healed.emit()
 		_heal_was_down = heal_down
 		_jump_was_down = jump_down
@@ -164,9 +276,7 @@ func _physics_process(delta: float) -> void:
 	if ledge_grabbed:
 		velocity = Vector2.ZERO
 		if controls_enabled and attack_down and not _attack_was_down and attack_cooldown <= 0.0:
-			attack_time = 0.17
-			attack_cooldown = 0.30
-			attacked.emit(Rect2(global_position + Vector2(10 if facing > 0 else -82, -28), Vector2(72, 56)))
+			_normal_attack()
 		var forward_down := controls_enabled and ((facing > 0 and (Input.is_physical_key_pressed(KEY_D) or Input.is_physical_key_pressed(KEY_RIGHT))) or (facing < 0 and (Input.is_physical_key_pressed(KEY_A) or Input.is_physical_key_pressed(KEY_LEFT))))
 		if (jump_down and not _jump_was_down) or forward_down:
 			ledge_grabbed = false
@@ -200,13 +310,11 @@ func _physics_process(delta: float) -> void:
 	else:
 		jump_buffer = maxf(0.0, jump_buffer - delta)
 	if controls_enabled and attack_down and not _attack_was_down and attack_cooldown <= 0.0:
-		attack_time = 0.17
-		attack_cooldown = 0.30
-		attacked.emit(Rect2(global_position + Vector2(10 if facing > 0 else -82, -28), Vector2(72, 56)))
+		_normal_attack()
 	if controls_enabled and dash_down and not _dash_was_down and dash_cooldown <= 0.0:
 		if is_on_floor():
 			dash_time = 0.17
-			dash_speed_current = 450.0
+			dash_speed_current = 450.0 if has_dash else 225.0
 			dash_cooldown = 0.75
 			invulnerability = maxf(invulnerability, 0.19)
 			dodged.emit()
@@ -268,7 +376,15 @@ func _try_grab_ledge() -> void:
 	var query := PhysicsRayQueryParameters2D.create(Vector2(probe_x, head_y - 22.0), Vector2(probe_x, head_y + 20.0))
 	query.exclude = [get_rid()]
 	var hit := get_world_2d().direct_space_state.intersect_ray(query)
-	if hit.is_empty():
+	if hit.is_empty() or not hit.collider is StaticBody2D:
+		return
+	var wall_is_terrain := false
+	for index in get_slide_collision_count():
+		var collision := get_slide_collision(index)
+		if collision.get_collider() == hit.collider and absf(collision.get_normal().x) >= 0.8:
+			wall_is_terrain = true
+			break
+	if not wall_is_terrain:
 		return
 	var top_y: float = hit.position.y
 	if absf(top_y - head_y) > 18.0 or global_position.y <= top_y + 4.0:
@@ -288,12 +404,15 @@ func _try_grab_ledge() -> void:
 	velocity = Vector2.ZERO
 	queue_redraw()
 
-func take_damage(amount: int, from_x: float) -> void:
-	if invulnerability > 0.0 or health <= 0:
+func take_damage(amount: float, from_x: float) -> void:
+	if invulnerability > 0.0 or health <= 0 or amount<=0:
 		return
 	health -= amount
+	if has_wrath: wrath_time=WRATH_DURATION
+	volley_time=0
+	beam_remaining=0
+	ability_charge=0
 	heal_time = 0.0
-	bow_reload_time = 0.0
 	ledge_grabbed = false
 	ledge_climb_time = 0.0
 	damaged.emit()
@@ -307,6 +426,7 @@ func heal_full() -> void:
 	heal_time = 0.0
 	health = max_health
 	invulnerability = 0.0
+	wrath_time=0
 	queue_redraw()
 
 func reset_movement_state() -> void:
@@ -315,6 +435,10 @@ func reset_movement_state() -> void:
 	death_time = 0.0
 	meditation_state = ""
 	dash_time = 0.0
+	volley_time=0
+	beam_remaining=0
+	ability_charge=0
+	wrath_time=0
 	dash_cooldown = 0.0
 	jump_buffer = 0.0
 	ledge_grabbed = false
@@ -412,7 +536,16 @@ func _draw() -> void:
 		draw_rect(Rect2(-21 - pulse * 8.0, -8, 5, 5), glow)
 		draw_rect(Rect2(16 + pulse * 8.0, -17, 5, 5), glow)
 	if attack_time > 0.0:
-		draw_arc(Vector2(facing * 18, -6), 40, -1.0 if facing > 0 else 2.1, 1.1 if facing > 0 else 4.2, 16, Color(1.0, 0.86, 0.45), 7)
+		if attack_style=="thrust":
+			draw_line(Vector2(facing*10,-6),Vector2(facing*140,-6),Color("e1d8ad"),5)
+		elif attack_style=="punch":
+			draw_rect(Rect2(Vector2(15 if facing>0 else -65,-18),Vector2(50,22)),Color("a4c3b9"))
+		elif attack_style!="bow":
+			draw_arc(Vector2(facing * 18, -6), 40, -1.0 if facing > 0 else 2.1, 1.1 if facing > 0 else 4.2, 16, Color(1.0, 0.86, 0.45), 7)
+	if ability_charge>0:
+		draw_arc(Vector2(0,-7),29,-PI*.5,-PI*.5+TAU*ability_charge,20,Color("ffb773"),4)
+	if wrath_time>0:
+		draw_rect(Rect2(-17,-28,34,54),Color("ee8867"),false,2)
 	if dash_time > 0.0:
 		for i in 3:
 			draw_circle(Vector2(-facing * (18 + i * 13), 0), 10 - i * 2, Color(0.13, 0.80, 0.79, 0.25))
@@ -420,10 +553,6 @@ func _draw() -> void:
 		draw_arc(Vector2(0, -7), 28, -PI / 2.0, -PI / 2.0 + TAU * heavy_charge, 20, Color(1.0, 0.78, 0.36), 4)
 	if heavy_attack_time > 0.0:
 		draw_arc(Vector2(facing * 28, -6), 56, -1.1 if facing > 0 else 2.0, 1.1 if facing > 0 else 4.2, 18, Color(1.0, 0.75, 0.33), 10)
-	if bow_reload_time > 0.0:
-		var reload_progress: float = 1.0 - bow_reload_time / BOW_RELOAD_DURATION
-		draw_rect(Rect2(-28, -48, 56, 7), Color(0.04, 0.10, 0.14, 0.94), true)
-		draw_rect(Rect2(-26, -46, 52.0 * reload_progress, 3), Color(0.96, 0.78, 0.36), true)
 
 func _draw_death_animation() -> void:
 	var progress := 1.0 - death_time / DEATH_DURATION

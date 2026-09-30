@@ -20,7 +20,7 @@ func _run() -> void:
 	if world.game_audio.current_track != "cave" or world.game_audio.music.stream != world.game_audio.CAVE_MUSIC:
 		_fail("Cave music did not start with the biome")
 		return
-	if world.current_room != 2 or world.player.position.x != 120.0:
+	if world.current_room != 2 or world.player.position.distance_to(world.GALLERY_LAYOUT.START)>8:
 		_fail("New game did not spawn in Cave Room 2")
 		return
 	if world.background_rect.texture != world.CAVE_ROOM_BACKDROPS[1]:
@@ -123,8 +123,8 @@ func _run() -> void:
 	Input.parse_input_event(dodge_press)
 	await physics_frame
 	await physics_frame
-	if not world.player.has_dash or world.player.dash_time <= 0.0:
-		_fail("The starting air dash or ground dodge is unavailable")
+	if world.player.has_dash or world.player.dash_time <= 0.0 or world.player.dash_speed_current!=225:
+		_fail("New game must have the short ground dodge without air dash")
 		return
 	var dodge_release := InputEventKey.new()
 	dodge_release.physical_keycode = KEY_K
@@ -141,18 +141,20 @@ func _run() -> void:
 	_key(KEY_K, true)
 	await physics_frame
 	await physics_frame
-	if world.player.dash_time <= 0.0 or world.player.dash_speed_current != world.player.DASH_SPEED:
-		_fail("Air dash was not available at the start of a new game")
+	if world.player.dash_time > 0.0:
+		_fail("Air dash was available before the forest boss")
 		return
 	_key(KEY_K, false)
+	# Remaining legacy traversal fixtures explicitly exercise the earned upgrade.
+	world.player.has_dash=true
 	world.player.dash_time = 0.0
 	world.player.velocity = Vector2.ZERO
-	world.player.global_position = Vector2(-2, 570)
+	world.player.global_position = Vector2(-2, 1473)
 	await process_frame
 	if world.current_room != 2:
 		_fail("Room changed before the player fully left the screen")
 		return
-	world.player.global_position = Vector2(-16, 570)
+	world.player.global_position = Vector2(-16, 1473)
 	await process_frame
 	await process_frame
 	if not world.loading_overlay.visible:
@@ -164,8 +166,8 @@ func _run() -> void:
 	if world.current_room != 1 or world.loading_overlay.visible or world.background_rect.texture != world.CAVE_ROOM_BACKDROPS[0]:
 		_fail("Room 2 to Room 1 transition failed")
 		return
-	if not world.visited_rooms.has(1) or not world._completed_rooms().has(1):
-		_fail("Room 1 discovery/completion was not recorded")
+	if not world.visited_rooms.has(1) or world._completed_rooms().has(1):
+		_fail("Room 1 should be discovered but incomplete until its reliquary is opened")
 		return
 	world.player.global_position = Vector2(16, 570)
 	await create_timer(0.7).timeout
@@ -174,12 +176,12 @@ func _run() -> void:
 	if world.current_room != 2 or world.background_rect.texture != world.CAVE_ROOM_BACKDROPS[1]:
 		_fail("Room 1 to Room 2 return failed")
 		return
-	var air_path := PhysicsRayQueryParameters2D.create(Vector2(1005, 445), Vector2(1035, 445))
+	var air_path := PhysicsRayQueryParameters2D.create(Vector2(1005, 1345), Vector2(1035, 1345))
 	air_path.exclude = [world.player.get_rid()]
 	if not world.get_world_2d().direct_space_state.intersect_ray(air_path).is_empty():
 		_fail("A wall still blocks the aerial enemy's ledge")
 		return
-	world.player.global_position = Vector2(995, 470)
+	world.player.global_position = Vector2(995, 1370)
 	world.player.velocity = Vector2.ZERO
 	world.player.facing = 1
 	world.player.dash_cooldown = 0.0
@@ -191,17 +193,17 @@ func _run() -> void:
 	if world.player.global_position.x <= world.ledge_sentinel.global_position.x + 28.0:
 		_fail("The ledge enemy blocked an air dash")
 		return
-	world.player.global_position = Vector2(1120, 480)
+	world.player.global_position = Vector2(1120, 1380)
 	world.player.facing = -1
 	await physics_frame
-	world._on_player_attacked(Rect2(Vector2(1040, 457), Vector2(72, 56)))
+	world._on_player_attacked(Rect2(Vector2(1040, 1357), Vector2(72, 56)))
 	if not is_instance_valid(world.ledge_sentinel) or world.ledge_sentinel.health != 1:
 		_fail("The ledge enemy could not be attacked from behind")
 		return
 	world.ledge_sentinel.health = 2
 	world.ledge_sentinel.queue_redraw()
 	world.player.dash_time = 0.0
-	world.player.global_position = Vector2(995, 490)
+	world.player.global_position = Vector2(995, 1390)
 	world.player.facing = 1
 	await physics_frame
 	var strike_press := InputEventKey.new()
@@ -220,7 +222,7 @@ func _run() -> void:
 	strike_release.pressed = false
 	Input.parse_input_event(strike_release)
 	await create_timer(0.35).timeout
-	world.player.global_position = Vector2(995, 490)
+	world.player.global_position = Vector2(995, 1390)
 	world.player.velocity = Vector2.ZERO
 	await physics_frame
 	_key(KEY_J, true)
@@ -230,7 +232,7 @@ func _run() -> void:
 	if not world.aerial_practiced or is_instance_valid(world.ledge_sentinel):
 		_fail("Second hit did not clear the ledge enemy")
 		return
-	world.player.global_position = Vector2(1400, 497)
+	world.player.global_position = Vector2(3760, -23)
 	world.player.reset_movement_state()
 	world.player.velocity = Vector2.ZERO
 	await physics_frame
@@ -245,7 +247,7 @@ func _run() -> void:
 		_fail("S + Jump did not drop through the tutorial platform")
 		return
 	await create_timer(0.45).timeout
-	world.player.global_position = Vector2(1495, 497)
+	world.player.global_position = Vector2(3785, -23)
 	world.player.velocity = Vector2.ZERO
 	await physics_frame
 	await physics_frame
@@ -261,7 +263,7 @@ func _run() -> void:
 	world.player.drop_exception_active = false
 	world.player.drop_ignore_timer = 0.0
 	world.player.floor_block_on_wall = true
-	world.player.global_position = Vector2(1495, 497)
+	world.player.global_position = Vector2(3785, -23)
 	world.player.velocity = Vector2.ZERO
 	await physics_frame
 	await physics_frame
@@ -278,7 +280,7 @@ func _run() -> void:
 		_fail("Pressing into the wall changed drop-through fall speed")
 		return
 	await create_timer(0.45).timeout
-	world.player.global_position = Vector2(1565, 497)
+	world.player.global_position = Vector2(4050, -23)
 	world.player.reset_movement_state()
 	await physics_frame
 	await physics_frame
@@ -287,7 +289,7 @@ func _run() -> void:
 		_fail("Drop-through descent was faster than normal falling")
 		return
 	# The raised platform puts the Sigil within interaction range.
-	world.player.global_position = Vector2(510, 502)
+	world.player.global_position = Vector2(-300, -761)
 	await process_frame
 	await process_frame
 	if world.secret_found:
@@ -298,64 +300,42 @@ func _run() -> void:
 	if not world.secret_found or not world.note_open or not world.sigil_icon.visible or not world.note_text.text.contains("Heartroot"):
 		_fail("Cave Sigil did not open its lore close-up")
 		return
-	if not world._completed_rooms().has(2):
-		_fail("Room 2 did not become complete after collecting its Sigil")
+	if world._completed_rooms().has(2):
+		_fail("Room 2 completed before the upper-gallery offering was collected")
 		return
 	_interact()
 	await process_frame
 	if world.note_open or world.note_panel.visible:
 		_fail("Second interaction did not close the Cave Sigil")
 		return
-	world.player.global_position = Vector2(510, 502)
+	world.player.global_position = Vector2(-300, -761)
 	_interact()
 	await process_frame
 	if world.note_open:
 		_fail("Collected Cave Sigil appeared again")
 		return
-	world.last_safe_position = Vector2(650, 570)
-	world.player.health = 5
-	world.player.global_position = Vector2(750, 800)
-	await process_frame
-	if not world.respawning or world.player.health != 4:
-		_fail("Falling did not remove 20 percent of maximum health")
-		return
-	await create_timer(0.75).timeout
-	if absf(world.player.global_position.x - 620.0) > 3.0 or world.player.global_position.y > 590.0:
-		_fail("Fall did not respawn at the last safe position")
-		return
 	world.seal_health = 0
 	world.seal_body.queue_free()
-	world.player.global_position = Vector2(1716, 570)
+	world.player.global_position = Vector2(5016, -1527)
 	await create_timer(0.7).timeout
 	await process_frame
 	await process_frame
 	if world.current_room != 3 or world.background_rect.texture != world.CAVE_ROOM_BACKDROPS[2]:
 		_fail("Room 2 to Room 3 transition failed")
 		return
-	world.last_safe_position = Vector2(2158, 447)
-	world.player.health = 5
-	world.player.global_position = Vector2(2300, 800)
-	await process_frame
-	await create_timer(0.75).timeout
-	if absf(world.player.global_position.x - 2080.0) > 3.0 or world.player.global_position.y > 460.0 or world.respawning:
-		_fail("Room 3 pit did not recover onto stable ground")
-		return
-	await create_timer(0.55).timeout
-	if world.respawning or world.player.global_position.y > 650.0:
-		_fail("Room 3 pit recovery fell back into the pit")
-		return
+	# Death/checkpoint behavior remains covered through ordinary enemy damage.
 	world.player.health = 1
-	world.player.global_position = Vector2(2300, 800)
+	world.player.invulnerability = 0
+	world.player.take_damage(1, world.player.position.x + 40)
 	await process_frame
-	await process_frame
-	if not world.respawning or world.player.health != 0 or world.player.death_active:
-		_fail("A pit fall at 20 percent health did not cause death")
+	if not world.respawning or world.player.health != 0 or not world.player.death_active:
+		_fail("Combat death did not preserve the starting checkpoint flow")
 		return
 	await create_timer(1.15).timeout
-	if world.current_room != 2 or absf(world.player.global_position.x - 120.0) > 3.0:
+	if world.current_room != 2 or world.player.position.distance_to(world.GALLERY_LAYOUT.START)>8:
 		_fail("Death before using the hand did not return to the starting spawn")
 		return
-	world.player.global_position = Vector2(1716, 570)
+	world.player.global_position = Vector2(5016, -1527)
 	await create_timer(0.7).timeout
 	if world.current_room != 3:
 		_fail("Could not return to Room 3 after death")
@@ -426,6 +406,8 @@ func _run() -> void:
 		return
 	world.scout.health = 1
 	world.boss.health = 3
+	world.player.health = 2
+	world.player.healing_charges = 1
 	world.player.global_position = Vector2(2610, 570)
 	_interact()
 	await process_frame
@@ -434,6 +416,12 @@ func _run() -> void:
 		return
 	if not is_instance_valid(world.ledge_sentinel) or world.ledge_sentinel.health != 2 or world.scout.health != 2 or world.boss.health != 3:
 		_fail("Interacting with the hand did not restore regular enemies only")
+		return
+	if world.player.health != world.player.max_health or world.player.healing_charges != world.player.max_healing_charges:
+		_fail("Interacting with the hand did not restore health and healing charges")
+		return
+	if SAVE_SLOTS.load_slot(3, TEST_ROOT).get("checkpoint_x") == 2610.0:
+		_fail("Interacting with the hand saved before the SAVE button was pressed")
 		return
 	await create_timer(0.45).timeout
 	if world.player.meditation_state != "meditate" or absf(world.player.global_position.x - 2610.0) > 2.0 or world.player.global_position.y > 515.0:
@@ -524,31 +512,25 @@ func _run() -> void:
 		_fail("Boss music stopped while the menu was open")
 		return
 	world.game_menu.close_menu()
-	world.boss.state = "idle"
-	world.boss.state_time = 0.0
-	world.boss.attack_count = 0
-	world.boss._process(0.01)
+	world.boss.begin_attack("charge_swing")
 	if world.boss.state != "telegraph":
-		_fail("The Warden did not telegraph its charge")
+		_fail("The goblin did not telegraph its charged swing")
 		return
-	world.boss.state_time = 0.0
-	world.boss._process(0.01)
+	world.boss.state_time=0
+	world.boss._physics_process(.01)
 	if world.boss.state != "charge":
-		_fail("The Warden charge did not follow its tell")
+		_fail("The charged swing did not follow its tell")
 		return
-	world.boss.state_time = 0.0
-	world.boss._process(0.01)
-	world.boss.state_time = 0.0
-	world.boss._process(0.01)
-	world.boss.state_time = 0.0
-	world.boss._process(0.01)
-	if world.boss.state != "telegraph_slam":
-		_fail("The Warden did not alternate to a slam tell")
+	world.boss.begin_attack("jump_slam")
+	if world.boss.state != "tell_jump":
+		_fail("The goblin jump slam did not telegraph")
 		return
-	world.boss.state_time = 0.0
-	world.boss._process(0.01)
+	world.boss.state_time=0
+	world.boss._physics_process(.01)
+	world.boss.state_time=0
+	world.boss._physics_process(.01)
 	if world.boss.state != "slam":
-		_fail("The Warden slam did not follow its tell")
+		_fail("The jump slam did not reach its damaging landing")
 		return
 	world.boss.state = "idle"
 	world.boss.state_time = 0.4
@@ -562,11 +544,11 @@ func _run() -> void:
 	world.player.health = 1
 	world.player.take_damage(1, world.boss.global_position.x)
 	if not world.player.death_active or world.player.death_time <= 0.0 or world.player.controls_enabled:
-		_fail("Boss damage did not start the non-pit death animation")
+		_fail("Boss damage did not start the combat death animation")
 		return
 	await create_timer(0.38).timeout
 	if not world.player.death_active or world.player.death_time >= world.player.DEATH_DURATION or world.player.death_time <= 0.0:
-		_fail("The non-pit death animation did not advance")
+		_fail("The combat death animation did not advance")
 		return
 	await create_timer(0.8).timeout
 	if world.current_room != 3 or absf(world.player.global_position.x - 2610.0) > 3.0 or is_instance_valid(world.arena_barrier):
@@ -593,10 +575,10 @@ func _run() -> void:
 		return
 	world.game_menu.open_section("wills")
 	await process_frame
-	if world.game_menu.current_tab != 1 or world.game_menu.will_list.get_child_count() != 1 or not world.game_menu.will_name.text.contains("CHARGED HEAVY ATTACK"):
+	if world.game_menu.current_tab != 1 or world.game_menu.will_list.get_child_count() != 1 or not world.game_menu.will_name.text.contains("WILL OF WRATH"):
 		_fail("The Warden reward did not appear in Wills")
 		return
-	if world.game_menu.ability_list.get_child_count() != 7:
+	if world.game_menu.ability_list.get_child_count() != world.game_menu.ABILITIES.size():
 		_fail("Boss Will was duplicated in ordinary Abilities")
 		return
 	world.game_menu.close_menu()
@@ -622,7 +604,7 @@ func _run() -> void:
 	world.player.global_position = Vector2(4466, 570)
 	await create_timer(0.7).timeout
 	if current_scene == null or current_scene.name != "ForestEntry":
-		_fail("Forest exit did not load the forest room")
+		_fail("Cave exit did not load the Twisted Forest")
 		return
 	var forest := current_scene
 	if forest.game_audio.current_track != "forest" or forest.game_audio.music.stream != forest.game_audio.FOREST_MUSIC:
@@ -645,7 +627,7 @@ func _run() -> void:
 	if forest.game_menu.visible or paused:
 		_fail("Forest Tab menu did not close")
 		return
-	forest.player.global_position = Vector2(-16, 570)
+	forest.player.global_position = Vector2(-16, -1602)
 	await create_timer(0.7).timeout
 	if current_scene == null or current_scene.name != "TutorialWorld" or current_scene.current_room != 4:
 		_fail("Forest return did not load Cave Room 4")
