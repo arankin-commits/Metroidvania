@@ -10,7 +10,7 @@ const SAVE_SLOTS = preload("res://scripts/save_slots.gd")
 const LOADING_OVERLAY = preload("res://scripts/loading_overlay.gd")
 const GALLERY_BACKGROUND = preload("res://assets/split_gallery_background.png")
 const CAVE_ROOM_BACKDROPS := [
-	preload("res://assets/cave_room1.png"),
+	preload("res://assets/cave_room1_opening.png"),
 	GALLERY_BACKGROUND,
 	preload("res://assets/cave_room3.png"),
 	preload("res://assets/cave_room4.png"),
@@ -49,7 +49,7 @@ var hand_chair: Sprite2D
 var hand_menu: CanvasLayer
 var game_audio: Node
 var game_menu: CanvasLayer
-var visited_rooms: Array[int] = [2]
+var visited_rooms: Array[int] = [1]
 var platforms: Array[Rect2] = []
 var ledge_wall: StaticBody2D
 var drop_platform_body: StaticBody2D
@@ -57,9 +57,10 @@ var seal_body: StaticBody2D
 var exit_barrier: StaticBody2D
 var arena_barrier: StaticBody2D
 var seal_health := 3
-var checkpoint := GALLERY_LAYOUT.START
+var checkpoint := CAVE_LAYOUT.START
 var hand_activated := false
-var last_hand_room := 2
+var last_hand_room := 1
+var opening_seen := false
 var boss_defeated := false
 var complete := false
 var respawning := false
@@ -77,6 +78,9 @@ var saved_boss_defeated := false
 var saved_bow_boss_defeated := false
 var saved_has_bow := false
 var saved_bow_ammo := 3
+var saved_is_injured := true
+var saved_has_dash := false
+var saved_has_air_dash := false
 var bow_boss_defeated := false
 var bow_tutorial_practiced := false
 var forest_hand_activated := false
@@ -87,7 +91,7 @@ var data_equipped_weapon:="starter"
 var saved_seal_broken := false
 var saved_scout_defeated := false
 var sentinel_defeated := false
-var current_room := 2
+var current_room := 1
 var transitioning_room := false
 var wall_broken := false
 var secret_found := false
@@ -129,10 +133,11 @@ func _ready() -> void:
 		save_root = str(get_tree().get_meta("save_root", "user://"))
 		var data: Dictionary = SAVE_SLOTS.load_slot(active_save_slot, save_root)
 		if not data.is_empty():
+			opening_seen=bool(data.get("opening_seen",true))
 			current_room = clampi(int(data.get("room", 2)), 1, 4)
 			hand_activated = bool(data.get("hand_activated", false))
 			last_hand_room = int(data.get("last_hand_room", 3 if hand_activated else 2))
-			checkpoint = Vector2(float(data.get("checkpoint_x", 2610.0)),float(data.get("checkpoint_y",570.0))) if hand_activated else GALLERY_LAYOUT.START
+			checkpoint = Vector2(float(data.get("checkpoint_x", 2610.0)),float(data.get("checkpoint_y",570.0))) if hand_activated else CAVE_LAYOUT.START
 			elapsed_seconds = float(data.get("seconds", 0.0))
 			will_amount = int(data.get("will", 0))
 			player_level = int(data.get("level", 1))
@@ -148,6 +153,9 @@ func _ready() -> void:
 			saved_boss_defeated = bool(data.get("boss_defeated", false))
 			saved_heavy = bool(data.get("has_heavy", saved_boss_defeated))
 			saved_bow_boss_defeated = bool(data.get("bow_boss_defeated", false))
+			saved_is_injured = bool(data.get("is_injured", not hand_activated))
+			saved_has_dash = bool(data.get("has_dash", hand_activated))
+			saved_has_air_dash = bool(data.get("has_air_dash", saved_bow_boss_defeated))
 			data_equipped_weapon=str(data.get("equipped_weapon","scimitar" if bool(data.get("boss_defeated",false)) else "starter"))
 			saved_has_bow = bool(data.get("has_bow", saved_bow_boss_defeated))
 			saved_bow_ammo = int(data.get("bow_ammo", 3))
@@ -169,6 +177,8 @@ func _ready() -> void:
 			gallery_heavy_open = bool(data.get("gallery_heavy_open",false))
 			visited_rooms.assign(data.get("visited_rooms", [2]))
 	var spawn_position := checkpoint
+	var arriving_via_entry:=get_tree().has_meta("cave_entry_x")
+	if hand_activated or arriving_via_entry: opening_seen=true
 	if get_tree().has_meta("cave_entry_x"):
 		var entry_x := float(get_tree().get_meta("cave_entry_x"))
 		spawn_position = Vector2(entry_x,GALLERY_LAYOUT.START.y if entry_x>=0 and entry_x<1700 else 570)
@@ -210,15 +220,23 @@ func _ready() -> void:
 	player.name = "Player"
 	player.z_index = 3
 	player.position = spawn_position
-	player.has_dash = saved_bow_boss_defeated
+	player.set_injured(saved_is_injured)
+	player.has_dash = saved_has_dash
+	player.has_air_dash = saved_has_air_dash
 	player.has_heavy = saved_heavy
 	player.has_bow = saved_has_bow
 	player.bow_ammo = saved_bow_ammo if saved_has_bow else 0
-	player.load_combat_progress({"bow_boss_defeated":saved_bow_boss_defeated,"boss_defeated":saved_boss_defeated,"temple_guardian_defeated":temple_guardian_defeated,"equipped_weapon":str(data_equipped_weapon)})
-	player.healing_charges = saved_healing_charges
+	player.load_combat_progress({"bow_boss_defeated":saved_bow_boss_defeated,"boss_defeated":saved_boss_defeated,"temple_guardian_defeated":temple_guardian_defeated,"equipped_weapon":str(data_equipped_weapon),"has_dash":player.has_dash,"has_air_dash":saved_has_air_dash})
+	player.healing_charges = 1 if player.is_injured else saved_healing_charges
 	player.drop_platform = drop_platform_body
 	player.drop_region = Rect2(GALLERY_LAYOUT.DROP.position - Vector2(0, 8), Vector2(GALLERY_LAYOUT.DROP.size.x, 26))
 	add_child(player)
+	player.wake_finished.connect(func() -> void:
+		opening_seen=true
+		_show_toast(CAVE_LAYOUT.NAMES[0],3.0)
+		_save_progress())
+	if not opening_seen and not hand_activated and not arriving_via_entry:
+		player.begin_waking_up()
 	player.attacked.connect(_on_player_attacked)
 	player.heavy_attacked.connect(_on_player_heavy_attacked)
 	player.bow_fired.connect(_on_player_bow_fired)
@@ -260,7 +278,10 @@ func _ready() -> void:
 	boss.attack_cued.connect(game_audio.play_effect)
 	if saved_boss_defeated:
 		boss_defeated = true
+		boss.active = false
 		boss.visible = false
+		boss.health = 0.0
+		boss.set_physics_process(false)
 	bow_boss_defeated = saved_bow_boss_defeated
 	var layer := CanvasLayer.new()
 	layer.name = "HUDLayer"
@@ -292,6 +313,7 @@ func _ready() -> void:
 		get_tree().remove_meta("arriving_room_transition")
 		loading_overlay.reveal_room()
 	_show_toast(CAVE_LAYOUT.NAMES[current_room - 1], 3.0)
+	if player.waking_up: toast_time=0.0
 	queue_redraw()
 	
 
@@ -303,6 +325,10 @@ func _add_backdrop() -> void:
 		backdrop.z_index = -100
 		backdrop.position = Vector2(bounds.x, -60)
 		backdrop.size = Vector2(bounds.y - bounds.x, 780)
+		if i==0:
+			# Preserve aspect ratio and register the supplied floor edge to collision.
+			backdrop.position.y=600.0-780.0*1200.0/1651.0
+			backdrop.size=Vector2(1200,953.0*1200.0/1651.0)
 		backdrop.texture = CAVE_ROOM_BACKDROPS[i]
 		backdrop.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 		backdrop.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
@@ -334,7 +360,7 @@ func _mark_room_visited(room: int) -> void:
 
 func _completed_rooms() -> Array[int]:
 	var completed: Array[int] = []
-	if visited_rooms.has(1) and watch_cache_found:
+	if visited_rooms.has(1):
 		completed.append(1)
 	if visited_rooms.has(2) and secret_found and gallery_cache_found:
 		completed.append(2)
@@ -380,7 +406,7 @@ func _process(delta: float) -> void:
 		save_timer = 0.0
 		_save_progress()
 	toast_time = maxf(0.0, toast_time - delta)
-	if transitioning_room or note_open:
+	if transitioning_room or note_open or player.waking_up:
 		_update_hud()
 		return
 	if _check_room_transition():
@@ -522,7 +548,7 @@ func _set_camera_room() -> void:
 	for backdrop in room_backgrounds:
 		backdrop.visible = backdrop == room_backgrounds[current_room - 1]
 	hand_chair.visible = not in_gallery
-	boss.visible = not in_gallery
+	boss.visible = not in_gallery and not boss_defeated
 	_set_gallery_enemies_active(in_gallery)
 	gallery_encounters.set_active(in_gallery)
 	camera.reset_smoothing()
@@ -682,11 +708,6 @@ func _on_player_platform_dropped() -> void:
 
 func _on_player_heavy_attacked(hitbox: Rect2) -> void:
 	game_audio.play_effect("heavy_attack")
-	if current_room == 1 and player.has_heavy and not watch_cache_found and hitbox.intersects(Rect2(CAVE_LAYOUT.WATCH_CACHE - Vector2(23, 24), Vector2(46, 48))):
-		watch_cache_found = true
-		will_amount += 25
-		_show_toast("The charged attack opens the reliquary. +25 Will", 3.0)
-		_save_progress()
 	if current_room == 2 and is_instance_valid(ledge_sentinel) and not ledge_sentinel.is_queued_for_deletion() and hitbox.intersects(Rect2(ledge_sentinel.global_position - Vector2(20, 27), Vector2(40, 54))):
 		ledge_sentinel.take_hit(1.5*player.damage_multiplier())
 	if current_room == 2 and is_instance_valid(scout) and hitbox.intersects(Rect2(scout.global_position - Vector2(17, 20), Vector2(34, 40))):
@@ -720,6 +741,10 @@ func _on_ledge_sentinel_defeated() -> void:
 
 func _on_boss_defeated() -> void:
 	boss_defeated = true
+	boss.active = false
+	boss.visible = false
+	boss.health = 0.0
+	boss.set_physics_process(false)
 	game_audio.play_cave()
 	_unlock_arena()
 	_spawn_will_orb(boss.global_position, 50)
@@ -753,6 +778,8 @@ func activate_hand() -> void:
 	hand_activated = true
 	last_hand_room = 3
 	_respawn_regular_enemies()
+	player.set_injured(false)
+	player.has_dash = true
 	player.heal_full()
 	player.healing_charges = player.max_healing_charges
 	if player.has_bow:
@@ -761,6 +788,8 @@ func activate_hand() -> void:
 func save_at_hand() -> void:
 	if not hand_activated:
 		activate_hand()
+	player.set_injured(false)
+	player.has_dash = true
 	player.heal_full()
 	player.healing_charges = player.max_healing_charges
 	if player.has_bow:
@@ -851,6 +880,7 @@ func _save_progress() -> void:
 	data["checkpoint_x"] = checkpoint.x
 	data["checkpoint_y"] = checkpoint.y
 	data["hand_activated"] = hand_activated
+	data["opening_seen"] = opening_seen
 	data["last_hand_room"] = last_hand_room
 	data["has_dash"] = player.has_dash
 	data.merge(player.combat_save_data(),true)
@@ -873,6 +903,9 @@ func _save_progress() -> void:
 	data["forest_hand_activated"] = forest_hand_activated
 	data["temple_hand_activated"] = temple_hand_activated
 	data["temple_guardian_defeated"]=temple_guardian_defeated
+	data["is_injured"] = player.is_injured
+	data["has_dash"] = player.has_dash
+	data["has_air_dash"] = player.has_air_dash
 	data["wall_broken"] = wall_broken
 	data["secret_found"] = secret_found
 	data["note_found"] = note_found
@@ -914,7 +947,16 @@ func _respawn() -> void:
 	current_room = _room_for_x(checkpoint.x)
 	_set_camera_room()
 	player.reset_movement_state()
-	player.heal_full()
+	if not hand_activated:
+		player.set_injured(true)
+		player.health = player.injured_max_health
+		player.healing_charges = 1
+		player.has_dash = false
+	else:
+		player.set_injured(false)
+		player.heal_full()
+		player.healing_charges = player.max_healing_charges
+		player.has_dash = true
 	player.controls_enabled = true
 	respawning = false
 	if boss.active and not boss_defeated:
@@ -944,6 +986,7 @@ func _show_toast(message: String, duration: float) -> void:
 func _update_hud() -> void:
 	hud.health = player.health
 	hud.max_health = player.max_health
+	hud.is_injured = player.is_injured
 	hud.level = player_level
 	hud.will_amount = will_amount
 	hud.healing_charges = player.healing_charges
@@ -961,12 +1004,11 @@ func _update_hud() -> void:
 	hud.queue_redraw()
 
 func _cave_prompt() -> String:
+	if player.waking_up: return ""
 	var position := player.global_position
 	if not player.meditation_state.is_empty():
 		return ""
 	if current_room == 1:
-		if not watch_cache_found and position.distance_to(CAVE_LAYOUT.WATCH_CACHE) < 115.0:
-			return "Hold [H], then release to open the reliquary" if player.has_heavy else "A sealed reliquary. Return with a stronger Will."
 		if position.x < -1000.0:
 			return "The gate beyond the Watch is sealed."
 	if current_room == 2:
@@ -1022,6 +1064,7 @@ func _draw() -> void:
 			draw_rect(Rect2(tip + Vector2(6, -20), Vector2(28, 5)), Color(0.075, 0.12, 0.15))
 			draw_polyline(PackedVector2Array([tip + Vector2(8, -62), tip + Vector2(8, -44), tip + Vector2(24, -44), tip + Vector2(24, -30)]), Color(0.025, 0.045, 0.065), 4)
 	for rect in platforms:
+		if rect==Rect2(-1200,600,1200,120): continue
 		_draw_cave_terrain(rect)
 	_draw_room_objects()
 	draw_rect(Rect2(2567, 594, 86, 6), Color(0.035, 0.075, 0.10, 0.62))
@@ -1068,10 +1111,6 @@ func _draw_room_objects() -> void:
 		draw_circle(at, 20, Color(0.44, 0.94, 0.76, 0.10))
 		draw_rect(Rect2(at - Vector2(10, 11), Vector2(20, 25)), Color(0.22, 0.43, 0.40))
 		draw_rect(Rect2(at - Vector2(4, 7), Vector2(8, 12)), Color(0.81, 1.0, 0.78))
-	if not watch_cache_found:
-		_draw_cracked_stone(Rect2(CAVE_LAYOUT.WATCH_CACHE - Vector2(23, 24), Vector2(46, 48)))
-	else:
-		draw_rect(Rect2(CAVE_LAYOUT.WATCH_CACHE + Vector2(-26, 18), Vector2(52, 8)), Color(0.25, 0.28, 0.30))
 	var winch := CAVE_LAYOUT.WINCH
 	draw_rect(Rect2(winch + Vector2(-11, 7), Vector2(22, 34)), Color(0.26, 0.31, 0.31))
 	draw_circle(winch, 16, Color(0.10, 0.16, 0.18))

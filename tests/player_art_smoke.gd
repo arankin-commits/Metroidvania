@@ -35,7 +35,7 @@ func run() -> void:
 		assert(ART.pose(player) == 13)
 		player.attack_time = 0
 		player.heavy_attack_time = 0.15
-		assert(ART.sequence(player) == "slash_downward")
+		assert(ART.sequence(player) == "heavy_release")
 		player.heavy_attack_time = 0
 		player.dash_time = 0.17
 		assert(ART.sequence(player).ends_with("dash"))

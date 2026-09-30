@@ -1,0 +1,118 @@
+{
+	"body_height": 58,
+	"cell": 192,
+	"foot": [
+		72,
+		128
+	],
+	"frames": [
+		{
+			"center_x": 62,
+			"floor_y": 661,
+			"index": 0,
+			"phase": "charge",
+			"source_region": [
+				7,
+				516,
+				114,
+				148
+			]
+		},
+		{
+			"center_x": 197,
+			"floor_y": 661,
+			"index": 1,
+			"phase": "charge",
+			"source_region": [
+				124,
+				505,
+				124,
+				159
+			]
+		},
+		{
+			"center_x": 327,
+			"floor_y": 661,
+			"index": 2,
+			"phase": "charge",
+			"source_region": [
+				260,
+				476,
+				116,
+				188
+			]
+		},
+		{
+			"center_x": 450,
+			"floor_y": 661,
+			"index": 3,
+			"phase": "charge",
+			"source_region": [
+				383,
+				450,
+				129,
+				214
+			]
+		},
+		{
+			"center_x": 588,
+			"floor_y": 661,
+			"index": 4,
+			"phase": "charge",
+			"source_region": [
+				518,
+				453,
+				132,
+				211
+			]
+		},
+		{
+			"center_x": 751,
+			"floor_y": 661,
+			"index": 5,
+			"phase": "release_recovery",
+			"source_region": [
+				637,
+				426,
+				313,
+				238
+			]
+		},
+		{
+			"center_x": 1030,
+			"floor_y": 661,
+			"index": 6,
+			"phase": "release_recovery",
+			"source_region": [
+				950,
+				490,
+				204,
+				174
+			]
+		},
+		{
+			"center_x": 1230,
+			"floor_y": 661,
+			"index": 7,
+			"phase": "release_recovery",
+			"source_region": [
+				1155,
+				530,
+				152,
+				134
+			]
+		},
+		{
+			"center_x": 1375,
+			"floor_y": 661,
+			"index": 8,
+			"phase": "release_recovery",
+			"source_region": [
+				1316,
+				516,
+				123,
+				148
+			]
+		}
+	]
+}

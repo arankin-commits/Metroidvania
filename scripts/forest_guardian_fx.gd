@@ -36,7 +36,7 @@ func draw(boss: Node2D) -> void:
 		boss.draw_texture_rect_region(ghost.texture, rect, Rect2(Vector2(index%4,index/4)*boss.CELL,Vector2(boss.CELL,boss.CELL)), Color(0.45,1,0.92,ghost.life/0.22*0.22))
 	for mote in dust:
 		boss.draw_rect(Rect2(mote.position-boss.global_position,Vector2.ONE*mote.size),Color(0.48,0.68,0.65,mote.life/0.4*0.65))
-	if boss.state in ["tell_summon", "summon"]:
+	if boss.state == "tell_summon":
 		var progress: float = clampf(1.0-boss.state_time/boss.phase_length,0,1)
 		for i in boss.summon_marks.size():
 			var point: Vector2 = boss.summon_marks[i]-boss.global_position+Vector2(0,boss.SCOUT.HEIGHT/2)

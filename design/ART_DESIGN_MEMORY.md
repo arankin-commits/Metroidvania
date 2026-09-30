@@ -229,6 +229,17 @@ stored in [references/forest-room2](references/forest-room2/README.md).
   Practice targets in a rest room need their own quiet aiming alcove, clear of the
   chair approach and dismount. Assign them an explicit blocking or nonblocking role;
   an enemy-shaped teaching target must not become an accidental wall across the rest route.
+- The Temple Guardian mini boss reference is
+  `references/temple-boss/temple-guardian-design-sheet.png`: a massive moss-covered
+  stone construct with cyan chest diamond, runes, slit visor and hanging temple
+  banners. Use its distinct chain-fist windup/extension/retraction, two-handed
+  braced shot, three punches and raised-arm slam as the visual reference. Its
+  half-health phase cue brightens the chest and runes.
+  Its thirteen action/idle poses share a 144px standing scale and local foot y47;
+  build from measured delivered cutouts, since image extraction may reposition
+  sprites. Keep the detached fist and projectile separate from body poses, and
+  center their opaque contact cores on the swept gameplay collision. The firing
+  muzzle flare must fade before a crop edge rather than ending in a bright rectangle.
 - Preserve distinct anticipation, attack direction, and recovery cues. Scimitar
   thrusts, overheads, spins and jump landings need different silhouettes, motion and
   timing; guardian punches, slams and braced firing must also differ in pose so color
@@ -244,13 +255,31 @@ stored in [references/forest-room2](references/forest-room2/README.md).
 
 ## Animation and hitbox clarity
 
+- The supplied cave and forest enemy designs are cataloged in
+  [references/enemies](references/enemies/README.md): goblin, goblin combo,
+  goblin dog, goblin sentinel, kobold archer, kobold clubber and kobold summoner.
+  Consult the relevant original sheet when authoring those enemies; the reference
+  catalog itself does not add encounters or change progression.
+- Will of Wrath retains its damage bonus without a rectangular outline around
+  the traveller. Preserve charge-ready white blinking as its own combat cue.
 - The Forest Guardian reference is a moss-covered hooded kobold archer with luminous
   blue eyes, branch bow and stocked quiver. Its summon channel/emergence, aiming/full
   charge/release, five rapid shots, arrow pull/slash/stab, leap/dash/landing and volley
-  poses remain distinct. Preserve the three woodland allies and reference arrow,
-  root and impact effects separately when a storyboard panel contains effects rather
-  than the boss. The authored facings use independent registered cutouts; isolate
-  neighboring silhouettes before packing cells, and verify each pose in the arena.
+  poses remain distinct.
+  The Forest Boss summons (Earthen Bear, Earthen Troll, Tree Ent) use authored 5-row
+  sprite sheets preserved in `assets/references/forest_boss_summons/` and transparent
+  isolated game atlases in `assets/characters/` (`summon_bear_atlas.png`,
+  `summon_troll_atlas.png`, `summon_ent_atlas.png`).
+  Each entity implements full animation states across 5 rows: Row 0 Idle (6 frames),
+  Row 1 Walk (8 frames bear/ent, 6 troll), Row 2 Run (8 frames bear/ent, 6 troll),
+  Row 3 Attack (8 bear, 6 troll, 12 ent), and Row 4 Recoil/Hurt (6 frames).
+  Extract connected character silhouettes from the overlapping storyboard panels;
+  uniform column cuts clip limbs and root effects and can carry labels into play.
+  Summons emerge with root effects, face their movement/target direction, and ground their
+  feet to match collision bounds.
+  Preserve the reference arrow, root and impact effects separately when a storyboard panel
+  contains effects rather than the boss. The authored facings use independent registered
+  cutouts; isolate neighboring silhouettes before packing cells, and verify each pose in the arena.
   Reference impact panels may contain arrows still descending above the contact
   burst. Render only the burst on collision; replaying the whole panel at a target
   invents an apparent follow-up attack. Preserve the source and separate its roles.
@@ -286,6 +315,14 @@ stored in [references/forest-room2](references/forest-room2/README.md).
   so the weapon remains legible; remove detached indicators when the blade itself
   carries the charge cue. Do not mirror aura coordinates across independently
   authored character views.
+  The traveller blinks white only at full heavy charge, starting immediately when
+  ready and repeating while held. Preserve texture alpha; a white tint multiplied
+  into the colored atlas cannot produce this cue. While charging and walking on
+  the ground, retain the charge pose above the hips and animate walking legs below
+  them. Move the torso, hands and sword with the same gait's hip rise and sway;
+  align the leg crops to the hip pivot and overlap the moving waist seam to avoid
+  detached halves. Keep feet grounded and collision unchanged. Release/reset
+  clears the blink.
   Give a heavy attack weight through timing and body commitment: a deliberate
   build, fast release, brief contact hold and slower follow-through/recovery.
   Synchronize the blade flare and low attack sound with release. Apply any contact
@@ -310,6 +347,8 @@ stored in [references/forest-room2](references/forest-room2/README.md).
   and exclude neighboring silhouettes from every crop. Verify real alpha, opaque
   interiors, transparent gutters and grounded foot alignment across all poses before
   importing. A painted checkerboard is not transparency.
+  Register the measured opaque boot row after resizing; a scaled source floor
+  coordinate can drift by a pixel or two through rounding.
   Preserve every supplied animation frame unless the user explicitly authorizes
   removing frames. Do not silently reduce a reference sequence to representative
   poses, discard transition frames, or replace the complete sequence with a smaller
@@ -448,6 +487,25 @@ stored in [references/forest-room2](references/forest-room2/README.md).
   the same support-versus-scenery distinction.
 
 ## Review and references
+
+Unplaced enemy art can be reviewed through reusable prefabs and a test-only scene
+using the real player controller. Keep those prefabs outside the normal room scene
+dependency graph until placement is authorized. Crowded storyboard rows need
+silhouette-aware cuts: vertical cell boundaries can truncate a neighboring bow,
+spear, staff or cape. Review every delivered pose in both facings, register feet
+after resampling, and blit only each cutout's used bounds so transparent pixels
+cannot overwrite another atlas cell. For a physics-driven leap, register the
+airborne body's feet rather than applying the storyboard's vertical offset twice.
+For a prone-to-standing opening, keep every pose on the collision floor, align the
+body pivot as it rises, and keep floor blood in the room plate while clothing blood
+travels with the character. Register the plate's painted floor to the real collider;
+keep authoritative terrain drawn above the plate wherever their silhouettes differ.
+When an injury changes clothing across a full animation set, paint registered alternate
+atlases for every pose family and switch sheets from the player state. Preserve each
+frame's alpha and pivot so blood follows moving limbs without changing silhouettes,
+collision, sword effects, or animation timing. Keep the waking poses' existing blood.
+While injured, moving on the ground uses the bloodied walk cycle at every speed;
+airborne, combat, idle, and special poses retain their own animations.
 
 Review at gameplay scale and in motion: both route directions, camera extremes,
 combat effects, landings, gates, checkpoints, and collected-reward states. Check art

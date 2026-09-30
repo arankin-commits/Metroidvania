@@ -16,6 +16,8 @@ func _run() -> void:
 	await process_frame
 	await process_frame
 	world = current_scene
+	world.player._advance_wake(4.0)
+	await world._begin_room_transition(2,world.GALLERY_LAYOUT.ENTRANCE.x)
 	world.player.invulnerability = 1000.0
 	# Geometry fixture traverses the post-boss shortcut; first-visit gating has its own test.
 	world.player.has_heavy=true
@@ -91,7 +93,7 @@ func _run() -> void:
 	if not world._completed_rooms().has(2):
 		_fail("Sigil and offering did not complete Room 2")
 		return
-	if world.current_room != 2 or world.checkpoint != world.gallery.LAYOUT.START:
+	if world.current_room != 2 or world.checkpoint != world.CAVE_LAYOUT.START:
 		_fail("Exploring gallery levels changed rooms or the death checkpoint")
 		return
 	change_scene_to_file("res://scenes/main_menu.tscn")
@@ -171,7 +173,7 @@ func _jump(from: Vector2, to: Vector2) -> bool:
 		var dx: float = to.x - world.player.position.x
 		_key(KEY_D, dx > 5)
 		_key(KEY_A, dx < -5)
-		if i == 3:
+		if i == 25:
 			_key(KEY_SPACE, false)
 		await physics_frame
 		if i > 10 and world.player.is_on_floor() and absf(dx) < 28 and absf(world.player.position.y - to.y) < 8:

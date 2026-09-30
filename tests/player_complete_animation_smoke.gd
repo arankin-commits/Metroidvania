@@ -71,6 +71,26 @@ func run() -> void:
 			p.visual_state_time = (slot + 0.2) / fps
 			assert(ART.sequence(p) == name, "Wrong controller state for " + name)
 			assert(ART.frame_index(p) == expected[slot], "Playback skipped frame of " + name)
+	p.position = Vector2(0, 577)
+	p.velocity = Vector2(255, 1)
+	p.move_and_slide()
+	p.velocity.x = 255
+	p.attack_time = 0
+	p.dash_time = 0
+	p.heavy_charge = 0
+	p.heavy_attack_time = 0
+	assert(p.is_on_floor())
+	p.set_injured(true)
+	for armed in [false, true]:
+		p.weapon_visible_time = 3 if armed else 0
+		var expected_walk := "unsheathed_walk" if armed else "sheathed_walk"
+		assert(ART.sequence(p) == expected_walk, "Injured ground movement did not walk")
+		for slot in ART.SEQUENCES[expected_walk].size():
+			p.visual_state = expected_walk
+			p.visual_state_time = (slot + 0.2) / 12.0
+			assert(ART.frame_index(p) == ART.SEQUENCES[expected_walk][slot], "Injured walk skipped frame")
+	p.set_injured(false)
+	assert(ART.sequence(p) == "unsheathed_run", "Healthy ground movement did not run")
 	p.queue_free()
 	floor_body.queue_free()
 	await process_frame
