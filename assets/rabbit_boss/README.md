@@ -14,6 +14,30 @@ The rabbit boss is not a heavy bruiser. It is a mobile, opportunistic predator w
 
 The design should emphasize momentum, verticality, and repositioning, rather than long stand-up trades.
 
+## Current prototype behavior
+
+The isolated prototype in [scenes/rabbit_boss_test.tscn](../../scenes/rabbit_boss_test.tscn) currently includes the following implementation details:
+
+- The six rabbit pose PNGs have transparent backgrounds; only the sprite artwork is rendered.
+- The boss has a body collider and a `combat_bounds()` rectangle for player attacks.
+- The test scene uses the real player controller and the project HUD. The HUD shows player health, boss health, the boss title, pounce warnings, hit/miss feedback, and blocked-hit feedback.
+- The boss stops completely while preparing its pounce. The red warning line and preview mark the attack lane during this stationary telegraph.
+- When the pounce begins, the boss keeps its forward momentum, receives a small upward movement arc, and lifts its sprite 8 pixels so the pounce pose is visually distinct from the ground poses.
+- A pounce can damage the player once on contact. Player invulnerability and knockback use the existing `player.gd` damage behavior.
+- The boss actively seeks a nearby climbable surface, jumps toward it, clings briefly, then returns to the arena after a short re-grab cooldown. The wall must be a real collision object in the `climbable_surface` group.
+
+The test scene is a behavior harness, not the final boss room. It provides a visible floor, a climb wall, the actual player controller, and HUD feedback so movement, telegraphs, damage, and state transitions can be evaluated before the authored room exists.
+
+### Test-scene controls
+
+Open `scenes/rabbit_boss_test.tscn` and run the current scene with F6. Use the same player controls as the main game:
+
+- A/D: move
+- Space: jump
+- J: basic attack
+
+Stand in the boss’s pounce lane to verify player damage. Strike the boss at close range to verify the boss health bar and hit feedback. The red warning and HUD notice should appear before each pounce, while the boss remains still.
+
 ## Core move logic the room must support
 
 ### 1. Ground approach
@@ -185,13 +209,15 @@ Make sure the rabbit boss supports:
 - `defeated.emit()` when health reaches zero
 - a room callback that triggers the reward or room completion logic
 
+The rabbit’s pounce must also be wired to the player’s existing damage API. During the active pounce window, check the real player body bounds against the boss attack bounds and call `player.take_damage(amount, boss_x)` once per pounce. Do not apply damage during the telegraph; the telegraph is stationary and gives the player time to react.
+
 This is the same pattern used for current bosses in the project.
 
 ### 4. Add the boss to the room’s progression logic
 When the rabbit boss is defeated, the room should:
 
 - update room completion state
-- award the intended reward or ability
+- award the player the wall-cling ability
 - clear the arena lock if the room uses one
 - update any save data for the encounter
 
@@ -204,6 +230,10 @@ Follow the same boss HUD pattern already used by the project:
 - boss health bar
 - boss max health value
 - updates while the boss is active
+
+The prototype reuses [scripts/hud.gd](../../scripts/hud.gd) through a `CanvasLayer`. Preserve that layering in the real room so the boss bar remains above the world. Update the HUD from authoritative player and boss state rather than storing a second health value in the HUD.
+
+For readability, retain a visible attack notice for at least the short feedback period used by the test harness. Recommended messages include a pounce warning, boss hit, miss, and blocked hit.
 
 Use the structure already present in [scripts/hud.gd](../../scripts/hud.gd) and the world HUD updates in [scripts/tutorial_world.gd](../../scripts/tutorial_world.gd).
 
@@ -246,6 +276,8 @@ After integrating it, verify the full loop in-place:
 8. rewards and progression update correctly
 9. continue/reload/room travel state remains consistent
 
+Before testing the full room, run the isolated prototype with F6. Confirm that the player is visible, the HUD is visible, the boss can be damaged, the player loses health on a pounce contact, the boss remains motionless during its warning, the pounce pose is visibly elevated, and the boss can jump to and cling to a real climbable wall.
+
 ### 9. Keep the room readable and fair
 Once the boss is in the game, the player must be able to tell:
 
@@ -261,11 +293,11 @@ If the room hides the warning or restricts the player too aggressively, the boss
 
 1. Add the boss to the world script
 2. Trigger the encounter in the correct room
-3. Connect combat and defeat logic
-4. Add HUD and reward logic
+3. Connect player damage, combat, and defeat logic
+4. Add HUD, attack feedback, and reward logic
 5. Save state and progression
 6. Build the arena to fit the boss move identity
-7. Test in the real game and tune readability
+7. Test the isolated prototype, then test in the real game and tune readability
 
 This order keeps the boss implementation aligned with the project’s existing architecture and prevents the room, combat, and save systems from drifting out of sync.
 
@@ -274,3 +306,19 @@ This order keeps the boss implementation aligned with the project’s existing a
 Build the room so the rabbit boss reads as a fast vertical predator that uses the stage instead of fighting in one flat plane. The room should reward the player for reading telegraphs, watching climb surfaces, and managing the boss’s pressure between ground approach and leap attacks.
 
 If the room is designed well, the boss will feel like a creature that hunts in arcs, climbs to reposition, and strikes with clear intent rather than just dealing raw damage.
+
+## Map design team handoff summary
+
+Use this summary when pushing or reviewing the boss changes on GitHub:
+
+> Added the rabbit boss prototype and test arena. The encounter is a fast, vertical fight built around ground approaches, stationary pounce telegraphs, momentum-preserving pounces, player damage on pounce contact, and jumps to real climbable walls. The test scene includes the real player controller, main-game HUD, boss health and hit feedback, visible arena geometry, and transparent rabbit sprites. Design the final boss room around open pounce lanes, readable warning sightlines, and climbable wall routes with enough space for the boss to detach and re-engage. Defeating the rabbit boss must unlock the player’s wall-cling ability, persist the reward, and make previously inaccessible wall routes traversable.
+
+### Reward and room-design requirement
+
+The rabbit boss’s defeat is both a combat victory and a traversal milestone. The final room may preview readable wall routes or unreachable wall-cling opportunities, but it must not require wall-cling to enter or complete the boss encounter. After defeat:
+
+- grant and persist the player’s wall-cling ability
+- allow the player to use the room’s climbable surfaces on the return visit
+- update the map and room completion state
+- provide a safe exit or return route that demonstrates the new ability
+- ensure death, reload, biome travel, and checkpoint restoration do not remove the unlock
