@@ -61,6 +61,7 @@ var seal_health := 3
 var checkpoint := Vector2(120, 570)
 var hand_activated := false
 var boss_defeated := false
+var artificer_rescued := false
 var complete := false
 var respawning := false
 var toast := ""
@@ -129,6 +130,7 @@ func _ready() -> void:
 			heal_practiced = bool(data.get("heal_practiced", false))
 			dash_gap_practiced = bool(data.get("dash_gap_practiced", false))
 			saved_boss_defeated = bool(data.get("boss_defeated", false))
+			artificer_rescued = bool(data.get("artificer_rescued", false))
 			saved_heavy = bool(data.get("has_heavy", saved_boss_defeated))
 			saved_bow_boss_defeated = bool(data.get("bow_boss_defeated", false))
 			saved_has_bow = bool(data.get("has_bow", saved_bow_boss_defeated))
@@ -832,6 +834,7 @@ func _save_progress() -> void:
 	data["seal_broken"] = seal_health <= 0
 	data["scout_defeated"] = saved_scout_defeated or not is_instance_valid(scout) or scout.is_queued_for_deletion()
 	data["boss_defeated"] = boss_defeated
+	data["artificer_rescued"] = artificer_rescued
 	data["has_heavy"] = player.has_heavy
 	data["bow_boss_defeated"] = bow_boss_defeated
 	data["has_bow"] = player.has_bow
