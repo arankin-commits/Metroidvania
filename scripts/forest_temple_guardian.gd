@@ -14,7 +14,7 @@ func combat_bounds() -> Rect2:
 func _ready() -> void:
 	super._ready()
 	arena_bounds=Vector2(22900,23900)
-	max_health=6
+	max_health=30.0
 	health=max_health
 	var glow := ShaderMaterial.new()
 	glow.shader = GLOW_SHADER

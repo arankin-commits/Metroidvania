@@ -71,6 +71,15 @@ func _ready() -> void:
 	collision.one_way_collision_margin=1.0
 	drop_platform.add_child(collision)
 	add_child(drop_platform)
+	var enemy_body := StaticBody2D.new()
+	enemy_body.name = "EnemyPurpleDropBlocker"
+	enemy_body.collision_layer = 4
+	enemy_body.collision_mask = 0
+	var enemy_col := CollisionShape2D.new()
+	enemy_col.shape = shape
+	enemy_col.position = LAYOUT.DROP.get_center()
+	enemy_body.add_child(enemy_col)
+	add_child(enemy_body)
 	var uv:=PackedVector2Array()
 	for v in LAYOUT.rectangle(LAYOUT.DROP): uv.append((v-LAYOUT.UPPER_ORIGIN)/LAYOUT.SCALE)
 	_painting(LAYOUT.rectangle(LAYOUT.DROP),uv,UPPER,"PurpleDropTerrain",-85)

@@ -18,8 +18,8 @@ func combat_bounds() -> Rect2:
 func _ready() -> void:
 	super._ready()
 	arena_bounds=Vector2(19490,20910)
-	health=10
-	max_health=10
+	health=50.0
+	max_health=50.0
 	add_to_group("bow_targets")
 
 func _physics_process(delta: float) -> void:

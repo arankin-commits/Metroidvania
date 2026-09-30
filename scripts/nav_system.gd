@@ -9,7 +9,7 @@ func update_enemy_ai_traverse(
 	player: CharacterBody2D,
 	origin_x: float,
 	current_facing: int,
-	detection_range: float = 230.0,
+	detection_range: float = 1152.0,
 	patrol_range: float = 78.0
 ) -> Dictionary:
 
@@ -21,8 +21,8 @@ func update_enemy_ai_traverse(
 	var mode := "patrol"
 	var target_x := origin_x
 
-	# Navigation reacts when terrain blocks the enemy.
-	if enemy.is_on_wall():
+	# Navigation reacts when terrain or ledge blocks the enemy.
+	if enemy.is_on_wall() or (enemy.has_method("is_edge_ahead") and enemy.is_edge_ahead(direction)):
 		direction *= -1
 		mode = "blocked"
 
@@ -30,7 +30,7 @@ func update_enemy_ai_traverse(
 	# toward the player's position.
 	elif player != null and absf(
 		player.global_position.x - enemy.global_position.x
-	) < detection_range:
+	) <= detection_range:
 
 		direction = 1 if player.global_position.x > enemy.global_position.x else -1
 		target_x = player.global_position.x

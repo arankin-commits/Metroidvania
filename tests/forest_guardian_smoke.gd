@@ -41,10 +41,10 @@ func run() -> void:
 		if name=="rapid_fire": assert(shots==5)
 		if name=="knife_combo": assert(hits==3)
 	assert(seen.size()==20,"Supplied poses are unreachable")
-	boss.health=6
+	boss.health=boss.max_health * 0.6
 	boss.mobility_cooldown=0
 	assert(boss.choose_attack()!="flipping_volley")
-	boss.health=4
+	boss.health=boss.max_health * 0.4
 	assert(boss.choose_attack()=="flipping_volley")
 	boss.summon_marks=boss._summon_positions()
 	boss.summon_enemies()
@@ -54,7 +54,7 @@ func run() -> void:
 		assert(is_equal_approx(boss.summons[i].position.y+BOSS.SCOUT.HEIGHT/2,600),"Summon feet miss floor")
 	boss.summon_enemies()
 	assert(boss.summons.size()==3,"Summon cap exceeded")
-	boss.health=6
+	boss.health=boss.max_health * 0.6
 	boss.attack_count=3
 	boss.summon_cooldown=0
 	assert(boss.choose_attack()!="summon","Boss chose summon with living wave")

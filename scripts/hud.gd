@@ -16,7 +16,7 @@ var prompt := ""
 var notice := ""
 var area := "THE FORGOTTEN PASSAGE"
 var boss_health := 0.0
-var boss_max_health := 8
+var boss_max_health := 40
 var boss_title := "THE HOLLOW WARDEN"
 var finished := false
 

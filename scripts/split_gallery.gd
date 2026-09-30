@@ -9,6 +9,7 @@ var heavy_wall: StaticBody2D
 var smash_floor: StaticBody2D
 var drop_body: StaticBody2D
 var drop_surfaces: Array[Dictionary] = []
+var enemy_blockers: Array[StaticBody2D] = []
 var enclosing_rock: Array[Rect2] = []
 var rock_polygons: Array[PackedVector2Array] = []
 var rock_bins: Dictionary = {}
@@ -105,6 +106,16 @@ func _make_polygon(polygon: PackedVector2Array, one_way: bool = false) -> Static
 	_register_rock(polygon)
 	if one_way:
 		drop_surfaces.append({"body": body, "region": Rect2(polygon[0].x, polygon[0].y - 8, polygon[1].x - polygon[0].x, 26)})
+		var enemy_body := StaticBody2D.new()
+		enemy_body.position = body.position
+		enemy_body.rotation = body.rotation
+		enemy_body.collision_layer = 4
+		enemy_body.collision_mask = 0
+		var enemy_col := CollisionShape2D.new()
+		enemy_col.shape = shape
+		enemy_body.add_child(enemy_col)
+		add_child(enemy_body)
+		enemy_blockers.append(enemy_body)
 	return body
 
 func _physics_process(_delta: float) -> void:
@@ -133,6 +144,15 @@ func _make_rect(rect: Rect2, one_way: bool = false) -> StaticBody2D:
 		_register_rock(PackedVector2Array([rect.position,Vector2(rect.end.x,rect.position.y),rect.end,Vector2(rect.position.x,rect.end.y)]))
 	if one_way:
 		drop_surfaces.append({"body": body, "region": Rect2(rect.position - Vector2(0, 8), Vector2(rect.size.x, 26))})
+		var enemy_body := StaticBody2D.new()
+		enemy_body.position = body.position
+		enemy_body.collision_layer = 4
+		enemy_body.collision_mask = 0
+		var enemy_col := CollisionShape2D.new()
+		enemy_col.shape = shape
+		enemy_body.add_child(enemy_col)
+		add_child(enemy_body)
+		enemy_blockers.append(enemy_body)
 	return body
 
 func set_active(active: bool) -> void:
@@ -142,6 +162,11 @@ func set_active(active: bool) -> void:
 			continue
 		body.collision_layer = 1 if active else 0
 		body.collision_mask = 1 if active else 0
+	for blocker in enemy_blockers:
+		if not is_instance_valid(blocker) or blocker.is_queued_for_deletion():
+			continue
+		blocker.collision_layer = 4 if active else 0
+		blocker.collision_mask = 0
 
 func draw_objects(canvas: Node2D) -> void:
 	if not world.secret_found:

@@ -4,8 +4,8 @@ signal defeated
 signal attack_cued(cue: String)
 const PROJECTILE=preload("res://scripts/combat_projectile.gd")
 var player: CharacterBody2D
-var health:=8.0
-var max_health:=8.0
+var health:=40.0
+var max_health:=40.0
 var active:=false
 var state:="idle"
 var state_time:=0.6
@@ -102,7 +102,7 @@ func _physics_process(delta: float) -> void:
 			if phase.has("move"): box=box.merge(Rect2(box.position+previous_position-global_position,box.size))
 			if box.intersects(Rect2(player.global_position-Vector2(14,23),Vector2(28,46))):
 				var before: float=player.health
-				player.take_damage(float(phase.get("damage",1)),global_position.x)
+				player.take_damage(float(phase.get("damage",1)),global_position.x,true)
 				struck=player.health<before
 		if state_time<=0:
 			if phase.has("move") or phase.get("target_jump",false) or phase.get("over_player",false) or phase.get("retreat",false): position=motion_end

@@ -4,19 +4,22 @@ const COMBAT_ROOT := "res://tests/.gallery_encounters_saves"
 
 func _run() -> void:
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(COMBAT_ROOT))
-	SLOTS.write_slot(1,SLOTS.new_slot(),COMBAT_ROOT)
+	var slot:=SLOTS.new_slot(); slot["room"]=2; SLOTS.write_slot(1,slot,COMBAT_ROOT)
 	set_meta("active_save_slot",1)
 	set_meta("save_root",COMBAT_ROOT)
 	change_scene_to_file("res://scenes/tutorial.tscn")
 	await process_frame
 	await physics_frame
 	world=current_scene
+	world.current_room=2
+	world._set_camera_room()
+	await physics_frame
 	world.set_process(false)
 	world.player.invulnerability=1000
 	world.ledge_sentinel.set_process(false)
 	world.scout.set_physics_process(false)
 	world.scout.collision_layer=0
-	if world.gallery_encounters.targets().size()!=17:
+	if world.gallery_encounters.targets().size()!=29:
 		_fail("The authored combat zones did not create their existing-roster enemies")
 		return
 	var shape:=RectangleShape2D.new()
@@ -56,6 +59,11 @@ func _run() -> void:
 			return
 		var floor_y: float=floor_hit.position.y
 		for side in [-1,1]:
+			for other in world.gallery_encounters.targets():
+				if other != enemy:
+					other.health = 100.0
+			if enemy.get("is_asleep") != null:
+				enemy.is_asleep = false
 			enemy.health=2
 			world.player.position=Vector2(enemy.position.x+side*100,floor_y-25)
 			world.player.reset_movement_state()
@@ -89,11 +97,14 @@ func _run() -> void:
 	await process_frame
 	await physics_frame
 	world=current_scene
-	if not world.gallery_defeated.has("AscentGuard") or world.gallery_encounters.targets().size()!=16 or world.will_amount!=5:
+	world.current_room=2
+	world._set_camera_room()
+	await physics_frame
+	if not world.gallery_defeated.has("AscentGuard") or world.gallery_encounters.targets().size()!=28 or world.will_amount!=5:
 		_fail("Regular encounter state did not survive reload")
 		return
 	world.activate_hand()
-	if not world.gallery_defeated.is_empty() or world.gallery_encounters.targets().size()!=17 or world.will_amount!=5:
+	if not world.gallery_defeated.is_empty() or world.gallery_encounters.targets().size()!=29 or world.will_amount!=5:
 		_fail("Hand rest did not restore regular encounters independently of collected Will")
 		return
 	change_scene_to_file("res://scenes/main_menu.tscn")

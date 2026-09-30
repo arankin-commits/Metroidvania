@@ -30,6 +30,11 @@ var attack_time := 0.0
 const HEIGHT := 99.0 * 1.2
 const ART_SCALE := HEIGHT / 38.0
 
+func _ready() -> void:
+	max_health = 6.0
+	health = 6.0
+	super._ready()
+
 func body_size() -> Vector2:
 	return Vector2(32.0 * ART_SCALE, HEIGHT)
 
