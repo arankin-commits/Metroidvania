@@ -502,6 +502,9 @@ func _try_grab_ledge() -> void:
 	velocity = Vector2.ZERO
 	queue_redraw()
 
+func combat_bounds() -> Rect2:
+	return Rect2(global_position - Vector2(14, 23), Vector2(28, 46))
+
 func take_arrow_chain_damage(amount: float, from_x: float) -> void:
 	var before:=health
 	take_damage(amount,from_x,true)

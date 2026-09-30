@@ -13,6 +13,7 @@ const LIBRARY = {
 	"kobold_clubber": preload("res://assets/characters/enemies/kobold_clubber.tres"),
 	"kobold_summoner": preload("res://assets/characters/enemies/kobold_summoner.tres"),
 }
+const PROJECTILE = preload("res://scripts/combat_projectile.gd")
 const SIZES = {"goblin":Vector2(30,56),"goblin_dog":Vector2(48,36),"goblin_sentinel":Vector2(34,68),"goblin_elite":Vector2(34,68),"kobold_archer":Vector2(32,65),"kobold_clubber":Vector2(42,82),"kobold_summoner":Vector2(34,70)}
 const ATTACKS = {"goblin":["horizontal_slash","upward_slash","downward_slam"],"goblin_dog":["jump_attack","bite"],"goblin_sentinel":["thrust","combo"],"goblin_elite":["thrust","combo"],"kobold_archer":["shoot"],"kobold_clubber":["slam","combo"],"kobold_summoner":["summon"]}
 const CUES = {"horizontal_slash":[3],"upward_slash":[3],"downward_slam":[2],"jump_attack":[3],"bite":[2,4],"thrust":[2],"combo":[1,4],"slam":[3],"shoot":[4],"summon":[5]}
@@ -53,6 +54,7 @@ var player: CharacterBody2D:
 		player = p
 		target = p
 var target: Node2D
+var active := true
 var ai_enabled := false
 var locomotion := false
 var sequence_time := 0.0
@@ -84,7 +86,7 @@ const ATTACK_DISTANCES = {
 	"goblin": 85.0,
 	"goblin_sentinel": 95.0,
 	"goblin_elite": 95.0,
-	"kobold_archer": 250.0,
+	"kobold_archer": 380.0,
 	"kobold_clubber": 90.0,
 	"kobold_summoner": 220.0,
 }
@@ -271,6 +273,39 @@ func _spawn_forest_summon() -> void:
 	if parent != null:
 		parent.add_child(summon)
 
+func _shoot_arrow(origin: Vector2) -> void:
+	var shot := PROJECTILE.new()
+	shot.owner_actor = self
+	shot.target = target if is_instance_valid(target) else player
+	shot.kind = "arrow"
+	shot.friendly = false
+	shot.damage = 1.0
+	shot.speed = 460.0
+	shot.radius = 6.0
+	shot.lifetime = 3.5
+	shot.global_position = origin
+
+	var aim_dir := Vector2(facing, 0.0)
+	var current_target: Node2D = target if is_instance_valid(target) else player
+	if is_instance_valid(current_target):
+		var target_center: Vector2 = current_target.global_position + Vector2(0, -14)
+		var diff := target_center - origin
+		if absf(diff.x) > 5.0 and signf(diff.x) == facing:
+			aim_dir = diff.normalized()
+			if absf(aim_dir.y) > 0.86:
+				aim_dir.y = signf(aim_dir.y) * 0.86
+				aim_dir.x = facing * sqrt(maxf(0.0, 1.0 - aim_dir.y * aim_dir.y))
+				aim_dir = aim_dir.normalized()
+		elif signf(diff.x) == facing:
+			aim_dir = Vector2(facing, signf(diff.y) * 0.5).normalized()
+	shot.direction = aim_dir
+
+	var parent := get_parent()
+	if parent != null:
+		parent.add_child(shot)
+	elif get_tree() != null and get_tree().current_scene != null:
+		get_tree().current_scene.add_child(shot)
+
 func tick_animation(delta: float) -> void:
 	var sequence:=sprite.animation
 	var frames:=sprite.sprite_frames.get_frame_count(sequence)
@@ -282,12 +317,15 @@ func tick_animation(delta: float) -> void:
 		for cue in CUES[String(sequence)]:
 			if cue>=old_frame and cue<=elapsed_frame and not emitted_frames.has(cue):
 				emitted_frames[cue]=true
-				var cue_origin := global_position+Vector2(facing*24,-SIZES[enemy_kind].y*.6)
+				var foot_y := global_position.y + (0.0 if ground_origin else 17.0)
+				var cue_origin := Vector2(global_position.x + facing * 24, foot_y - SIZES[enemy_kind].y * 0.6)
 				attack_cue.emit(String(sequence),cue_origin,facing)
 				if (enemy_kind == "kobold_summoner") and sequence == &"summon":
 					_spawn_forest_summon()
-				# Check attack damage on player (attack string: no i-frames)
-				if is_instance_valid(target) and target.has_method("take_damage"):
+				elif (enemy_kind == "kobold_archer") and sequence == &"shoot":
+					_shoot_arrow(cue_origin)
+				# Check attack damage on player for melee attacks (attack string: no i-frames)
+				elif is_instance_valid(target) and target.has_method("take_damage"):
 					var attack_box := Rect2(global_position + Vector2(10 if facing > 0 else -60, -SIZES[enemy_kind].y), Vector2(50, SIZES[enemy_kind].y))
 					var target_body := Rect2(target.global_position - Vector2(14, 23), Vector2(28, 46))
 					if attack_box.intersects(target_body):
@@ -328,6 +366,8 @@ func _physics_process(delta: float) -> void:
 
 	var sees_player := false
 	if ai_enabled:
+		if target == null and is_instance_valid(player):
+			target = player
 		sees_player = can_see_target(target)
 		if sees_player and is_instance_valid(target):
 			# If chasing the player outside original patrol bounds, expand bounds so enemy can roam freely
@@ -339,9 +379,10 @@ func _physics_process(delta: float) -> void:
 			if sprite.animation==&"idle" or sprite.animation==&"walk" or sprite.animation==&"run":
 				facing=int(signf(distance)) if absf(distance)>1 else facing
 				var ranged:=enemy_kind=="kobold_archer" or enemy_kind=="kobold_summoner"
-				var attack_dist: float = ATTACK_DISTANCES.get(enemy_kind, 240.0 if ranged else 85.0)
-				if absf(distance) > attack_dist:
-					if is_edge_ahead(facing):
+				var attack_dist: float = ATTACK_DISTANCES.get(enemy_kind, 380.0 if ranged else 85.0)
+				var at_edge := is_edge_ahead(facing)
+				if absf(distance) > attack_dist and not (at_edge and ranged and absf(distance) <= 480.0):
+					if at_edge:
 						velocity.x = 0
 						if sprite.animation != &"idle": play_sequence("idle")
 					else:
@@ -350,7 +391,7 @@ func _physics_process(delta: float) -> void:
 					var attacks: Array=ATTACKS[enemy_kind]
 					play_sequence(attacks[attack_index%attacks.size()])
 					attack_index+=1
-					cooldown=1.4
+					cooldown=1.6 if ranged else 1.4
 				elif sprite.animation!=&"idle": play_sequence("idle")
 		else:
 			# Patrol mode: turn around before exceeding patrol bounds or at walls/edges

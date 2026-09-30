@@ -34,7 +34,7 @@ func return_position() -> Vector2:
 	return owner_actor.global_position
 
 func _physics_process(delta: float) -> void:
-	if is_instance_valid(owner_actor) and (owner_actor.health<=0 or (not friendly and not owner_actor.active)):
+	if is_instance_valid(owner_actor) and ((owner_actor.get("health") != null and owner_actor.health <= 0) or (not friendly and owner_actor.get("active") != null and not owner_actor.active)):
 		queue_free()
 		return
 	elapsed+=delta
@@ -69,6 +69,8 @@ func _physics_process(delta: float) -> void:
 	var ray:=PhysicsRayQueryParameters2D.create(previous+wall_offset,global_position+wall_offset,1)
 	# Wall probes must not consume target contact before swept check
 	var excludes: Array[RID] = []
+	if is_instance_valid(owner_actor) and owner_actor is CollisionObject2D:
+		excludes.append(owner_actor.get_rid())
 	if is_instance_valid(target) and target is CollisionObject2D:
 		excludes.append(target.get_rid())
 	for p in get_tree().get_nodes_in_group("player"):
@@ -105,7 +107,10 @@ func _physics_process(delta: float) -> void:
 			if friendly: candidate.take_hit(damage)
 			elif short_hit_recovery and candidate.has_method("take_arrow_chain_damage"):
 				candidate.take_arrow_chain_damage(damage,previous.x)
-			else: candidate.take_damage(damage,previous.x,true)
+			else:
+				candidate.take_damage(damage,previous.x,false)
+				if not friendly and is_instance_valid(owner_actor) and owner_actor.has_signal("attack_landed"):
+					owner_actor.attack_landed.emit()
 			if return_time<0:
 				queue_free()
 				return
