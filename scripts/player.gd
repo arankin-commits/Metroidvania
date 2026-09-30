@@ -226,7 +226,7 @@ func _tick_weapon_ability(delta: float) -> void:
 	_ability_was_down=down
 
 func _friendly_shot(kind: String,direction: Vector2,amount: float,down:=false) -> void:
-	var shot:=FRIENDLY_PROJECTILE.new()
+	var shot: Node2D = FRIENDLY_PROJECTILE.acquire()
 	shot.kind=kind
 	shot.friendly=true
 	shot.damage=amount*damage_multiplier()

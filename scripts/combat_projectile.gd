@@ -25,6 +25,68 @@ var return_time:=-1.0
 var elapsed:=0.0
 var hit_targets: Array[Node]=[]
 
+static var _pool: Array = []
+const MAX_POOL_SIZE := 48
+
+static func acquire() -> Node2D:
+	var proj: Node2D = null
+	while not _pool.is_empty():
+		var candidate = _pool.pop_back()
+		if is_instance_valid(candidate) and not candidate.is_queued_for_deletion():
+			proj = candidate
+			break
+	if proj == null:
+		var script = load("res://scripts/combat_projectile.gd")
+		proj = script.new()
+	else:
+		proj.reset_state()
+	return proj
+
+static func clear_pool() -> void:
+	for item in _pool:
+		if is_instance_valid(item):
+			item.queue_free()
+	_pool.clear()
+
+func reset_state() -> void:
+	direction = Vector2.RIGHT
+	speed = 520.0
+	damage = 1.0
+	radius = 8.0
+	lifetime = 3.0
+	target = null
+	owner_actor = null
+	kind = "arrow"
+	friendly = false
+	homing_down = false
+	hover_time = 0.0
+	forest_magic = false
+	charged_arrow = false
+	arrow_frame = 0
+	short_hit_recovery = false
+	return_time = -1.0
+	elapsed = 0.0
+	hit_targets.clear()
+	visible = true
+	rotation = 0.0
+	set_physics_process(true)
+	if not is_in_group("combat_projectiles"):
+		add_to_group("combat_projectiles")
+
+func deactivate_and_recycle() -> void:
+	if get_script() == load("res://scripts/combat_projectile.gd") and _pool.size() < MAX_POOL_SIZE and is_inside_tree():
+		set_physics_process(false)
+		visible = false
+		hit_targets.clear()
+		target = null
+		owner_actor = null
+		var p := get_parent()
+		if p != null:
+			p.remove_child(self)
+		_pool.append(self)
+	else:
+		queue_free()
+
 func _ready() -> void:
 	z_index=6
 	rotation=direction.angle()
@@ -35,12 +97,12 @@ func return_position() -> Vector2:
 
 func _physics_process(delta: float) -> void:
 	if is_instance_valid(owner_actor) and ((owner_actor.get("health") != null and owner_actor.health <= 0) or (not friendly and owner_actor.get("active") != null and not owner_actor.active)):
-		queue_free()
+		deactivate_and_recycle()
 		return
 	elapsed+=delta
 	lifetime-=delta
 	if lifetime<=0:
-		queue_free()
+		deactivate_and_recycle()
 		return
 	# Volley arrows telegraph in place before tracking. Use only the part of
 	# this tick after release, so movement never starts before one full second.
@@ -54,7 +116,7 @@ func _physics_process(delta: float) -> void:
 		var destination := return_position()
 		direction=(destination-global_position).normalized()
 		if global_position.distance_to(destination)<25:
-			queue_free()
+			deactivate_and_recycle()
 			return
 	elif homing_down:
 		if is_instance_valid(target):
@@ -80,7 +142,7 @@ func _physics_process(delta: float) -> void:
 	var wall_hit:=get_world_2d().direct_space_state.intersect_ray(ray)
 	if not wall_hit.is_empty():
 		forest_impact(wall_hit.position)
-		queue_free()
+		deactivate_and_recycle()
 		return
 	var candidates: Array[Node]=[]
 	if friendly:
@@ -112,7 +174,7 @@ func _physics_process(delta: float) -> void:
 				if not friendly and is_instance_valid(owner_actor) and owner_actor.has_signal("attack_landed"):
 					owner_actor.attack_landed.emit()
 			if return_time<0:
-				queue_free()
+				deactivate_and_recycle()
 				return
 	rotation=direction.angle()
 	queue_redraw()
