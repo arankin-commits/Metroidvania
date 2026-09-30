@@ -115,7 +115,7 @@ func attack_box() -> Rect2:
 	return Rect2(global_position+local.position,local.size)
 
 func fire(kind: String,damage_amount: float,down:=false) -> Node2D:
-	var shot:=PROJECTILE.new()
+	var shot: Node2D = PROJECTILE.acquire()
 	shot.owner_actor=self
 	shot.target=player
 	shot.kind=kind

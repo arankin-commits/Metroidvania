@@ -1369,6 +1369,61 @@ Acceptance checklist for future room work:
 - **Forest Hand Room (Room 8)**:
   - All enemies removed from the hand chamber before the forest boss, providing a peaceful rest and checkpoint sanctuary.
 
+## Architecture and Performance Guidelines
+
+Established 2026-09-30. Applies to world streaming, combat systems, AI actors, entity logic, rendering pipelines, and game persistence. Root `AGENTS.md` directs future architecture and optimization work here.
+
+### 1. Room-Based Chunking and Dynamic Loading (Map Paging)
+- **World Partitioning**: Instead of loading or running the entire world simulation simultaneously, the world is divided into manageable chunks—individual rooms (e.g., Cave Rooms 1-4, Forest Rooms 5, 7, 8, 9, 10) or sectioned galleries (e.g., Forest Room 6 Sections 1-10).
+- **Proximity Loading & Lifecycle Control**:
+  - The engine tracks the player's active room and coordinates.
+  - Active rooms and their immediate transition boundaries remain active in memory and physics processing.
+  - Rooms and zones that are far away have their entity logic, physics collision layers/masks, and canvas drawing deactivated (`set_active(false)`, disabling physics processing, visibility, and collision masks).
+  - When the player departs a biome or distant chamber (e.g., Cave vs. Forest, or Forest Room 6 vs. Room 8/9/10), unneeded room logic is paused or unloaded to prevent idle CPU cycles.
+- **Seamless Transitions**:
+  - Room transitions stream asynchronously or utilize smooth curtain transitions (`LoadingOverlay`) without hitching, frame drops, or blocking disk I/O.
+  - Border crossings reposition the camera limits, configure active geometry, and wake nearby actors cleanly.
+
+### 2. Object Pooling
+- **Eliminating Garbage Collection Stutter**:
+  - In fast-paced 2D combat and platforming, projectiles (arrows, wind blasts, beams, fist rockets), particle impacts, and frequent spawns generate high allocation turnover.
+  - Continually instantiating (`new()`) and freeing (`queue_free()`) objects forces frequent memory reallocations and engine garbage collection pauses, causing visible micro-stutters.
+- **Pre-allocation and Recycling**:
+  - Dynamic entities, especially projectiles (`CombatProjectile`), utilize object pooling.
+  - When an entity or projectile expires or impacts a surface, it is not freed with `queue_free()`; it is reset, deactivated (`visible = false`, `set_physics_process(false)`), detached from the scene tree, and returned to the pool (`_pool.append(self)`).
+  - When an actor fires a shot, it acquires a recycled instance from the pool (`CombatProjectile.acquire()`), resets its trajectory and damage properties, and adds it back to the scene.
+  - Inactive enemies or recurring summons can similarly be disabled and respawned from pools rather than rebuilt from scratch.
+
+### 3. Off-Screen Culling (Stopping Inactive Logic)
+- **Throttling Inactive Logic**:
+  - Even within an active room or adjacent zone, entities outside the active viewport (or separated by solid walls) must not run full AI, pathfinding, or physics calculations.
+- **Sight & Raycast Culling**:
+  - Sight queries (`can_see_target`), platform edge checks (`is_edge_ahead`), and wall queries involve direct space state raycasts. Off-screen actors (`distance_to_player > 1250 px`) skip line-of-sight raycasts entirely because the player is outside their maximum sight radius (1152 px).
+  - Edge detection query results are cached per physics frame to avoid redundant duplicate raycasts within the same frame.
+- **Physics, AI, and Draw Culling**:
+  - When actors are off-screen:
+    - AI decision loops and edge-turn checks are throttled.
+    - Enemy-to-enemy separation loops (`_apply_enemy_separation`) are bypassed for off-screen actors, eliminating O(N²) group iteration overhead across large encounters.
+    - Player contact damage sweeps (`combat_bounds().intersects(player_bounds)`) are skipped when outside physical reach.
+    - Canvas item redrawing (`queue_redraw()`) for health bars and debug visuals is suppressed while off-screen.
+
+### 4. Layered Rendering and Tilemaps
+- **Batching Draw Calls**:
+  - Individual blocks, platforms, and repetitive decorative elements must not be treated as hundreds of independent draw calls on the GPU.
+  - Static geometry, platforms, and collision slabs are batched and combined into continuous composite polygons or tilemaps sharing single textures and materials.
+- **Depth Hierarchy and Parallax Layers**:
+  - Background layers (`z_index <= -10`), midground structures (`z_index = -5 to 0`), gameplay plane (`z_index = 1 to 5`), and foreground occluders (`z_index >= 10`) are layered cleanly.
+  - Parallax layers shift at distinct scroll speeds without duplicating meshes or triggering unnecessary canvas redraws.
+  - Static scenery elements avoid per-frame script redraws unless an active animated shader or particle effect explicitly requires it.
+
+### 5. Efficient State Management (Persistent Tracking)
+- **Lightweight Dictionaries and Bitfields**:
+  - A Metroidvania world tracks extensive state: visited rooms, discovered caches, defeated bosses, cleared enemy encounters, unlocked shortcuts, and acquired abilities.
+  - Rather than serializing entire node hierarchies or full scene trees into save files, persist state using compact data dictionaries and lightweight primitive sets/bitfields (e.g., array of defeated encounter ID strings `forest_defeated`, boolean flags `has_dash`, `has_bow`, `boss_defeated`, integer levels and coordinates).
+- **Authoritative & Compact Persistence**:
+  - Save files (`save_slot_%d.cfg`) remain small (typically a few kilobytes), load instantly, and prevent save file bloat over long playthroughs.
+  - Loading reconstructs the world state deterministically by querying these flags during room generation.
+
 Use isolated test save roots. Do not mutate the player's real save slots to set up a
 review. Do not treat a headless visibility flag as proof that something renders well.
 

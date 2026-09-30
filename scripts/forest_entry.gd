@@ -313,6 +313,15 @@ func _set_camera() -> void:
 	# Tracking smoothing alone still hard-clamps at the upper gallery's jump apex.
 	camera.limit_smoothed=current_room==6
 	camera.reset_smoothing()
+	if is_instance_valid(arrival): arrival.visible = current_room == 5
+	if is_instance_valid(temple_hand): temple_hand.visible = current_room == 9
+	if is_instance_valid(bow_boss): bow_boss.visible = current_room == 7 and not bow_boss_defeated
+	if is_instance_valid(temple_guardian): temple_guardian.visible = current_room == 10 and not temple_guardian_defeated
+	if is_instance_valid(hand_chair): hand_chair.visible = current_room == 8
+	for r in [7, 8, 10]:
+		var ch := get_node_or_null("ForestChamber%d" % r)
+		if ch != null:
+			ch.visible = current_room == r
 
 func _receiving_position(destination: int,entry_x: float) -> Vector2:
 	if destination==9: return DASH_LAYOUT.HAND

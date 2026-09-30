@@ -207,9 +207,16 @@ func is_facing_wall() -> bool:
 	var n := get_wall_normal()
 	return absf(n.y) < 0.35 and signf(n.x) == -facing
 
+var _edge_cache_frame := -1
+var _edge_cache_dir := 0
+var _edge_cache_val := false
+
 func is_edge_ahead(dir: int) -> bool:
 	if not is_on_floor() or dir == 0:
 		return false
+	var current_frame := Engine.get_physics_frames()
+	if _edge_cache_frame == current_frame and _edge_cache_dir == dir:
+		return _edge_cache_val
 	var size: Vector2 = SIZES.get(enemy_kind, Vector2(30, 56))
 	var half_width: float = size.x * 0.5
 	var probe_x: float = global_position.x + dir * (half_width + 8.0)
@@ -221,12 +228,17 @@ func is_edge_ahead(dir: int) -> bool:
 	query.exclude = [get_rid()]
 	query.hit_from_inside = true
 	var hit := get_world_2d().direct_space_state.intersect_ray(query)
+	var edge := false
 	if hit.is_empty():
-		return true
-	var normal: Vector2 = hit.get("normal", Vector2.UP)
-	if normal.y > -0.35:
-		return true
-	return false
+		edge = true
+	else:
+		var normal: Vector2 = hit.get("normal", Vector2.UP)
+		if normal.y > -0.35:
+			edge = true
+	_edge_cache_frame = current_frame
+	_edge_cache_dir = dir
+	_edge_cache_val = edge
+	return edge
 
 func play_sequence(sequence: StringName, move := false, hold := false) -> void:
 	assert(sprite.sprite_frames.has_animation(sequence))
@@ -274,7 +286,7 @@ func _spawn_forest_summon() -> void:
 		parent.add_child(summon)
 
 func _shoot_arrow(origin: Vector2) -> void:
-	var shot := PROJECTILE.new()
+	var shot: Node2D = PROJECTILE.acquire()
 	shot.owner_actor = self
 	shot.target = target if is_instance_valid(target) else player
 	shot.kind = "arrow"
@@ -342,18 +354,20 @@ func tick_animation(delta: float) -> void:
 
 func _apply_enemy_separation(delta: float) -> void:
 	var my_foot := global_position.y + (0.0 if ground_origin else 17.0)
-	for member in get_tree().get_nodes_in_group("combat_targets"):
+	var targets := get_tree().get_nodes_in_group("combat_targets")
+	for member in targets:
 		if member == self or not is_instance_valid(member) or not (member is CharacterBody2D):
+			continue
+		var dx: float = global_position.x - member.global_position.x
+		if absf(dx) > 60.0:
 			continue
 		var other_foot: float = member.global_position.y + (0.0 if member.get("ground_origin") == true else 17.0)
 		if absf(my_foot - other_foot) > 50.0:
 			continue
-		var dx: float = global_position.x - member.global_position.x
 		var min_dist := 55.0
-		if absf(dx) < min_dist:
-			var push_dir: float = 1.0 if dx > 0 else (-1.0 if dx < 0 else (1.0 if get_instance_id() > member.get_instance_id() else -1.0))
-			var force: float = (min_dist - absf(dx)) / min_dist
-			velocity.x += push_dir * force * 140.0 * delta * 60.0
+		var push_dir: float = 1.0 if dx > 0 else (-1.0 if dx < 0 else (1.0 if get_instance_id() > member.get_instance_id() else -1.0))
+		var force: float = (min_dist - absf(dx)) / min_dist
+		velocity.x += push_dir * force * 140.0 * delta * 60.0
 
 func _physics_process(delta: float) -> void:
 	cooldown=maxf(0,cooldown-delta)
@@ -364,11 +378,19 @@ func _physics_process(delta: float) -> void:
 		jump_pending=false
 		velocity=Vector2(facing*110,-260)
 
+	var p: Node2D = target if is_instance_valid(target) else player
+	var is_off_screen := false
+	if is_instance_valid(p):
+		var dx := absf(global_position.x - p.global_position.x)
+		var dy := absf(global_position.y - p.global_position.y)
+		is_off_screen = dx > 1250.0 or dy > 750.0
+
 	var sees_player := false
 	if ai_enabled:
 		if target == null and is_instance_valid(player):
 			target = player
-		sees_player = can_see_target(target)
+		if not is_off_screen:
+			sees_player = can_see_target(target)
 		if sees_player and is_instance_valid(target):
 			# If chasing the player outside original patrol bounds, expand bounds so enemy can roam freely
 			if patrol_bounds.x != -INF and position.x < patrol_bounds.x:
@@ -420,11 +442,12 @@ func _physics_process(delta: float) -> void:
 	elif sprite.animation!=&"jump_attack": velocity.x=move_toward(velocity.x,0,700*delta)
 	velocity.y+=(1300.0 if sprite.animation==&"jump_attack" else 900.0)*delta
 
-	_apply_enemy_separation(delta)
+	if not is_off_screen:
+		_apply_enemy_separation(delta)
 	move_and_slide()
 
 	# Contact damage with player (preserves player i-frames)
-	if is_instance_valid(target) and hit_cooldown <= 0 and spawn_grace <= 0 and target.has_method("take_damage"):
+	if not is_off_screen and is_instance_valid(target) and hit_cooldown <= 0 and spawn_grace <= 0 and target.has_method("take_damage"):
 		var my_bounds := combat_bounds()
 		var player_bounds := Rect2(target.global_position - Vector2(14, 23), Vector2(28, 46))
 		if my_bounds.intersects(player_bounds):
@@ -435,7 +458,8 @@ func _physics_process(delta: float) -> void:
 			hit_cooldown = 0.8
 
 	tick_animation(delta)
-	queue_redraw()
+	if not is_off_screen:
+		queue_redraw()
 
 func _draw() -> void:
 	if health > 0 and ai_enabled:
