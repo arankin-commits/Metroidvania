@@ -68,6 +68,7 @@ var facing := -1
 var step_timer := 0.0
 var jump_timer := 0.0
 var pounce_timer := 0.0
+var pounce_damage_applied := false
 var climb_timer := 0.0
 var telegraph_timer := 0.0
 var is_telegraphing := false
@@ -141,6 +142,7 @@ func _physics_process(delta: float) -> void:
 		if not is_on_floor():
 			velocity.y += gravity * delta
 			movement_state = MovementState.DESCENDING if velocity.y > 0.0 else MovementState.ASCENDING
+		_apply_pounce_damage()
 		update_visual_state()
 		move_and_slide()
 		pounce_timer = maxf(0.0, pounce_timer - delta)
@@ -238,6 +240,7 @@ func _begin_telegraph(to_player: Vector2) -> void:
 
 func _begin_pounce(to_player: Vector2) -> void:
 	pounce_timer = 1.1
+	pounce_damage_applied = false
 	action_state = ActionState.POUNCE
 	movement_state = MovementState.ASCENDING
 	visual_state = VisualState.POUNCE
@@ -251,6 +254,14 @@ func _begin_pounce(to_player: Vector2) -> void:
 	is_telegraphing = false
 	telegraph_timer = 0.0
 	queue_redraw()
+
+func _apply_pounce_damage() -> void:
+	if pounce_damage_applied or not is_instance_valid(player):
+		return
+	var player_bounds := Rect2(player.global_position - Vector2(14.0, 23.0), Vector2(28.0, 46.0))
+	if combat_bounds().intersects(player_bounds) and player.has_method("take_damage"):
+		player.call("take_damage", 1.0, global_position.x)
+		pounce_damage_applied = true
 
 func _find_climb_target() -> Node2D:
 	if climb_cooldown > 0.0:
