@@ -697,6 +697,7 @@ func _on_boss_defeated() -> void:
 	_spawn_will_orb(boss.global_position, 50)
 	player.has_heavy = true
 	_show_toast("HEAVY ATTACK UNLOCKED - Hold H, release when charged", 4.0)
+	artificer_rescued = true
 	_save_progress()
 	queue_redraw()
 
