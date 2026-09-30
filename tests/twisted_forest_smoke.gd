@@ -31,7 +31,7 @@ func _run() -> void:
 	if not forest.bow_boss.active or not is_instance_valid(forest.arena_entrance) or not is_instance_valid(forest.arena_exit):
 		_fail("The Bow Hunter did not start in Forest Room 3 (room=%d, active=%s, entrance=%s, exit=%s)" % [forest.current_room, forest.bow_boss.active, is_instance_valid(forest.arena_entrance), is_instance_valid(forest.arena_exit)])
 		return
-	forest.bow_boss.take_hit(10.0)
+	forest.bow_boss.take_hit(forest.bow_boss.health)
 	await process_frame
 	if not forest.bow_boss_defeated or not forest.player.has_bow or forest.player.bow_ammo != 3 or is_instance_valid(forest.arena_exit):
 		_fail("The Bow Hunter did not grant the bow and unlock the room")

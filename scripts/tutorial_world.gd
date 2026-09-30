@@ -116,6 +116,7 @@ var gallery: Node2D
 var gallery_encounters: Node2D
 var gallery_defeated: Array = []
 var legacy_bodies: Array[StaticBody2D] = []
+var enemy_blockers: Array[StaticBody2D] = []
 var gallery_west_open := false
 var gallery_east_open := false
 var gallery_heavy_open := false
@@ -360,7 +361,7 @@ func _mark_room_visited(room: int) -> void:
 
 func _completed_rooms() -> Array[int]:
 	var completed: Array[int] = []
-	if visited_rooms.has(1):
+	if visited_rooms.has(1) and watch_cache_found:
 		completed.append(1)
 	if visited_rooms.has(2) and secret_found and gallery_cache_found:
 		completed.append(2)
@@ -391,6 +392,16 @@ func _make_solid(rect: Rect2, one_way: bool = false) -> StaticBody2D:
 	body.add_child(collision)
 	add_child(body)
 	legacy_bodies.append(body)
+	if one_way:
+		var enemy_body := StaticBody2D.new()
+		enemy_body.position = body.position
+		enemy_body.collision_layer = 4
+		enemy_body.collision_mask = 0
+		var enemy_col := CollisionShape2D.new()
+		enemy_col.shape = shape
+		enemy_body.add_child(enemy_col)
+		add_child(enemy_body)
+		enemy_blockers.append(enemy_body)
 	return body
 
 func _add_shortcut_bridge() -> void:
@@ -545,6 +556,10 @@ func _set_camera_room() -> void:
 		if is_instance_valid(body) and not body.is_queued_for_deletion():
 			body.collision_layer = 0 if in_gallery else 1
 			body.collision_mask = 0 if in_gallery else 1
+	for blocker in enemy_blockers:
+		if is_instance_valid(blocker) and not blocker.is_queued_for_deletion():
+			blocker.collision_layer = 0 if in_gallery else 4
+			blocker.collision_mask = 0
 	for backdrop in room_backgrounds:
 		backdrop.visible = backdrop == room_backgrounds[current_room - 1]
 	hand_chair.visible = not in_gallery
@@ -560,7 +575,8 @@ func _set_gallery_enemies_active(active: bool) -> void:
 		scout.patrol_bounds = Vector2(3450, 3620)
 		scout.awareness_height = 80
 		scout.visible = active
-		scout.collision_layer = 1 if active else 0
+		scout.collision_layer = 2 if active else 0
+		scout.collision_mask = 5 if active else 0
 		scout.set_physics_process(active)
 	if is_instance_valid(ledge_sentinel) and not ledge_sentinel.is_queued_for_deletion():
 		ledge_sentinel.visible = active
@@ -854,6 +870,10 @@ func _respawn_regular_enemies() -> void:
 	if is_instance_valid(ledge_sentinel) and not ledge_sentinel.is_queued_for_deletion():
 		ledge_sentinel.health = ledge_sentinel.max_health
 		ledge_sentinel.hit_cooldown = 0.0
+		ledge_sentinel.is_asleep = true
+		ledge_sentinel.time_since_last_seen = 0.0
+		if is_instance_valid(ledge_sentinel.sprite):
+			ledge_sentinel.sprite.play("sleep")
 		ledge_sentinel.queue_redraw()
 	else:
 		ledge_sentinel = LEDGE_SENTINEL.new()
@@ -997,6 +1017,7 @@ func _update_hud() -> void:
 	hud.has_bow = player.has_bow
 	hud.bow_ammo = player.bow_ammo
 	hud.boss_health = boss.health if boss.active and not boss_defeated else 0
+	hud.boss_max_health = int(boss.max_health)
 	hud.boss_title = "GOBLIN SCIMITAR LORD"
 	hud.finished = complete
 	hud.prompt = _cave_prompt() if not note_open and not respawning and not transitioning_room else ""

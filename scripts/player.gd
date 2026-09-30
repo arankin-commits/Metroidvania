@@ -13,6 +13,7 @@ signal jumped
 signal wake_finished
 
 const SPEED := 255.0
+const WALK_SPEED := SPEED * 0.5
 const HEAVY_CHARGE_SPEED_MULTIPLIER := 0.5
 const GRAVITY := 1250.0
 const JUMP_SPEED := -500.0
@@ -437,13 +438,13 @@ func _physics_process(delta: float) -> void:
 			direction = float(Input.is_physical_key_pressed(KEY_D) or Input.is_physical_key_pressed(KEY_RIGHT)) - float(Input.is_physical_key_pressed(KEY_A) or Input.is_physical_key_pressed(KEY_LEFT))
 		if direction != 0.0:
 			facing = 1 if direction > 0 else -1
-		var movement_speed := SPEED * HEAVY_CHARGE_SPEED_MULTIPLIER if heavy_charge > 0.0 else SPEED
+		var is_walking := controls_enabled and (is_injured or Input.is_physical_key_pressed(KEY_C) or Input.is_physical_key_pressed(KEY_CTRL) or Input.is_physical_key_pressed(KEY_ALT))
+		var target_speed := WALK_SPEED if is_walking else SPEED
+		var movement_speed := target_speed * HEAVY_CHARGE_SPEED_MULTIPLIER if heavy_charge > 0.0 else target_speed
 		velocity.x = move_toward(velocity.x, direction * movement_speed, 1700.0 * delta)
-		if heavy_charge > 0.0:
+		if heavy_charge > 0.0 or is_walking:
 			velocity.x = clampf(velocity.x, -movement_speed, movement_speed)
 		velocity.y += GRAVITY * delta
-		if not jump_down and velocity.y < MIN_JUMP_SPEED:
-			velocity.y = MIN_JUMP_SPEED
 		if jump_buffer > 0.0 and coyote_time > 0.0:
 			velocity.y = JUMP_SPEED
 			jumped.emit()
@@ -503,14 +504,13 @@ func _try_grab_ledge() -> void:
 
 func take_arrow_chain_damage(amount: float, from_x: float) -> void:
 	var before:=health
-	take_damage(amount,from_x)
+	take_damage(amount,from_x,true)
 	if health<before:
-		# Only rapid-fire and hostile Flipping Volley use this response.
-		# No launch: standing in the firing lane can take the whole sequence.
-		invulnerability=.1
+		# Rapid-fire and hostile Flipping Volley sequence
+		invulnerability=0.0
 		velocity=Vector2.ZERO
 
-func take_damage(amount: float, from_x: float) -> void:
+func take_damage(amount: float, from_x: float, is_attack: bool = false) -> void:
 	if heal_time > 0.0 and amount > 0:
 		heal_time = 0.0
 		queue_redraw()
@@ -526,8 +526,12 @@ func take_damage(amount: float, from_x: float) -> void:
 	ledge_grabbed = false
 	ledge_climb_time = 0.0
 	damaged.emit()
-	invulnerability = 1.0
-	velocity = Vector2(260.0 if global_position.x > from_x else -260.0, -260.0)
+	if is_attack:
+		invulnerability = 0.0
+		velocity = Vector2.ZERO
+	else:
+		invulnerability = 0.8
+		velocity = Vector2(260.0 if global_position.x > from_x else -260.0, -260.0)
 	if health <= 0:
 		died.emit()
 	queue_redraw()

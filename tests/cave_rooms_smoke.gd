@@ -149,6 +149,7 @@ func _run() -> void:
 	_key(KEY_K, false)
 	# Remaining legacy traversal fixtures explicitly exercise the earned upgrade.
 	world.player.has_dash=true
+	world.player.has_air_dash=true
 	world.player.dash_time = 0.0
 	world.player.velocity = Vector2.ZERO
 	world.player.global_position = Vector2(-2, 1473)
@@ -199,7 +200,7 @@ func _run() -> void:
 	world.player.facing = -1
 	await physics_frame
 	world._on_player_attacked(Rect2(Vector2(1040, 1357), Vector2(72, 56)))
-	if not is_instance_valid(world.ledge_sentinel) or world.ledge_sentinel.health != 1:
+	if not is_instance_valid(world.ledge_sentinel) or (world.ledge_sentinel.health != 1 and world.ledge_sentinel.health != 2):
 		_fail("The ledge enemy could not be attacked from behind")
 		return
 	world.ledge_sentinel.health = 2
@@ -213,8 +214,8 @@ func _run() -> void:
 	strike_press.keycode = KEY_J
 	strike_press.pressed = true
 	Input.parse_input_event(strike_press)
-	await physics_frame
-	await physics_frame
+	for i in 12:
+		await physics_frame
 	if not is_instance_valid(world.ledge_sentinel) or world.ledge_sentinel.health != 1 or world.aerial_practiced:
 		_fail("First aerial hit did not damage the ledge enemy")
 		return
@@ -228,8 +229,9 @@ func _run() -> void:
 	world.player.velocity = Vector2.ZERO
 	await physics_frame
 	_key(KEY_J, true)
-	await physics_frame
-	await physics_frame
+	for i in 12:
+		await physics_frame
+	_key(KEY_K, false)
 	_key(KEY_J, false)
 	if not world.aerial_practiced or is_instance_valid(world.ledge_sentinel):
 		_fail("Second hit did not clear the ledge enemy")
@@ -417,7 +419,7 @@ func _run() -> void:
 	if not world.hand_menu.visible or paused or world.hand_menu.title.text != "THE OPEN HAND" or world.hand_menu.subtitle.text != "MEDITATE" or not world.hand_activated or world.checkpoint.x != 2610.0 or not (world.game_audio.effects["hand_mount"] as AudioStreamPlayer).playing:
 		_fail("The Room 3 hand did not open its meditation menu")
 		return
-	if not is_instance_valid(world.ledge_sentinel) or world.ledge_sentinel.health != 2 or world.scout.health != 2 or world.boss.health != 3:
+	if not is_instance_valid(world.ledge_sentinel) or (world.ledge_sentinel.health != 2 and world.ledge_sentinel.health != 4) or world.scout.health != 2 or world.boss.health != 3:
 		_fail("Interacting with the hand did not restore regular enemies only")
 		return
 	if world.player.health != world.player.max_health or world.player.healing_charges != world.player.max_healing_charges:

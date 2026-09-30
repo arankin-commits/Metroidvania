@@ -38,6 +38,8 @@ const HAND_ART = preload("res://assets/hand_chair.png")
 const HUNTER = preload("res://scripts/bow_boss.gd")
 const ARROW = preload("res://scripts/bow_arrow.gd")
 const SCOUT = preload("res://scripts/scout.gd")
+const WILL_ORB = preload("res://scripts/will_orb.gd")
+const FOREST_ENCOUNTERS = preload("res://scripts/forest_encounters.gd")
 const WORLD_LAYOUT = preload("res://scripts/forest_world_layout.gd")
 const BOUNDS = WORLD_LAYOUT.BOUNDS
 const HAND_X = WORLD_LAYOUT.HAND_X
@@ -88,6 +90,8 @@ var forest_stepped_gallery: Node2D
 var forest_elevated_gallery: Node2D
 var forest_return_gallery: Node2D
 var forest_split_hall: Node2D
+var forest_encounters: Node2D
+var forest_defeated: Array = []
 
 func _ready() -> void:
 	game_audio = AUDIO.new()
@@ -107,6 +111,7 @@ func _ready() -> void:
 		temple_hand_activated = bool(saved_data.get("temple_hand_activated", false))
 		temple_guardian_defeated=bool(saved_data.get("temple_guardian_defeated",false))
 		last_hand_room = int(saved_data.get("last_hand_room", 8 if forest_hand_activated else 3 if bool(saved_data.get("hand_activated", false)) else 2))
+		forest_defeated.assign(saved_data.get("forest_defeated", []))
 		if str(saved_data.get("area", "")) == "The Twisted Forest":
 			current_room = clampi(int(saved_data.get("room", 5)), 5, 10)
 	if get_tree().has_meta("forest_entry_room"):
@@ -137,6 +142,9 @@ func _ready() -> void:
 	add_child(temple_hand)
 	forest_final_stair=FINAL_STAIR.new()
 	add_child(forest_final_stair)
+	forest_encounters = FOREST_ENCOUNTERS.new()
+	forest_encounters.world = self
+	add_child(forest_encounters)
 	for config in [[7,preload("res://assets/forest_bow_arena_environment.png"),606.0],[8,preload("res://assets/forest_boss_hand_environment.png"),657.0],[10,preload("res://assets/forest_temple_guardian_environment.png"),634.0]]:
 		var chamber:=CHAMBER.new()
 		chamber.name="ForestChamber%d"%config[0]
@@ -185,15 +193,6 @@ func _ready() -> void:
 	temple_guardian.defeated.connect(_on_guardian_defeated)
 	temple_guardian.attack_cued.connect(func(_cue: String) -> void: game_audio.play_effect("enemy_attack"))
 	temple_guardian.visible=not temple_guardian_defeated
-	for x in [BOUNDS[3].x+1050, BOUNDS[3].x+1250]:
-		var scout := SCOUT.new()
-		scout.position = Vector2(x, 579)
-		scout.player = null
-		scout.collision_layer=2
-		scout.patrol_bounds=Vector2(x-40,x+40)
-		add_child(scout)
-		scout.attack_landed.connect(func() -> void: game_audio.play_effect("enemy_attack"))
-		training_scouts.append(scout)
 	hand_chair = Sprite2D.new()
 	hand_chair.texture = HAND_ART
 	hand_chair.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
@@ -290,6 +289,8 @@ func _change_room(destination: int, entry_x: float) -> void:
 		return
 	current_room = destination
 	_mark_room_visited(current_room)
+	if is_instance_valid(forest_encounters):
+		forest_encounters.set_active(current_room == 6)
 	player.global_position = Vector2(entry_x,570) if destination in [9,10] else _receiving_position(destination,entry_x)
 	player.reset_movement_state()
 	_set_camera()
@@ -414,6 +415,8 @@ func _leave_temple_hand() -> void:
 	await loading_overlay.cover_room()
 	if death_pending: return
 	current_room=6
+	if is_instance_valid(forest_encounters):
+		forest_encounters.set_active(true)
 	player.position=DASH_LAYOUT.PORTAL
 	_set_camera()
 	_save_progress()
@@ -423,6 +426,8 @@ func _leave_temple_hand() -> void:
 	player.controls_enabled=true
 
 func _on_attack(hitbox: Rect2) -> void:
+	if is_instance_valid(forest_encounters):
+		forest_encounters.strike(hitbox, 1.0 * player.damage_multiplier())
 	for enemy in get_tree().get_nodes_in_group("forest_boss_summons"):
 		if is_instance_valid(enemy) and not enemy.is_queued_for_deletion() and hitbox.intersects(enemy.combat_bounds()): enemy.take_hit(player.damage_multiplier())
 	game_audio.play_effect("attack")
@@ -434,6 +439,8 @@ func _on_attack(hitbox: Rect2) -> void:
 			scout.take_hit(1.0*player.damage_multiplier())
 
 func _on_heavy(hitbox: Rect2) -> void:
+	if is_instance_valid(forest_encounters):
+		forest_encounters.strike(hitbox, 1.5 * player.damage_multiplier())
 	for enemy in get_tree().get_nodes_in_group("forest_boss_summons"):
 		if is_instance_valid(enemy) and not enemy.is_queued_for_deletion() and hitbox.intersects(enemy.combat_bounds()): enemy.take_hit(1.5*player.damage_multiplier())
 	if current_room==10 and temple_guardian.active and hitbox.intersects(temple_guardian.combat_bounds()): temple_guardian.take_hit(1.5*player.damage_multiplier())
@@ -448,6 +455,10 @@ func _on_bow(origin: Vector2, direction: Vector2) -> void:
 		_show_toast("Good shot. Meditate at the hand to refill arrows.", 3.0)
 		_save_progress()
 	var target: Node = null
+	if is_instance_valid(forest_encounters):
+		for enemy in forest_encounters.targets():
+			if is_instance_valid(enemy) and not enemy.is_queued_for_deletion() and (target == null or origin.distance_to(enemy.global_position) < origin.distance_to(target.global_position)):
+				target = enemy
 	for scout in training_scouts:
 		if is_instance_valid(scout) and not scout.is_queued_for_deletion() and (target == null or origin.distance_to(scout.global_position) < origin.distance_to(target.global_position)):
 			target = scout
@@ -509,6 +520,9 @@ func _on_death() -> void:
 	player.controls_enabled = true
 	death_pending = false
 	transitioning = false
+	if is_instance_valid(forest_encounters):
+		forest_encounters.reset_at_hand()
+		forest_encounters.set_active(current_room == 6)
 	_save_progress()
 
 func activate_hand() -> void:
@@ -524,6 +538,21 @@ func activate_hand() -> void:
 	player.healing_charges = player.max_healing_charges
 	if player.has_bow:
 		player.bow_ammo = player.BOW_AMMO_MAX
+	if is_instance_valid(forest_encounters):
+		forest_encounters.reset_at_hand()
+		forest_encounters.set_active(current_room == 6)
+
+func _spawn_will_orb(origin: Vector2, amount: int) -> void:
+	var orb := WILL_ORB.new()
+	orb.amount = amount
+	orb.target = player
+	orb.collected.connect(_on_will_collected)
+	add_child(orb)
+	orb.global_position = origin
+
+func _on_will_collected(amount: int) -> void:
+	will_amount += amount
+	_save_progress()
 
 func save_at_hand() -> void:
 	activate_hand()
@@ -565,6 +594,8 @@ func fast_travel_to_hand(destination: Dictionary) -> void:
 			return
 		current_room = 9
 		_mark_room_visited(current_room)
+		if is_instance_valid(forest_encounters):
+			forest_encounters.set_active(false)
 		player.global_position = DASH_LAYOUT.HAND
 		player.reset_movement_state()
 		_set_camera()
@@ -583,6 +614,8 @@ func fast_travel_to_hand(destination: Dictionary) -> void:
 			return
 		current_room = 8
 		_mark_room_visited(current_room)
+		if is_instance_valid(forest_encounters):
+			forest_encounters.set_active(false)
 		player.global_position = Vector2(HAND_X, 570)
 		player.reset_movement_state()
 		_set_camera()
@@ -672,6 +705,7 @@ func _save_progress() -> void:
 	data["temple_hand_activated"] = temple_hand_activated
 	data["temple_guardian_defeated"] = temple_guardian_defeated
 	data["last_hand_room"] = last_hand_room
+	data["forest_defeated"] = forest_defeated.duplicate()
 	data["visited_rooms"] = visited_rooms.duplicate()
 	var result: Error = SLOTS.write_slot(active_save_slot, data, save_root)
 	if result != OK:

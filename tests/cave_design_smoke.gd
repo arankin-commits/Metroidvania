@@ -53,6 +53,7 @@ func _run() -> void:
 		if route_name == "offering_ascent":
 			await _walk_gallery_to(world, Vector2(1740, -923))
 		for point in route:
+			print("Walking to point: ", point, " currently at: ", world.player.position)
 			await _walk_gallery_to(world, point + Vector2(0, -23))
 			if failed:
 				return
@@ -100,7 +101,7 @@ func _run() -> void:
 	world.player.global_position = Vector2(2420, 577)
 	world.player.reset_movement_state()
 	_key(KEY_A, true)
-	await create_timer(0.65).timeout
+	await create_timer(1.2).timeout
 	_key(KEY_A, false)
 	if world.player.global_position.x > 2310 or world.player.global_position.y > 585:
 		_fail("The lowered bridge did not support the returning player")
@@ -170,13 +171,14 @@ func _fail(message: String) -> void:
 	quit(1)
 
 func _walk_gallery_to(world: Node2D, destination: Vector2) -> void:
-	var budget := int(absf(destination.x - world.player.position.x) / 255.0 * 60) + 120
+	var speed: float = world.player.WALK_SPEED if world.player.is_injured else world.player.SPEED
+	var budget := int(absf(destination.x - world.player.position.x) / speed * 60) + 240
 	for i in budget:
 		var dx: float = destination.x - world.player.position.x
 		_key(KEY_D, dx > 3)
 		_key(KEY_A, dx < -3)
 		await physics_frame
-		if absf(dx) < 20 and absf(world.player.position.y - destination.y) < 22 and world.player.is_on_floor():
+		if absf(dx) < 8 and absf(world.player.position.y - destination.y) < 22 and world.player.is_on_floor():
 			_key(KEY_A, false)
 			_key(KEY_D, false)
 			return

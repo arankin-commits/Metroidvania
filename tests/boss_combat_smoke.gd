@@ -179,12 +179,12 @@ func run() -> void:
 	shield_target.begin_attack("fire")
 	player.position=Vector2(1000,577); player.invulnerability=100; player.ability_cooldown=0
 	key(KEY_U,true); await frames(2); key(KEY_U,false); await frames(45)
-	if shield_target.health!=6: fail("Player beam penetrated guardian charge protection"); return
+	if shield_target.health!=shield_target.max_health: fail("Player beam penetrated guardian charge protection"); return
 	await finish_attack(shield_target)
 	shield_target.state_time=100
 	player.wrath_time=4; player.ability_cooldown=0
 	key(KEY_U,true); await frames(2); key(KEY_U,false); await frames(45)
-	if not is_equal_approx(shield_target.health,4.75): fail("Wrath does not increase actual friendly projectile damage"); return
+	if not is_equal_approx(shield_target.health,shield_target.max_health-1.25): fail("Wrath does not increase actual friendly projectile damage"); return
 	shield_target.active=false; shield_target.queue_free(); clear_shots(); await frames(2)
 	player.wrath_time=0; player.ability_cooldown=0; player.equipped_weapon="bow"; player.bow_ammo=3
 	key(KEY_U,true); await frames(2); key(KEY_U,false)
@@ -211,6 +211,7 @@ func persistence() -> void:
 	var cave:=current_scene
 	if cave.player.has_dash: fail("Cave grants early enhanced dash"); return
 	# Existing Refuge basin ledges provide a normal-jump crossing; no geometry edit.
+	cave.player.set_injured(false)
 	cave.current_room=3
 	cave.player.position=Vector2(2135,447)
 	cave.player.reset_movement_state()

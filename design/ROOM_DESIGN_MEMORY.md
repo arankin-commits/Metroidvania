@@ -53,13 +53,32 @@ solid, non-drop-through terrain. Yellow marks identify breakable terrain; determ
 the required ability from the room brief rather than assuming every gate uses the
 same attack. White marks require entrance interaction, not merely background art.
 
-Forest Room 2's supplied appearance references and full layout are preserved in
+The user's X marks are an explicit initial enemy spawn key:
+
+| X mark color | Enemy type |
+| --- | --- |
+| Blue X | Kobold Archer |
+| Green X | Goblin |
+| Yellow X | Goblin Dog |
+| Purple X | Kobold Clubber |
+| White X | Kobold Summoner |
+| Red X | Goblin Elite |
+
+The position of the X is where the initial spawn point is, ensuring actors touch the ground.
+Enemies can travel anywhere the player can walk/run (including up/down slopes and across platforms),
+except they cannot jump or drop through. Enemies do not have spawn areas they cannot leave,
+and never teleport unless explicitly stated as an ability.
+
+Cave Room 2's enemy spawn references are preserved in [references/cave-room2](references/cave-room2/README.md),
+copied from `C:\NCAT\metroid\CAve room 2`.
+Forest Room 2's supplied appearance and enemy spawn references and full layout are preserved in
 [references/forest-room2](references/forest-room2/README.md), copied from
 `C:\NCAT\metroid\forest room 2`. Consult `Layout.png` and the appropriate section
 images together before planning or implementing a section. Preserve the split
 references for Sections 8, 9 and 10. The bugfix screenshot folder is excluded.
 These references describe the intended room; copying them does not implement or
 approve additional sections beyond the user's authorized work.
+
 
 ## What the original caves were missing
 
@@ -587,25 +606,30 @@ strips. Interior galleries are 32 px thick; solid slopes are 64 px thick. Distin
 chamber floors and ceilings bound lower passages, with suspended stone used deliberately
 in the chain well and upper galleries. No movement ability or enemy type was added.
 
-Room 2 now has **19 enemies: the two established enemies plus 17 placements**:
+Room 2 has **29 enemies: 9 stationary sleeping goblins and 20 moving patrol enemies across 8 roving zones**:
 
-| Combat zone | Rhythm and terrain |
-| --- | --- |
-| Broken Balcony | Existing stationary sentinel; safe initial jump and entrance |
-| Chain Well | Two separate sentinels at the ascent landing and branching junction |
-| Western Memorial | Scout on the approach, sentinel on the lower return; quiet Sigil niche |
-| Offering Galleries | Lower scout approach; quiet reward platform; upper sentinel threshold |
-| Crown Passage | Two spaced scouts on a broad plateau; pressure from either approach |
-| Eastern Overlook | Sentinel before descending; clear stair and shaft landings |
-| Drop Bay | Scout before the drop; an empty shaft and safe landing |
-| Undercroft | Existing scout plus a lower patrol, split between vertical levels |
-| Fallen Slabs | Guard/patrol pair, deeper patrol and a separate western return guard |
-| Shortcut approaches | West winch approach guard and eastern ascent guard; clear controls/doors |
+| Combat zone | Rhythm and terrain | Composition |
+| --- | --- | --- |
+| Broken Balcony | Sleeping sentinel on the balcony ledge; safe initial jump and entrance | 1 sleeping goblin |
+| Chain Well | Two sleeping sentinels at the ascent landing and branching junction | 2 sleeping goblins |
+| Western Memorial | Moving patrol approach; sleeping sentinel on the lower return; quiet Sigil niche | 1 goblin + 1 goblin dog, 1 sleeping goblin |
+| Offering Galleries | Moving patrol approach; quiet reward platform; upper sleeping sentinel threshold | 1 goblin + 1 goblin dog, 1 sleeping goblin |
+| Crown Passage | Two spaced multi-enemy patrols on a broad plateau; pressure from either approach | West: 1 goblin + 2 goblin dogs; East: 2 goblins + 1 goblin dog |
+| Eastern Overlook | Sleeping sentinel before descending; clear stair and shaft landings | 1 sleeping goblin |
+| Drop Bay | Moving patrol before the drop; an empty shaft and safe landing | 1 goblin + 1 goblin dog |
+| Undercroft | Foundation patrol centered on flat stone (x=2835, y=1029) away from the west slope | 1 goblin + 1 goblin dog |
+| Fallen Slabs | Guard/patrol pair, deeper patrol and a separate western return guard | Slabs patrol: 1 goblin + 2 goblin dogs; Deep patrol: 2 goblins + 1 goblin dog; 2 sleeping sentinels |
+| Shortcut approaches | West winch approach guard and eastern ascent guard; clear controls/doors | 2 sleeping goblins |
 
-Scouts use authored patrol limits and 80 px vertical awareness; other scouts retain
-existing defaults. All regular encounters are scoped to Room 2. They use the existing
-5-Will defeat reward and hand-rest respawn behavior. No enemy occupies the Sigil,
-offering, transition receiving zone or shaft landing.
+The 8 moving patrol encounters use a permanent authored distribution across all runs and saves:
+- 50% (4 encounters): 1 goblin + 1 goblin dog (`MemorialPatrol`, `OfferingApproach`, `DropApproach`, `FoundationPatrol`).
+- 25% (2 encounters): 1 goblin + 2 goblin dogs (`CrownPatrolWest`, `FallenPatrol`).
+- 25% (2 encounters): 2 goblins + 1 goblin dog (`CrownPatrolEast`, `DeepPatrol`).
+All stationary enemies in Room 2 are sleeping goblins (`ledge_sentinel.gd` playing `"sleep"` from `goblin.tres`).
+Multi-enemy actors use `collision_layer = 2` and `collision_mask = 1` so pack members navigate terrain independently
+without shoving each other off ledges or breaking floor contact. All regular encounters are scoped to Room 2,
+yielding 5 Will upon defeat and respawning at a hand rest independently of collected rewards. No enemy occupies
+the Sigil, offering, transition receiving zone or shaft landing.
 
 `assets/split_gallery_background.png` is one continuous unique 1536x1024 composition,
 shown once over the full room extent. It was created with the built-in imagegen tool,
@@ -1323,5 +1347,28 @@ Acceptance checklist for future room work:
 - Update this memory, the room description and map completion rules together.
 - Rebuild `docs/` when delivering an updated local web build; publication is separate.
 
+### Combat, Movement, AI, and Balance Overhaul (2026-09-30)
+
+- **Walking Speed**: Walking is authored at 50% slower than running (`const WALK_SPEED := SPEED * 0.5` = 127.5 px/s
+  for the player; 57.5 px/s for regular reference enemies). Walking is engaged via modifier keys (`KEY_C`, `KEY_CTRL`, `KEY_ALT`).
+  The player's injured state displays injured walk animations while preserving jump clearance velocity for Room 3 traversal.
+- **I-Frames Discrimination (Contact vs Attack Damage)**:
+  - Bumping or colliding with an enemy body deals contact damage and retains normal player invulnerability (`invulnerability = 0.8`)
+    along with horizontal knockback.
+  - Active attacks, projectile strikes, and boss weapons deal attack damage with `is_attack = true`, removing player
+    invulnerability (`invulnerability = 0.0`) and zeroing player velocity, allowing stringed attack combos to land sequentially.
+- **Regular Enemy & Boss Summon AI (Excludes Bosses)**:
+  - Sight cones span the entire width of the playable screen (1152 px). Direct space state raycasting checks line of sight
+    against static terrain (`collision_mask = 1`), blocking detection through solid walls and platforms while allowing line
+    of sight through one-way pass-through shelves.
+  - Platform edge detection: actors cast downward probes ahead of their feet (`is_edge_ahead`) to prevent walking off platform
+    edges during patrol and pursuit. Bosses retain their authored combat behaviors without sight cone or ledge changes.
+- **Boss and Summon Health Multipliers**:
+  - Boss health increased 5x: Cave Goblin (`health = 40.0`), Forest Hunter (`health = 50.0`), Temple Guardian (`health = 30.0`).
+  - Forest Boss Summon health increased 3x: Forest Guardian Spirit (`health = 6.0`).
+- **Forest Hand Room (Room 8)**:
+  - All enemies removed from the hand chamber before the forest boss, providing a peaceful rest and checkpoint sanctuary.
+
 Use isolated test save roots. Do not mutate the player's real save slots to set up a
 review. Do not treat a headless visibility flag as proof that something renders well.
+

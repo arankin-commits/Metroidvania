@@ -105,7 +105,7 @@ func _physics_process(delta: float) -> void:
 			if friendly: candidate.take_hit(damage)
 			elif short_hit_recovery and candidate.has_method("take_arrow_chain_damage"):
 				candidate.take_arrow_chain_damage(damage,previous.x)
-			else: candidate.take_damage(damage,previous.x)
+			else: candidate.take_damage(damage,previous.x,true)
 			if return_time<0:
 				queue_free()
 				return
