@@ -59,14 +59,22 @@ var health := max_health
 var action_state: ActionState = ActionState.IDLE
 var movement_state: MovementState = MovementState.GROUNDED
 var visual_state: VisualState = VisualState.DEFAULT
-var current_climb_surface: Node = null
-var last_climb_surface: Node = null
+var current_climb_surface: Node2D = null
+var last_climb_surface: Node2D = null
 var climb_side: ClimbSide = ClimbSide.NONE
 var surface_regrab_timer := 0.0
+var climb_cooldown := 0.0
 var facing := -1
 var step_timer := 0.0
 var jump_timer := 0.0
 var pounce_timer := 0.0
+var climb_timer := 0.0
+var telegraph_timer := 0.0
+var is_telegraphing := false
+var telegraph_length := 0.45
+var attack_warning_length := 120.0
+var hurt_flash := 0.0
+var invulnerability := 0.0
 var sprite: Sprite2D
 
 func _ready() -> void:
@@ -76,6 +84,7 @@ func _ready() -> void:
 		player = get_node(player_path) as CharacterBody2D
 	if sprite == null:
 		_create_sprite()
+	_ensure_collision_shape()
 	update_visual_state()
 
 func _create_sprite() -> void:
@@ -86,18 +95,57 @@ func _create_sprite() -> void:
 	sprite.name = "BossSprite"
 	add_child(sprite)
 
+func _ensure_collision_shape() -> void:
+	if get_node_or_null("CollisionShape2D") != null:
+		return
+	var shape := RectangleShape2D.new()
+	shape.size = Vector2(104.0, 112.0)
+	var collision := CollisionShape2D.new()
+	collision.name = "CollisionShape2D"
+	collision.shape = shape
+	add_child(collision)
+
+func combat_bounds() -> Rect2:
+	return Rect2(global_position - Vector2(52, 56), Vector2(104, 112))
+
 func _physics_process(delta: float) -> void:
 	if not active or health <= 0.0:
 		return
 
+	hurt_flash = maxf(0.0, hurt_flash - delta)
+	invulnerability = maxf(0.0, invulnerability - delta)
 	surface_regrab_timer = maxf(0.0, surface_regrab_timer - delta)
+	climb_cooldown = maxf(0.0, climb_cooldown - delta)
 	if is_instance_valid(player):
 		facing = 1 if player.global_position.x >= global_position.x else -1
+
+	if is_telegraphing:
+		velocity = Vector2.ZERO
+		telegraph_timer = maxf(0.0, telegraph_timer - delta)
+		if telegraph_timer <= 0.0:
+			is_telegraphing = false
+			_begin_pounce(player.global_position - global_position)
+		else:
+			visual_state = VisualState.DEFAULT if is_on_floor() else VisualState.FALL
+		update_visual_state()
+		queue_redraw()
+		return
 
 	if current_climb_surface != null:
 		_handle_climbing(delta)
 		update_visual_state()
 		move_and_slide()
+		return
+
+	if pounce_timer > 0.0:
+		if not is_on_floor():
+			velocity.y += gravity * delta
+			movement_state = MovementState.DESCENDING if velocity.y > 0.0 else MovementState.ASCENDING
+		update_visual_state()
+		move_and_slide()
+		pounce_timer = maxf(0.0, pounce_timer - delta)
+		if is_on_floor():
+			pounce_timer = 0.0
 		return
 
 	if not is_on_floor():
@@ -116,20 +164,39 @@ func _physics_process(delta: float) -> void:
 
 	if is_instance_valid(player):
 		var to_player := player.global_position - global_position
-		var desired_x := clamp(to_player.x, -speed, speed)
-		if abs(to_player.x) > 60.0 and is_on_floor():
-			velocity.x = move_toward(velocity.x, desired_x, speed * 1.8 * delta)
-		else:
-			velocity.x = move_toward(velocity.x, 0.0, speed * 2.2 * delta)
+		var climb_target := _find_climb_target()
+		var seeking_climb_surface := false
+		if climb_target != null and is_on_floor():
+			var to_surface := climb_target.global_position - global_position
+			var jump_distance := minf(detection_radius, 160.0)
+			if absf(to_surface.x) <= jump_distance:
+				seeking_climb_surface = true
+				if jump_timer <= 0.0:
+					_begin_surface_jump(to_surface)
+				else:
+					velocity.x = move_toward(velocity.x, 0.0, speed * delta)
+			else:
+				seeking_climb_surface = true
+				var wall_speed := signf(to_surface.x) * speed
+				velocity.x = move_toward(velocity.x, wall_speed, speed * 1.8 * delta)
+				action_state = ActionState.WALK
+				visual_state = VisualState.STEP
 
-		if is_on_floor() and abs(to_player.x) > 150.0 and pounce_timer <= 0.0:
-			_begin_pounce(to_player)
-		elif is_on_floor() and abs(to_player.x) < 70.0 and jump_timer <= 0.0:
-			_begin_jump()
-		elif not is_on_floor() and velocity.y > 0.0 and movement_state == MovementState.DESCENDING:
-			visual_state = VisualState.FALL
-		elif not is_on_floor() and movement_state == MovementState.ASCENDING:
-			visual_state = VisualState.JUMP
+		if not seeking_climb_surface:
+			var desired_x: float = clampf(to_player.x, -speed, speed)
+			if abs(to_player.x) > 60.0 and is_on_floor():
+				velocity.x = move_toward(velocity.x, desired_x, speed * 1.8 * delta)
+			else:
+				velocity.x = move_toward(velocity.x, 0.0, speed * 2.2 * delta)
+
+			if is_on_floor() and abs(to_player.x) > 150.0 and pounce_timer <= 0.0:
+				_begin_telegraph(to_player)
+			elif is_on_floor() and abs(to_player.x) < 70.0 and jump_timer <= 0.0:
+				_begin_jump()
+			elif not is_on_floor() and velocity.y > 0.0 and movement_state == MovementState.DESCENDING:
+				visual_state = VisualState.FALL
+			elif not is_on_floor() and movement_state == MovementState.ASCENDING:
+				visual_state = VisualState.JUMP
 
 	if not is_on_floor() and current_climb_surface == null:
 		_try_grab_surface()
@@ -150,8 +217,27 @@ func _begin_jump() -> void:
 	action_state = ActionState.JUMP
 	visual_state = VisualState.JUMP
 
+func _begin_surface_jump(to_surface: Vector2) -> void:
+	jump_timer = 1.15
+	velocity.x = signf(to_surface.x) * speed * 1.6
+	velocity.y = jump_velocity
+	movement_state = MovementState.ASCENDING
+	action_state = ActionState.JUMP
+	visual_state = VisualState.JUMP
+
+func _begin_telegraph(to_player: Vector2) -> void:
+	if not is_instance_valid(player):
+		return
+	is_telegraphing = true
+	telegraph_timer = telegraph_length
+	action_state = ActionState.POUNCE
+	movement_state = MovementState.GROUNDED
+	visual_state = VisualState.DEFAULT
+	velocity = Vector2.ZERO
+	queue_redraw()
+
 func _begin_pounce(to_player: Vector2) -> void:
-	pounce_timer = 1.8
+	pounce_timer = 1.1
 	action_state = ActionState.POUNCE
 	movement_state = MovementState.ASCENDING
 	visual_state = VisualState.POUNCE
@@ -161,13 +247,34 @@ func _begin_pounce(to_player: Vector2) -> void:
 	else:
 		direction = Vector2(facing, -0.5)
 	velocity = direction * pounce_speed
-	velocity.y = minf(velocity.y, -pounce_speed * 0.4)
+	velocity.y = minf(velocity.y, -210.0)
+	is_telegraphing = false
+	telegraph_timer = 0.0
+	queue_redraw()
+
+func _find_climb_target() -> Node2D:
+	if climb_cooldown > 0.0:
+		return null
+	var closest: Node2D = null
+	var closest_distance := INF
+	for candidate in get_tree().get_nodes_in_group(climbable_group_name):
+		if not is_instance_valid(candidate) or candidate == current_climb_surface:
+			continue
+		if candidate == last_climb_surface and surface_regrab_timer > 0.0:
+			continue
+		if not _is_climbable(candidate):
+			continue
+		var distance := global_position.distance_to(candidate.global_position)
+		if distance < closest_distance:
+			closest = candidate
+			closest_distance = distance
+	return closest
 
 func _try_grab_surface() -> void:
-	if surface_regrab_timer > 0.0:
+	if surface_regrab_timer > 0.0 or climb_cooldown > 0.0:
 		return
 
-	var closest: Node = null
+	var closest: Node2D = null
 	var closest_distance := INF
 	for candidate in get_tree().get_nodes_in_group(climbable_group_name):
 		if not is_instance_valid(candidate):
@@ -175,6 +282,8 @@ func _try_grab_surface() -> void:
 		if candidate == last_climb_surface and surface_regrab_timer > 0.0:
 			continue
 		if not _is_climbable(candidate):
+			continue
+		if absf(global_position.x - candidate.global_position.x) > 125.0:
 			continue
 		var distance := global_position.distance_to(candidate.global_position)
 		if distance <= detection_radius and distance < closest_distance:
@@ -200,9 +309,15 @@ func _attach_to_surface(surface: Node) -> void:
 	visual_state = VisualState.CLIMB
 	velocity = Vector2.ZERO
 	surface_regrab_timer = 0.35
+	climb_timer = 0.85
+	climb_cooldown = 4.5
 
 func _handle_climbing(delta: float) -> void:
 	if not is_instance_valid(current_climb_surface) or not _is_climbable(current_climb_surface):
+		_leave_surface()
+		return
+	climb_timer = maxf(0.0, climb_timer - delta)
+	if climb_timer <= 0.0:
 		_leave_surface()
 		return
 
@@ -215,12 +330,11 @@ func _handle_climbing(delta: float) -> void:
 	else:
 		direction = 1.0 if climb_side == ClimbSide.RIGHT else -1.0
 
-	var climb_dir := -1.0 if climb_side == ClimbSide.LEFT else 1.0
-	var horizontal_strength := direction * speed * 0.35
-	var vertical_input := -1.0 if is_instance_valid(player) and player.global_position.y < global_position.y else 1.0
+	var horizontal_strength := clampf((surface_pos.x - global_position.x) * 2.0, -speed * 0.35, speed * 0.35)
+	var vertical_input := -1.0 if climb_timer > 0.45 or (is_instance_valid(player) and player.global_position.y < global_position.y) else 1.0
 	var climb_velocity_y := vertical_input * climb_speed
 
-	if abs(surface_pos.x - global_position.x) > 90.0:
+	if abs(surface_pos.x - global_position.x) > 130.0:
 		_leave_surface()
 		return
 
@@ -230,11 +344,6 @@ func _handle_climbing(delta: float) -> void:
 	if is_instance_valid(player) and abs(player.global_position.x - global_position.x) > 170.0:
 		_leave_surface()
 		_begin_jump()
-		return
-
-	if is_instance_valid(player) and player.global_position.y > global_position.y + 120.0:
-		_leave_surface()
-		_begin_pounce(player.global_position - global_position)
 		return
 
 	if is_instance_valid(player) and player.global_position.y < global_position.y - 70.0 and movement_state == MovementState.CLIMBING:
@@ -252,7 +361,7 @@ func _leave_surface() -> void:
 		last_climb_surface = current_climb_surface
 	current_climb_surface = null
 	climb_side = ClimbSide.NONE
-	surface_regrab_timer = 0.25
+	surface_regrab_timer = 1.6
 	movement_state = MovementState.DESCENDING
 	action_state = ActionState.JUMP
 	visual_state = VisualState.FALL
@@ -276,6 +385,9 @@ func update_visual_state() -> void:
 			texture_to_use = POUNCE_SPRITE
 
 	sprite.texture = texture_to_use
+	sprite.scale = Vector2.ONE * (112.0 / float(texture_to_use.get_height()))
+	sprite.position.y = -8.0 if visual_state == VisualState.POUNCE else 0.0
+	sprite.modulate = Color(1.0, 0.48, 0.48) if hurt_flash > 0.0 else Color.WHITE
 	if climb_side == ClimbSide.LEFT:
 		sprite.flip_h = true
 	elif climb_side == ClimbSide.RIGHT:
@@ -284,12 +396,15 @@ func update_visual_state() -> void:
 		sprite.flip_h = facing < 0
 
 func take_hit(amount: float = 1.0) -> void:
-	if health <= 0.0:
+	if health <= 0.0 or invulnerability > 0.0:
 		return
 	health = maxf(0.0, health - amount)
+	hurt_flash = 0.16
+	invulnerability = 0.12
 	if health <= 0.0:
 		action_state = ActionState.IDLE
 		movement_state = MovementState.GROUNDED
+		active = false
 		defeated.emit()
 		queue_free()
 
@@ -302,8 +417,29 @@ func reset_encounter() -> void:
 	last_climb_surface = null
 	climb_side = ClimbSide.NONE
 	surface_regrab_timer = 0.0
+	climb_timer = 0.0
+	climb_cooldown = 0.0
+	is_telegraphing = false
+	telegraph_timer = 0.0
 	velocity = Vector2.ZERO
 	update_visual_state()
+
+func _draw() -> void:
+	if not is_telegraphing or not is_instance_valid(player):
+		return
+	var direction := Vector2.ZERO
+	if player.global_position.x >= global_position.x:
+		direction = Vector2(1.0, 0.0)
+	else:
+		direction = Vector2(-1.0, 0.0)
+	var line_end := Vector2(direction.x * attack_warning_length, 0.0)
+	draw_line(Vector2.ZERO, line_end, Color(0.98, 0.18, 0.18), 4.0)
+	draw_line(Vector2.ZERO, line_end, Color(1.0, 0.45, 0.45, 0.45), 9.0, true)
+	var warning_box_origin := 0.0
+	if direction.x < 0.0:
+		warning_box_origin = -attack_warning_length
+	var warning_box := Rect2(warning_box_origin, -24.0, attack_warning_length, 48.0)
+	draw_rect(warning_box, Color(1.0, 0.22, 0.22, 0.15), false, 2.0)
 
 func _mcp_state() -> Dictionary:
 	return {
@@ -314,4 +450,5 @@ func _mcp_state() -> Dictionary:
 		"visual": visual_state,
 		"climb_side": climb_side,
 		"climb_target": current_climb_surface,
+		"telegraphing": is_telegraphing,
 	}

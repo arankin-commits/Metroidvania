@@ -1,31 +1,42 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/rabbit_boss_test.gd" id="1_58l1a"]
 [ext_resource type="Script" path="res://scripts/rabbit_boss.gd" id="2_9hf8o"]
 
 [sub_resource type="RectangleShape2D" id="GroundShape"]
-size = Vector2(1200, 60)
+size = Vector2(1280, 60)
 
 [sub_resource type="RectangleShape2D" id="WallShape"]
-size = Vector2(40, 260)
+size = Vector2(48, 260)
+
+[sub_resource type="RectangleShape2D" id="BossShape"]
+size = Vector2(104, 112)
 
 [node name="RabbitBossArena" type="Node2D"]
 script = ExtResource("1_58l1a")
 
 [node name="Ground" type="StaticBody2D" parent="."]
-position = Vector2(600, 420)
+position = Vector2(640, 590)
+
+[node name="Visual" type="Polygon2D" parent="Ground"]
+polygon = PackedVector2Array(-640, -30, 640, -30, 640, 30, -640, 30)
+color = Color(0.19, 0.27, 0.26, 1)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Ground"]
 shape = SubResource("GroundShape")
 
 [node name="ClimbWall" type="StaticBody2D" parent="." groups=["climbable_surface"]]
-position = Vector2(820, 290)
+position = Vector2(760, 430)
+
+[node name="Visual" type="Polygon2D" parent="ClimbWall"]
+polygon = PackedVector2Array(-24, -130, 24, -130, 24, 130, -24, 130)
+color = Color(0.24, 0.33, 0.32, 1)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="ClimbWall"]
 shape = SubResource("WallShape")
 
 [node name="RabbitBoss" type="CharacterBody2D" parent="."]
-position = Vector2(320, 220)
+position = Vector2(340, 504)
 script = ExtResource("2_9hf8o")
 active = true
 max_health = 12.0
@@ -37,8 +48,5 @@ pounce_speed = 360.0
 detection_radius = 220.0
 climbable_group_name = "climbable_surface"
 
-[node name="PlayerTarget" type="CharacterBody2D" parent="."]
-position = Vector2(530, 220)
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PlayerTarget"]
-shape = SubResource("WallShape")
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RabbitBoss"]
+shape = SubResource("BossShape")
