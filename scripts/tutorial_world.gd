@@ -1131,6 +1131,8 @@ func _draw() -> void:
 		draw_rect(Rect2(4390 + leaf * 10, 416 + posmod(leaf * 13, 4) * 15, 6, 13), Color(0.24, 0.49, 0.33))
 
 func _draw_room_objects() -> void:
+	if current_room == 3 and artificer_rescued:
+		_draw_artificer()
 	if not gallery_cache_found:
 		var at := CAVE_LAYOUT.GALLERY_CACHE
 		draw_circle(at, 20, Color(0.44, 0.94, 0.76, 0.10))
@@ -1149,6 +1151,22 @@ func _draw_room_objects() -> void:
 		# Stowed vertically, so the inactive bridge cannot be mistaken for a floor.
 		for y in range(626, 760, 22):
 			draw_rect(Rect2(2450, y, 12, 16), Color(0.28, 0.26, 0.22))
+
+func _draw_artificer() -> void:
+	# Stand beside the Hand without adding collision or interaction behavior.
+	var at := Vector2(2690, 546)
+	var coat := Color(0.28, 0.39, 0.42)
+	var brass := Color(0.78, 0.61, 0.35)
+	draw_rect(Rect2(at + Vector2(-13, 15), Vector2(10, 38)), coat)
+	draw_rect(Rect2(at + Vector2(3, 15), Vector2(10, 38)), coat)
+	draw_rect(Rect2(at + Vector2(-16, -15), Vector2(32, 43)), coat)
+	draw_rect(Rect2(at + Vector2(-10, -7), Vector2(20, 33)), brass)
+	draw_circle(at + Vector2(0, -25), 11, Color(0.72, 0.63, 0.51))
+	draw_rect(Rect2(at + Vector2(-13, -33), Vector2(26, 8)), coat)
+	draw_rect(Rect2(at + Vector2(-9, -27), Vector2(18, 5)), brass)
+	draw_line(at + Vector2(17, -7), at + Vector2(23, 18), brass, 5)
+	draw_rect(Rect2(at + Vector2(18, 13), Vector2(16, 8)), Color(0.52, 0.58, 0.59))
+	draw_string(ThemeDB.fallback_font, at + Vector2(-28, -45), "Artificer", HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color(0.88, 0.79, 0.57))
 
 func _draw_cracked_stone(rect: Rect2) -> void:
 	draw_rect(rect, Color(0.30, 0.35, 0.37))
