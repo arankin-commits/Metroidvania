@@ -1,0 +1,187 @@
+extends SceneTree
+
+const SLOTS = preload("res://scripts/save_slots.gd")
+const ROOT := "res://tests/.cave_design_saves"
+var failed := false
+
+func _initialize() -> void:
+	call_deferred("_run")
+
+func _run() -> void:
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(ROOT))
+	SLOTS.write_slot(2, SLOTS.new_slot(), ROOT)
+	set_meta("active_save_slot", 2)
+	set_meta("save_root", ROOT)
+	change_scene_to_file("res://scenes/tutorial.tscn")
+	await process_frame
+	await process_frame
+	var world := current_scene
+	world.player._advance_wake(4.0)
+	world.gallery_encounters.set_active(false)
+	world.scout.set_physics_process(false)
+	world.ledge_sentinel.set_process(false)
+	world.player.invulnerability = 1000.0
+	await physics_frame
+	# Inspect each scoped room without triggering travel from the probe position.
+	world.set_process(false)
+	for room in range(1, 5):
+		world.current_room = room
+		world._set_camera_room()
+		await physics_frame
+		var bounds: Vector2 = world.ROOM_BOUNDS[room - 1]
+		var x := (bounds.x + bounds.y) * 0.5
+		var query := PhysicsRayQueryParameters2D.create(Vector2(x, -1800) if room == 2 else Vector2(x, 350), Vector2(x, -2000) if room == 2 else Vector2(x, -100))
+		query.exclude = [world.player.get_rid()]
+		var hit: Dictionary = world.get_world_2d().direct_space_state.intersect_ray(query)
+		if hit.is_empty() or (hit.collider.get_parent() != world.gallery if room == 2 else hit.collider.name != "Room%dRoof" % room):
+			_fail("Room %d's visible ceiling has no working collision" % room)
+			return
+	world.current_room = 2
+	world._set_camera_room()
+	await physics_frame
+	world.set_process(true)
+	world.gallery_encounters.set_active(false)
+	world.scout.set_physics_process(false)
+	world.scout.collision_layer = 0
+	# Reach the offering through the actual balcony, central ascent and upper route.
+	world.player.position = Vector2(1150,1387)
+	world.player.reset_movement_state()
+	for i in 8:
+		await physics_frame
+	for route_name in ["balcony_ascent", "chain_well", "offering_ascent"]:
+		var route: PackedVector2Array = world.gallery.LAYOUT.routes()[route_name]
+		if route_name == "offering_ascent":
+			await _walk_gallery_to(world, Vector2(1740, -923))
+		for point in route:
+			print("Walking to point: ", point, " currently at: ", world.player.position)
+			await _walk_gallery_to(world, point + Vector2(0, -23))
+			if failed:
+				return
+			if route_name == "offering_ascent" and point.x == 600:
+				break
+	_interact(world)
+	if not world.gallery_cache_found or world.will_amount != 12:
+		_fail("The upper route did not award its offering")
+		return
+	_interact(world)
+	if world.will_amount != 12:
+		_fail("The gallery offering could be collected twice")
+		return
+	world.current_room = 1
+	world._mark_room_visited(1)
+	world._set_camera_room()
+	world.player.global_position = Vector2(-535, 577)
+	world.player.reset_movement_state()
+	for i in 5:
+		await physics_frame
+	if not world._completed_rooms().has(1):
+		_fail("Room 1 did not complete upon visiting")
+		return
+	world.current_room = 3
+	world._set_camera_room()
+	for hop in [
+		[Vector2(2690, 577), Vector2(2795, 497)],
+		[Vector2(2810, 497), Vector2(2720, 417)],
+		[Vector2(2760, 417), Vector2(2860, 342)],
+	]:
+		await _jump_to(world, hop[0], hop[1])
+		if failed:
+			return
+	world.player.global_position = world.NOTE_POSITION
+	_interact(world)
+	if not world.note_found:
+		_fail("The refuge alcove's note was not reachable for interaction")
+		return
+	world._close_note()
+	world.player.global_position = world.CAVE_LAYOUT.WINCH
+	_interact(world)
+	if not world.cave_shortcut_open or not world.has_node("RefugeReturnBridge"):
+		_fail("The far-side winch did not lower the return bridge")
+		return
+	world.player.global_position = Vector2(2420, 577)
+	world.player.reset_movement_state()
+	_key(KEY_A, true)
+	await create_timer(1.2).timeout
+	_key(KEY_A, false)
+	if world.player.global_position.x > 2310 or world.player.global_position.y > 585:
+		_fail("The lowered bridge did not support the returning player")
+		return
+	world._save_progress()
+	change_scene_to_file("res://scenes/forest_entry.tscn")
+	await process_frame
+	await process_frame
+	current_scene._save_progress()
+	set_meta("cave_entry_x", 2610.0)
+	change_scene_to_file("res://scenes/tutorial.tscn")
+	await process_frame
+	await process_frame
+	world = current_scene
+	if not world.cave_shortcut_open or not world.has_node("RefugeReturnBridge") or not world.gallery_cache_found:
+		_fail("Cave rewards or shortcut were lost on a forest round trip")
+		return
+	change_scene_to_file("res://scenes/main_menu.tscn")
+	await process_frame
+	await process_frame
+	SLOTS.delete_slot(2, ROOT)
+	remove_meta("active_save_slot")
+	remove_meta("save_root")
+	print("CAVE_DESIGN_SMOKE_PASS")
+	quit()
+
+func _jump_to(world: Node2D, from: Vector2, destination: Vector2) -> void:
+	var player: CharacterBody2D = world.player
+	player.global_position = from
+	player.reset_movement_state()
+	for i in 5:
+		await physics_frame
+	_key(KEY_SPACE, true)
+	var landed := false
+	for i in 110:
+		var dx: float = destination.x - player.global_position.x
+		_key(KEY_D, dx > 6)
+		_key(KEY_A, dx < -6)
+		if i == 25:
+			_key(KEY_SPACE, false)
+		await physics_frame
+		if i > 10 and player.is_on_floor() and absf(dx) < 30 and absf(player.global_position.y - destination.y) < 8:
+			landed = true
+			break
+	_key(KEY_SPACE, false)
+	_key(KEY_A, false)
+	_key(KEY_D, false)
+	if not landed:
+		_fail("Unreachable cave jump from %s to %s (ended at %s)" % [from, destination, player.global_position])
+
+func _interact(world: Node2D) -> void:
+	var event := InputEventKey.new()
+	event.physical_keycode = KEY_E
+	event.pressed = true
+	world._unhandled_input(event)
+
+func _key(code: Key, pressed: bool) -> void:
+	var event := InputEventKey.new()
+	event.physical_keycode = code
+	event.keycode = code
+	event.pressed = pressed
+	Input.parse_input_event(event)
+
+func _fail(message: String) -> void:
+	failed = true
+	push_error(message)
+	quit(1)
+
+func _walk_gallery_to(world: Node2D, destination: Vector2) -> void:
+	var speed: float = world.player.WALK_SPEED if world.player.is_injured else world.player.SPEED
+	var budget := int(absf(destination.x - world.player.position.x) / speed * 60) + 240
+	for i in budget:
+		var dx: float = destination.x - world.player.position.x
+		_key(KEY_D, dx > 3)
+		_key(KEY_A, dx < -3)
+		await physics_frame
+		if absf(dx) < 8 and absf(world.player.position.y - destination.y) < 22 and world.player.is_on_floor():
+			_key(KEY_A, false)
+			_key(KEY_D, false)
+			return
+	_key(KEY_A, false)
+	_key(KEY_D, false)
+	_fail("Offering approach is blocked at %s (ended %s)" % [destination, world.player.position])

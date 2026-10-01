@@ -1,0 +1,66 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+[   0% ] first_scan_filesystem | Started Project initialization (5 steps)
+[   0% ] first_scan_filesystem | Scanning file structure...
+WARNING: Detected another project.godot at res://Metroidvania-main. The folder will be ignored.
+   at: _should_skip_directory (editor/file_system/editor_file_system.cpp:3497)
+[  16% ] first_scan_filesystem | Loading global class names...
+[  33% ] first_scan_filesystem | Verifying GDExtensions...
+[  50% ] first_scan_filesystem | Creating autoload scripts...
+[  66% ] first_scan_filesystem | Initializing plugins...
+[godot-mcp] Plugin initialized
+[  83% ] first_scan_filesystem | Starting file scan...
+[ DONE ] first_scan_filesystem
+
+ERROR: [godot-mcp] Failed to start server on 127.0.0.1:6550: Already in use
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] error (res://addons/godot_mcp/core/mcp_log.gd:14)
+       [1] start_server (res://addons/godot_mcp/websocket_server.gd:54)
+       [2] _do_restart_server (res://addons/godot_mcp/plugin.gd:223)
+[   0% ] update_scripts_classes | Started Registering global classes... (3 steps)
+[   0% ] update_scripts_classes | 
+[  25% ] update_scripts_classes | 
+[  50% ] update_scripts_classes | 
+[ DONE ] update_scripts_classes
+
+[   0% ] _update_scan_actions | Started Scanning actions... (6 steps)
+[   0% ] _update_scan_actions | temple_guardian.png
+[  14% ] _update_scan_actions | temple_charged_shot.png
+[  28% ] _update_scan_actions | temple_rocket_fist.png
+[  42% ] _update_scan_actions | temple-guardian-actions.png
+[  57% ] _update_scan_actions | temple-guardian-cutouts.png
+[  71% ] _update_scan_actions | temple-guardian-design-sheet.png
+[ DONE ] _update_scan_actions
+
+[   0% ] reimport | Started (Re)Importing Assets (6 steps)
+[   0% ] reimport | Preparing files to reimport...
+[  14% ] reimport | Preparing files to reimport...
+[  28% ] reimport | Preparing files to reimport...
+[  42% ] reimport | Preparing files to reimport...
+[  57% ] reimport | Preparing files to reimport...
+[  71% ] reimport | Preparing files to reimport...
+[   0% ] reimport | Executing pre-reimport operations...
+[   0% ] reimport | temple_guardian.png
+[  14% ] reimport | temple_charged_shot.png
+[  28% ] reimport | temple_rocket_fist.png
+[  42% ] reimport | temple-guardian-actions.png
+[  57% ] reimport | temple-guardian-cutouts.png
+[  71% ] reimport | temple-guardian-design-sheet.png
+[  85% ] reimport | Finalizing Asset Import...
+[ DONE ] reimport
+
+[   0% ] reimport | Started (Re)Importing Assets (6 steps)
+[   0% ] reimport | Executing post-reimport operations...
+[ DONE ] reimport
+
+[   0% ] loading_editor_layout | Started Loading editor (5 steps)
+[   0% ] loading_editor_layout | Loading editor layout...
+[  16% ] loading_editor_layout | Loading docks...
+[  33% ] loading_editor_layout | Reopening scenes...
+[  50% ] loading_editor_layout | Loading central editor layout...
+[  66% ] loading_editor_layout | Loading plugin window layout...
+[  83% ] loading_editor_layout | Editor layout ready.
+[ DONE ] loading_editor_layout
+
+[godot-mcp] Plugin disabled

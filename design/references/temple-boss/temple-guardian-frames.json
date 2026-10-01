@@ -1,0 +1,166 @@
+{
+	"cell": 384,
+	"foot": [
+		160,
+		272
+	],
+	"frames": [
+		{
+			"index": 0,
+			"name": "idle",
+			"source_center": 1570,
+			"source_foot": 344,
+			"source_region": [
+				1488,
+				190,
+				176,
+				162
+			]
+		},
+		{
+			"index": 1,
+			"name": "rocket_windup",
+			"source_center": 628,
+			"source_foot": 342,
+			"source_region": [
+				538,
+				176,
+				190,
+				176
+			]
+		},
+		{
+			"index": 2,
+			"name": "rocket_launch",
+			"source_center": 820,
+			"source_foot": 342,
+			"source_region": [
+				735,
+				174,
+				172,
+				178
+			]
+		},
+		{
+			"index": 3,
+			"name": "rocket_retract",
+			"source_center": 1312,
+			"source_foot": 344,
+			"source_region": [
+				1230,
+				210,
+				176,
+				142
+			]
+		},
+		{
+			"index": 4,
+			"name": "charge_start",
+			"source_center": 632,
+			"source_foot": 604,
+			"source_region": [
+				536,
+				425,
+				194,
+				190
+			]
+		},
+		{
+			"index": 5,
+			"name": "charge_full",
+			"source_center": 837,
+			"source_foot": 604,
+			"source_region": [
+				740,
+				420,
+				198,
+				196
+			]
+		},
+		{
+			"index": 6,
+			"name": "fire",
+			"source_center": 1040,
+			"source_foot": 604,
+			"source_region": [
+				940,
+				418,
+				270,
+				198
+			]
+		},
+		{
+			"index": 7,
+			"name": "recover",
+			"source_center": 1574,
+			"source_foot": 606,
+			"source_region": [
+				1484,
+				430,
+				182,
+				188
+			]
+		},
+		{
+			"index": 8,
+			"name": "punch_1",
+			"source_center": 601,
+			"source_foot": 848,
+			"source_region": [
+				500,
+				688,
+				232,
+				169
+			]
+		},
+		{
+			"index": 9,
+			"name": "punch_2",
+			"source_center": 811,
+			"source_foot": 848,
+			"source_region": [
+				710,
+				695,
+				216,
+				162
+			]
+		},
+		{
+			"index": 10,
+			"name": "punch_3",
+			"source_center": 1039,
+			"source_foot": 850,
+			"source_region": [
+				914,
+				695,
+				265,
+				168
+			]
+		},
+		{
+			"index": 11,
+			"name": "slam_raise",
+			"source_center": 1270,
+			"source_foot": 850,
+			"source_region": [
+				1178,
+				648,
+				188,
+				210
+			]
+		},
+		{
+			"index": 12,
+			"name": "slam_impact",
+			"source_center": 1490,
+			"source_foot": 850,
+			"source_region": [
+				1358,
+				640,
+				306,
+				224
+			]
+		}
+	],
+	"standing_height": 144
+}

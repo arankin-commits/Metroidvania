@@ -1,0 +1,421 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+ERROR: Failed to read the root certificate store.
+   at: get_system_ca_certificates (platform/windows/os_windows.cpp:2582)
+[   0% ] first_scan_filesystem | Started Project initialization (5 steps)
+[   0% ] first_scan_filesystem | Scanning file structure...
+WARNING: Detected another project.godot at res://Metroidvania-main. The folder will be ignored.
+   at: _should_skip_directory (editor/file_system/editor_file_system.cpp:3497)
+[  16% ] first_scan_filesystem | Loading global class names...
+[  33% ] first_scan_filesystem | Verifying GDExtensions...
+[  50% ] first_scan_filesystem | Creating autoload scripts...
+[  66% ] first_scan_filesystem | Initializing plugins...
+[godot-mcp] Plugin initialized
+[  83% ] first_scan_filesystem | Starting file scan...
+[ DONE ] first_scan_filesystem
+
+ERROR: [godot-mcp] Failed to start server on 127.0.0.1:6550: Already in use
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] error (res://addons/godot_mcp/core/mcp_log.gd:14)
+       [1] start_server (res://addons/godot_mcp/websocket_server.gd:54)
+       [2] _do_restart_server (res://addons/godot_mcp/plugin.gd:223)
+[   0% ] _update_scan_actions | Started Scanning actions... (18 steps)
+[   0% ] _update_scan_actions | player-heavy-1-frame-0.png
+[   5% ] _update_scan_actions | player-heavy-1-frame-1.png
+[  10% ] _update_scan_actions | player-heavy-1-frame-2.png
+[  15% ] _update_scan_actions | player-heavy-1-frame-3.png
+[  21% ] _update_scan_actions | player-heavy-1-frame-4.png
+[  26% ] _update_scan_actions | player-heavy-1-frame-5.png
+[  31% ] _update_scan_actions | player-heavy-1-frame-6.png
+[  36% ] _update_scan_actions | player-heavy-1-frame-7.png
+[  42% ] _update_scan_actions | player-heavy-1-frame-8.png
+[  47% ] _update_scan_actions | player-heavy--1-frame-0.png
+[  52% ] _update_scan_actions | player-heavy--1-frame-1.png
+[  57% ] _update_scan_actions | player-heavy--1-frame-2.png
+[  63% ] _update_scan_actions | player-heavy--1-frame-3.png
+[  68% ] _update_scan_actions | player-heavy--1-frame-4.png
+[  73% ] _update_scan_actions | player-heavy--1-frame-5.png
+[  78% ] _update_scan_actions | player-heavy--1-frame-6.png
+[  84% ] _update_scan_actions | player-heavy--1-frame-7.png
+[  89% ] _update_scan_actions | player-heavy--1-frame-8.png
+[ DONE ] _update_scan_actions
+
+[   0% ] reimport | Started (Re)Importing Assets (18 steps)
+[   0% ] reimport | Preparing files to reimport...
+[   5% ] reimport | Preparing files to reimport...
+[  10% ] reimport | Preparing files to reimport...
+[  15% ] reimport | Preparing files to reimport...
+[  21% ] reimport | Preparing files to reimport...
+[  26% ] reimport | Preparing files to reimport...
+[  31% ] reimport | Preparing files to reimport...
+[  36% ] reimport | Preparing files to reimport...
+[  42% ] reimport | Preparing files to reimport...
+[  47% ] reimport | Preparing files to reimport...
+[  52% ] reimport | Preparing files to reimport...
+[  57% ] reimport | Preparing files to reimport...
+[  63% ] reimport | Preparing files to reimport...
+[  68% ] reimport | Preparing files to reimport...
+[  73% ] reimport | Preparing files to reimport...
+[  78% ] reimport | Preparing files to reimport...
+[  84% ] reimport | Preparing files to reimport...
+[  89% ] reimport | Preparing files to reimport...
+[   0% ] reimport | Executing pre-reimport operations...
+[   0% ] reimport | player-heavy--1-frame-8.png
+[   5% ] reimport | player-heavy--1-frame-7.png
+[  10% ] reimport | player-heavy--1-frame-6.png
+[  15% ] reimport | player-heavy--1-frame-5.png
+[  21% ] reimport | player-heavy--1-frame-4.png
+[  26% ] reimport | player-heavy--1-frame-3.png
+[  31% ] reimport | player-heavy--1-frame-2.png
+[  36% ] reimport | player-heavy--1-frame-1.png
+[  42% ] reimport | player-heavy--1-frame-0.png
+[  47% ] reimport | player-heavy-1-frame-8.png
+[  52% ] reimport | player-heavy-1-frame-7.png
+[  57% ] reimport | player-heavy-1-frame-6.png
+[  63% ] reimport | player-heavy-1-frame-5.png
+[  68% ] reimport | player-heavy-1-frame-4.png
+[  73% ] reimport | player-heavy-1-frame-3.png
+[  78% ] reimport | player-heavy-1-frame-2.png
+[  84% ] reimport | player-heavy-1-frame-1.png
+[  89% ] reimport | player-heavy-1-frame-0.png
+[  94% ] reimport | Finalizing Asset Import...
+[ DONE ] reimport
+
+[   0% ] reimport | Started (Re)Importing Assets (18 steps)
+[   0% ] reimport | Executing post-reimport operations...
+[ DONE ] reimport
+
+[   0% ] savepack | Started Packing (102 steps)
+[   1% ] savepack | Storing File: res://addons/godot_mcp/core/mcp_log.gdc
+[   1% ] savepack | Storing File: res://addons/godot_mcp/game_bridge/joy_names.gdc
+[   2% ] savepack | Storing File: res://addons/godot_mcp/game_bridge/key_names.gdc
+[   2% ] savepack | Storing File: res://addons/godot_mcp/game_bridge/mcp_exec_guard.gdc
+[   3% ] savepack | Storing File: res://addons/godot_mcp/game_bridge/mcp_frame_profiler.gdc
+[   4% ] savepack | Storing File: res://addons/godot_mcp/game_bridge/mcp_game_bridge.gdc
+[   4% ] savepack | Storing File: res://addons/godot_mcp/game_bridge/mcp_runtime_state_sampler.gdc
+[   5% ] savepack | Storing File: res://addons/godot_mcp/game_bridge/mesh_validator.gdc
+[   5% ] savepack | Storing File: res://addons/godot_mcp/game_bridge/onscreen.gdc
+[   6% ] savepack | Storing File: res://.godot/imported/attack.wav-55ac69a68bfd7eff8cf4f2af4b698fc2.sample
+[   6% ] savepack | Storing File: res://assets/attack.wav.import
+[   7% ] savepack | Storing File: res://.godot/imported/cave_music.wav-a0af6086dde5327912f16da7a259d88e.sample
+[   7% ] savepack | Storing File: res://assets/cave_music.wav.import
+[   7% ] savepack | Storing File: res://.godot/imported/cave_room1.png-4c3fed77d39fa07323581737198aaddf.ctex
+[   7% ] savepack | Storing File: res://assets/cave_room1.png.import
+[   8% ] savepack | Storing File: res://.godot/imported/cave_room3.png-a75095c38086668a2b95849372046d99.ctex
+[   8% ] savepack | Storing File: res://assets/cave_room3.png.import
+[   8% ] savepack | Storing File: res://.godot/imported/cave_room4.png-e427a164d6a0741351d6135f190f4139.ctex
+[   8% ] savepack | Storing File: res://assets/cave_room4.png.import
+[   9% ] savepack | Storing File: res://.godot/imported/cave_goblin_atlas.png-4e81f4266a7401a8e76f92ddccccf295.ctex
+[   9% ] savepack | Storing File: res://assets/characters/cave_goblin_atlas.png.import
+[  10% ] savepack | Storing File: res://.godot/imported/cave_goblin_left_atlas.png-6826e78ee5f36d7487ed4c935e01fe6e.ctex
+[  10% ] savepack | Storing File: res://assets/characters/cave_goblin_left_atlas.png.import
+[  10% ] savepack | Storing File: res://.godot/imported/forest_guardian_allies.png-cfd859af85e98861eed3e0dee6ac88ba.ctex
+[  10% ] savepack | Storing File: res://assets/characters/forest_guardian_allies.png.import
+[  11% ] savepack | Storing File: res://.godot/imported/forest_guardian_left.png-81a23552b3b3249b265972d83ffd145d.ctex
+[  11% ] savepack | Storing File: res://assets/characters/forest_guardian_left.png.import
+[  11% ] savepack | Storing File: res://.godot/imported/forest_guardian_right.png-2d5791b450c026c756e46370697b874d.ctex
+[  11% ] savepack | Storing File: res://assets/characters/forest_guardian_right.png.import
+[  12% ] savepack | Storing File: res://.godot/imported/hooded_player_atlas.png-495ed7dd98b0f005b89656fd8a18f840.ctex
+[  12% ] savepack | Storing File: res://assets/characters/hooded_player_atlas.png.import
+[  13% ] savepack | Storing File: res://.godot/imported/hooded_player_complete.png-642590003fdf8e958c2416c9f75abd5f.ctex
+[  13% ] savepack | Storing File: res://assets/characters/hooded_player_complete.png.import
+[  13% ] savepack | Storing File: res://.godot/imported/hooded_player_heavy.png-444aee7491d1bcdd0efc1284f338b5c0.ctex
+[  13% ] savepack | Storing File: res://assets/characters/hooded_player_heavy.png.import
+[  14% ] savepack | Storing File: res://.godot/imported/dodge.wav-c29a74e2b293362675ff6d6aa589a978.sample
+[  14% ] savepack | Storing File: res://assets/dodge.wav.import
+[  15% ] savepack | Storing File: res://.godot/imported/forest_charged_arrow.png-d34850ad1701cf4ac623440c92587948.ctex
+[  15% ] savepack | Storing File: res://assets/effects/forest_charged_arrow.png.import
+[  15% ] savepack | Storing File: res://.godot/imported/forest_rapid_arrow_1.png-3a5a02a6b98dc5fa9ae5f701c7470f03.ctex
+[  15% ] savepack | Storing File: res://assets/effects/forest_rapid_arrow_1.png.import
+[  16% ] savepack | Storing File: res://.godot/imported/forest_rapid_arrow_2.png-f0d02a9f5c5be84ca8b8b244ec1713f7.ctex
+[  16% ] savepack | Storing File: res://assets/effects/forest_rapid_arrow_2.png.import
+[  16% ] savepack | Storing File: res://.godot/imported/forest_rapid_arrow_3.png-09ec8e54577d65c72780e6ce5a979fe5.ctex
+[  16% ] savepack | Storing File: res://assets/effects/forest_rapid_arrow_3.png.import
+[  17% ] savepack | Storing File: res://.godot/imported/forest_rapid_arrow_4.png-4aad641e712dd74ea1399776f23a6cc0.ctex
+[  17% ] savepack | Storing File: res://assets/effects/forest_rapid_arrow_4.png.import
+[  18% ] savepack | Storing File: res://.godot/imported/forest_rapid_arrow_5.png-5860387b7f56908f2f0b2e1cf9be3d0a.ctex
+[  18% ] savepack | Storing File: res://assets/effects/forest_rapid_arrow_5.png.import
+[  18% ] savepack | Storing File: res://.godot/imported/forest_roots_1.png-815122fd6d4f6744d6f0eaa4c7613d98.ctex
+[  18% ] savepack | Storing File: res://assets/effects/forest_roots_1.png.import
+[  19% ] savepack | Storing File: res://.godot/imported/forest_roots_2.png-3f27338b8a666140b7a10cc731930b4e.ctex
+[  19% ] savepack | Storing File: res://assets/effects/forest_roots_2.png.import
+[  19% ] savepack | Storing File: res://.godot/imported/forest_roots_3.png-399f98e336b727a3924d0b89c8f4f034.ctex
+[  19% ] savepack | Storing File: res://assets/effects/forest_roots_3.png.import
+[  20% ] savepack | Storing File: res://.godot/imported/forest_volley_arrow.png-2e052f7a1abe4a1ece46364304320895.ctex
+[  20% ] savepack | Storing File: res://assets/effects/forest_volley_arrow.png.import
+[  21% ] savepack | Storing File: res://.godot/imported/forest_volley_impact_1.png-5b3b05be9a8e1831f761717c8183e980.ctex
+[  21% ] savepack | Storing File: res://assets/effects/forest_volley_impact_1.png.import
+[  21% ] savepack | Storing File: res://.godot/imported/forest_volley_impact_2.png-b536fe16f1b1432f92c40ad24c0d19d2.ctex
+[  21% ] savepack | Storing File: res://assets/effects/forest_volley_impact_2.png.import
+[  22% ] savepack | Storing File: res://.godot/imported/goblin_charge_wake.png-53abb0ce2ab68b4040e0ba92d7e8b7b2.ctex
+[  22% ] savepack | Storing File: res://assets/effects/goblin_charge_wake.png.import
+[  22% ] savepack | Storing File: res://.godot/imported/goblin_wind.png-5a37ebab1eb674ac18fc901e0a699a76.ctex
+[  22% ] savepack | Storing File: res://assets/effects/goblin_wind.png.import
+[  23% ] savepack | Storing File: res://.godot/imported/enemy_attack.wav-157d9441d770e1ccb016cab6cc4f9d6f.sample
+[  23% ] savepack | Storing File: res://assets/enemy_attack.wav.import
+[  24% ] savepack | Storing File: res://.godot/imported/fast_travel_confirm.wav-c30deef009fc804caa91cd1b560920dd.sample
+[  24% ] savepack | Storing File: res://assets/fast_travel_confirm.wav.import
+[  24% ] savepack | Storing File: res://.godot/imported/fast_travel_select.wav-c526977793322820bd1ee2b6a7b3dbbe.sample
+[  24% ] savepack | Storing File: res://assets/fast_travel_select.wav.import
+[  25% ] savepack | Storing File: res://.godot/imported/footstep.wav-7d8363237db0283e202cdee78affc63e.sample
+[  25% ] savepack | Storing File: res://assets/footstep.wav.import
+[  26% ] savepack | Storing File: res://.godot/imported/forest_backdrop.png-c6653dc279a83bd048a1718716d0e46b.ctex
+[  26% ] savepack | Storing File: res://assets/forest_backdrop.png.import
+[  26% ] savepack | Storing File: res://.godot/imported/forest_boss_hand_environment.png-95e7431efec293be511971d7e2fae09a.ctex
+[  26% ] savepack | Storing File: res://assets/forest_boss_hand_environment.png.import
+[  27% ] savepack | Storing File: res://.godot/imported/forest_bow_arena_environment.png-5c7898699f55c37f8799a4c33f5ad525.ctex
+[  27% ] savepack | Storing File: res://assets/forest_bow_arena_environment.png.import
+[  27% ] savepack | Storing File: res://assets/forest_connected_foundation.gdshader
+[  28% ] savepack | Storing File: res://.godot/imported/forest_music.wav-df07ca43daa9b45147d97e3463b91ea0.sample
+[  28% ] savepack | Storing File: res://assets/forest_music.wav.import
+[  29% ] savepack | Storing File: res://assets/forest_prop_cutout.gdshader
+[  29% ] savepack | Storing File: res://.godot/imported/forest_room1_canopy_extended.png-714a9af1f8233ded8b3726e8f4d9d639.ctex
+[  29% ] savepack | Storing File: res://assets/forest_room1_canopy_extended.png.import
+[  30% ] savepack | Storing File: res://.godot/imported/forest_room1_foundation_extended.png-a24d59705f2e5e4418b65c692a913731.ctex
+[  30% ] savepack | Storing File: res://assets/forest_room1_foundation_extended.png.import
+[  30% ] savepack | Storing File: res://.godot/imported/forest_room1_section1.png-68352733537b350f49b273fe5080a881.ctex
+[  30% ] savepack | Storing File: res://assets/forest_room1_section1.png.import
+[  31% ] savepack | Storing File: res://.godot/imported/forest_room1_section1_sky.png-b64e3e7c7ea883141a6bcf46ae6b2f54.ctex
+[  31% ] savepack | Storing File: res://assets/forest_room1_section1_sky.png.import
+[  32% ] savepack | Storing File: res://.godot/imported/forest_room1_section2_sky.png-184be191728f6a45c604a80b4fbc7074.ctex
+[  32% ] savepack | Storing File: res://assets/forest_room1_section2_sky.png.import
+[  32% ] savepack | Storing File: res://.godot/imported/forest_room1_section3_extended.png-7a31007ab76fb84613ace456b642e1ec.ctex
+[  32% ] savepack | Storing File: res://assets/forest_room1_section3_extended.png.import
+[  33% ] savepack | Storing File: res://.godot/imported/forest_room1_section3_sky.png-49d16524dc3ae6aca9ee00f601b0a82d.ctex
+[  33% ] savepack | Storing File: res://assets/forest_room1_section3_sky.png.import
+[  33% ] savepack | Storing File: res://.godot/imported/forest_room1_section3_threshold.png-342c338a2a2f16f579aeefe40f7eab18.ctex
+[  33% ] savepack | Storing File: res://assets/forest_room1_section3_threshold.png.import
+[  33% ] savepack | Storing File: res://.godot/imported/forest_room2_section1.png-2f2aa76386df9bac4ad7e1e33e758d8d.ctex
+[  33% ] savepack | Storing File: res://assets/forest_room2_section1.png.import
+[  34% ] savepack | Storing File: res://.godot/imported/forest_room2_section2.png-61a4a4b7223c3e70c4dc403ed4bb77a8.ctex
+[  34% ] savepack | Storing File: res://assets/forest_room2_section2.png.import
+[  34% ] savepack | Storing File: res://.godot/imported/forest_room2_section3.png-cdd905e80718e1f27d9e8fc8fe707585.ctex
+[  34% ] savepack | Storing File: res://assets/forest_room2_section3.png.import
+[  35% ] savepack | Storing File: res://.godot/imported/forest_room2_section3_props.png-0e3f7f543e3dc732ea092194acbebd5c.ctex
+[  35% ] savepack | Storing File: res://assets/forest_room2_section3_props.png.import
+[  35% ] savepack | Storing File: res://.godot/imported/forest_room2_section4_extended.png-8130cea89cc8b8363e957f37d90886c2.ctex
+[  35% ] savepack | Storing File: res://assets/forest_room2_section4_extended.png.import
+[  36% ] savepack | Storing File: res://.godot/imported/forest_room2_section5_extended.png-d473810c8848b1bde3b22ef4ebf81072.ctex
+[  36% ] savepack | Storing File: res://assets/forest_room2_section5_extended.png.import
+[  37% ] savepack | Storing File: res://.godot/imported/forest_room2_section5_props.png-8b65efcce718c31fe3aa2bbbaf0a0e3f.ctex
+[  37% ] savepack | Storing File: res://assets/forest_room2_section5_props.png.import
+[  37% ] savepack | Storing File: res://.godot/imported/forest_room2_section6.png-54378706f0b6fee989f5a3c48b8d463a.ctex
+[  37% ] savepack | Storing File: res://assets/forest_room2_section6.png.import
+[  38% ] savepack | Storing File: res://.godot/imported/forest_room2_section6_props.png-544ffcfcfd4b260784e2ee5d5de89abc.ctex
+[  38% ] savepack | Storing File: res://assets/forest_room2_section6_props.png.import
+[  39% ] savepack | Storing File: res://.godot/imported/forest_room2_section7.png-fd53499c85f6a3b82204d452368895bc.ctex
+[  39% ] savepack | Storing File: res://assets/forest_room2_section7.png.import
+[  39% ] savepack | Storing File: res://.godot/imported/forest_room2_section7_props.png-6a305393e5d79587fd7678fed6ee157c.ctex
+[  39% ] savepack | Storing File: res://assets/forest_room2_section7_props.png.import
+[  40% ] savepack | Storing File: res://.godot/imported/forest_room2_section8_low_props.png-b00d720f68af7eee840697d3155d5941.ctex
+[  40% ] savepack | Storing File: res://assets/forest_room2_section8_low_props.png.import
+[  40% ] savepack | Storing File: res://.godot/imported/forest_room2_section8_lower.png-ec8bbb2f40585c10674e16aa391c4b97.ctex
+[  40% ] savepack | Storing File: res://assets/forest_room2_section8_lower.png.import
+[  41% ] savepack | Storing File: res://.godot/imported/forest_room2_section8_lower_props.png-c8f78342e89719d2af5f98480f5f2855.ctex
+[  41% ] savepack | Storing File: res://assets/forest_room2_section8_lower_props.png.import
+[  42% ] savepack | Storing File: res://.godot/imported/forest_room2_section8_middle_props.png-9149f4a6a11ebd75f7deb93eaa92ec47.ctex
+[  42% ] savepack | Storing File: res://assets/forest_room2_section8_middle_props.png.import
+[  42% ] savepack | Storing File: res://.godot/imported/forest_room2_section8_upper.png-0fb198541ff3852583137b957b7275b9.ctex
+[  42% ] savepack | Storing File: res://assets/forest_room2_section8_upper.png.import
+[  43% ] savepack | Storing File: res://.godot/imported/forest_room2_section8_upper_props.png-c5553f401b46d516fecd88dd5c9900ad.ctex
+[  43% ] savepack | Storing File: res://assets/forest_room2_section8_upper_props.png.import
+[  43% ] savepack | Storing File: res://.godot/imported/forest_room2_section910_props.png-177cfda5feae1eecfa73b4a5f938b294.ctex
+[  43% ] savepack | Storing File: res://assets/forest_room2_section910_props.png.import
+[  44% ] savepack | Storing File: res://.godot/imported/forest_room2_sections234567891011_background.png-861c26fe08db8d42a17545ec7bf70248.ctex
+[  44% ] savepack | Storing File: res://assets/forest_room2_sections234567891011_background.png.import
+[  45% ] savepack | Storing File: res://.godot/imported/forest_room2_sections45678910_foundation.png-6be9b6275fa8f55db947d58e7c21d381.ctex
+[  45% ] savepack | Storing File: res://assets/forest_room2_sections45678910_foundation.png.import
+[  45% ] savepack | Storing File: res://.godot/imported/forest_room2_sections8910_lower.png-d7b9800e3714f9ee118d2d79c40f61f8.ctex
+[  45% ] savepack | Storing File: res://assets/forest_room2_sections8910_lower.png.import
+[  46% ] savepack | Storing File: res://assets/forest_section7_prop_cutout.gdshader
+[  46% ] savepack | Storing File: res://.godot/imported/forest_temple_guardian_environment.png-66335c1af63bb5f3f25c070bfdc12636.ctex
+[  46% ] savepack | Storing File: res://assets/forest_temple_guardian_environment.png.import
+[  47% ] savepack | Storing File: res://.godot/imported/forest_temple_hand_open_environment.png-4ca76b64584fd9689c46853ac1a26e70.ctex
+[  47% ] savepack | Storing File: res://assets/forest_temple_hand_open_environment.png.import
+[  48% ] savepack | Storing File: res://assets/gallery_stone.gdshader
+[  48% ] savepack | Storing File: res://.godot/imported/hand_chair.png-62f702a72bda43e9a2f2ca073ff3a498.ctex
+[  48% ] savepack | Storing File: res://assets/hand_chair.png.import
+[  49% ] savepack | Storing File: res://.godot/imported/hand_dismount.wav-39ac2c8abf84aa79d4c8edcede915a06.sample
+[  49% ] savepack | Storing File: res://assets/hand_dismount.wav.import
+[  50% ] savepack | Storing File: res://.godot/imported/hand_mount.wav-8818380d68f47765eb8daec75083454c.sample
+[  50% ] savepack | Storing File: res://assets/hand_mount.wav.import
+[  50% ] savepack | Storing File: res://.godot/imported/heal.wav-81916073f5fd537aa70e5b1d0c98a743.sample
+[  50% ] savepack | Storing File: res://assets/heal.wav.import
+[  51% ] savepack | Storing File: res://.godot/imported/heavy_attack.wav-3062b343b1792f4f0b6e419b467ce28e.sample
+[  51% ] savepack | Storing File: res://assets/heavy_attack.wav.import
+[  51% ] savepack | Storing File: res://.godot/imported/jump.wav-6c1ca10a90b3ed0e0a11d220c15679e2.sample
+[  51% ] savepack | Storing File: res://assets/jump.wav.import
+[  52% ] savepack | Storing File: res://.godot/imported/menu_cave.png-b1884c4ebed6ce2d269b69db3d62e881.ctex
+[  52% ] savepack | Storing File: res://assets/menu_cave.png.import
+[  53% ] savepack | Storing File: res://.godot/imported/menu_click.wav-c749810a8b435c2634166dc2d015ad0f.sample
+[  53% ] savepack | Storing File: res://assets/menu_click.wav.import
+[  53% ] savepack | Storing File: res://.godot/imported/menu_hover.wav-f4d01844c20c2a30fbb4ef735442742b.sample
+[  53% ] savepack | Storing File: res://assets/menu_hover.wav.import
+[  54% ] savepack | Storing File: res://.godot/imported/menu_music.wav-3cb1a9c1f6ca77645d164928c01773f2.sample
+[  54% ] savepack | Storing File: res://assets/menu_music.wav.import
+[  54% ] savepack | Storing File: res://.godot/imported/split_gallery_background.png-875c4cb577cf1bcf2743bb85e45482ac.ctex
+[  54% ] savepack | Storing File: res://assets/split_gallery_background.png.import
+[  55% ] savepack | Storing File: res://.godot/imported/warden_charge.wav-a3578e62a406c81de176eb13b3d72c2f.sample
+[  55% ] savepack | Storing File: res://assets/warden_charge.wav.import
+[  56% ] savepack | Storing File: res://.godot/imported/warden_charge_tell.wav-ed5d33bdd7791ffdfc5bfee695f243ff.sample
+[  56% ] savepack | Storing File: res://assets/warden_charge_tell.wav.import
+[  56% ] savepack | Storing File: res://.godot/imported/warden_music.wav-527c74d59def9f2800b3e925067c5b61.sample
+[  56% ] savepack | Storing File: res://assets/warden_music.wav.import
+[  57% ] savepack | Storing File: res://.godot/imported/warden_slam.wav-4584280656f23b2b99e3c513006f38ac.sample
+[  57% ] savepack | Storing File: res://assets/warden_slam.wav.import
+[  57% ] savepack | Storing File: res://.godot/imported/warden_slam_tell.wav-76339fa676c6376f0207e7ae2f1d92f0.sample
+[  57% ] savepack | Storing File: res://assets/warden_slam_tell.wav.import
+[  58% ] savepack | Storing File: res://.godot/exported/133200997/export-3070c538c03ee49b7677ff960a3f5195-main.scn
+[  59% ] savepack | Storing File: res://.godot/exported/133200997/export-a0b7091a97a7b2e4aa3002499c54fc9f-forest_entry.scn
+[  59% ] savepack | Storing File: res://.godot/exported/133200997/export-ea5c6ad4629af728dc514cefde332394-main_menu.scn
+[  60% ] savepack | Storing File: res://.godot/exported/133200997/export-42ce494387c984238fc1312df9601261-tutorial.scn
+[  60% ] savepack | Storing File: res://scripts/tutorial_world.gdc
+[  61% ] savepack | Storing File: res://scripts/ability_icon.gdc
+[  62% ] savepack | Storing File: res://scripts/boss.gdc
+[  62% ] savepack | Storing File: res://scripts/bow_arrow.gdc
+[  63% ] savepack | Storing File: res://scripts/bow_boss.gdc
+[  64% ] savepack | Storing File: res://scripts/cave_layout.gdc
+[  64% ] savepack | Storing File: res://scripts/cave_scenery.gdc
+[  65% ] savepack | Storing File: res://scripts/combat_boss.gdc
+[  65% ] savepack | Storing File: res://scripts/combat_projectile.gdc
+[  66% ] savepack | Storing File: res://scripts/forest_arrival.gdc
+[  66% ] savepack | Storing File: res://scripts/forest_arrival_layout.gdc
+[  66% ] savepack | Storing File: res://scripts/forest_chamber.gdc
+[  67% ] savepack | Storing File: res://scripts/forest_dash_galleries.gdc
+[  67% ] savepack | Storing File: res://scripts/forest_dash_galleries_layout.gdc
+[  68% ] savepack | Storing File: res://scripts/forest_elevated_gallery.gdc
+[  69% ] savepack | Storing File: res://scripts/forest_elevated_gallery_layout.gdc
+[  69% ] savepack | Storing File: res://scripts/forest_entry.gdc
+[  70% ] savepack | Storing File: res://scripts/forest_final_stair.gdc
+[  70% ] savepack | Storing File: res://scripts/forest_final_stair_layout.gdc
+[  71% ] savepack | Storing File: res://scripts/forest_foreground.gdshader
+[  72% ] savepack | Storing File: res://scripts/forest_gallery.gdc
+[  72% ] savepack | Storing File: res://scripts/forest_gallery_layout.gdc
+[  73% ] savepack | Storing File: res://scripts/forest_guardian_fx.gdc
+[  74% ] savepack | Storing File: res://scripts/forest_guardian_impact.gdc
+[  74% ] savepack | Storing File: res://scripts/forest_guardian_spirit.gdc
+[  75% ] savepack | Storing File: res://scripts/forest_hunter_combat.gdc
+[  75% ] savepack | Storing File: res://scripts/forest_return_gallery.gdc
+[  76% ] savepack | Storing File: res://scripts/forest_return_gallery_layout.gdc
+[  77% ] savepack | Storing File: res://scripts/forest_room_plate.gdshader
+[  77% ] savepack | Storing File: res://scripts/forest_smash_corridor.gdc
+[  78% ] savepack | Storing File: res://scripts/forest_smash_corridor_layout.gdc
+[  78% ] savepack | Storing File: res://scripts/forest_split_hall.gdc
+[  79% ] savepack | Storing File: res://scripts/forest_split_hall_layout.gdc
+[  80% ] savepack | Storing File: res://scripts/forest_stair.gdc
+[  80% ] savepack | Storing File: res://scripts/forest_stair_layout.gdc
+[  81% ] savepack | Storing File: res://scripts/forest_stepped_gallery.gdc
+[  81% ] savepack | Storing File: res://scripts/forest_stepped_gallery_layout.gdc
+[  82% ] savepack | Storing File: res://scripts/forest_temple_guardian.gdc
+[  83% ] savepack | Storing File: res://scripts/forest_temple_hand.gdc
+[  83% ] savepack | Storing File: res://scripts/forest_upper_gallery.gdc
+[  84% ] savepack | Storing File: res://scripts/forest_upper_gallery_layout.gdc
+[  84% ] savepack | Storing File: res://scripts/forest_world_layout.gdc
+[  85% ] savepack | Storing File: res://scripts/gallery_art.gdc
+[  86% ] savepack | Storing File: res://scripts/gallery_encounters.gdc
+[  86% ] savepack | Storing File: res://scripts/game_audio.gdc
+[  87% ] savepack | Storing File: res://scripts/game_menu.gdc
+[  88% ] savepack | Storing File: res://scripts/goblin_boss.gdc
+[  88% ] savepack | Storing File: res://scripts/goblin_combat_fx.gdc
+[  89% ] savepack | Storing File: res://scripts/hand_menu.gdc
+[  89% ] savepack | Storing File: res://scripts/hud.gdc
+[  90% ] savepack | Storing File: res://scripts/ledge_sentinel.gdc
+[  91% ] savepack | Storing File: res://scripts/loading_overlay.gdc
+[  91% ] savepack | Storing File: res://scripts/main_menu.gdc
+[  92% ] savepack | Storing File: res://scripts/map_art.gdc
+[  92% ] savepack | Storing File: res://scripts/nav_system.gdc
+[  93% ] savepack | Storing File: res://scripts/pause_menu.gdc
+[  94% ] savepack | Storing File: res://scripts/player.gdc
+[  94% ] savepack | Storing File: res://scripts/player_presentation.gdc
+[  95% ] savepack | Storing File: res://scripts/save_slots.gdc
+[  95% ] savepack | Storing File: res://scripts/scout.gdc
+[  96% ] savepack | Storing File: res://scripts/split_gallery.gdc
+[  97% ] savepack | Storing File: res://scripts/split_gallery_layout.gdc
+[  97% ] savepack | Storing File: res://scripts/will_orb.gdc
+[  98% ] savepack | Storing File: res://scripts/world_map.gdc
+[  98% ] savepack | Storing File: res://addons/godot_mcp/core/mcp_log.gd.remap
+[  98% ] savepack | Storing File: res://addons/godot_mcp/game_bridge/joy_names.gd.remap
+[  98% ] savepack | Storing File: res://addons/godot_mcp/game_bridge/key_names.gd.remap
+[  98% ] savepack | Storing File: res://addons/godot_mcp/game_bridge/mcp_exec_guard.gd.remap
+[  98% ] savepack | Storing File: res://addons/godot_mcp/game_bridge/mcp_frame_profiler.gd.remap
+[  98% ] savepack | Storing File: res://addons/godot_mcp/game_bridge/mcp_game_bridge.gd.remap
+[  98% ] savepack | Storing File: res://addons/godot_mcp/game_bridge/mcp_runtime_state_sampler.gd.remap
+[  98% ] savepack | Storing File: res://addons/godot_mcp/game_bridge/mesh_validator.gd.remap
+[  98% ] savepack | Storing File: res://addons/godot_mcp/game_bridge/onscreen.gd.remap
+[  98% ] savepack | Storing File: res://main.tscn.remap
+[  98% ] savepack | Storing File: res://scenes/forest_entry.tscn.remap
+[  98% ] savepack | Storing File: res://scenes/main_menu.tscn.remap
+[  98% ] savepack | Storing File: res://scenes/tutorial.tscn.remap
+[  98% ] savepack | Storing File: res://scripts/tutorial_world.gd.remap
+[  98% ] savepack | Storing File: res://scripts/ability_icon.gd.remap
+[  98% ] savepack | Storing File: res://scripts/boss.gd.remap
+[  98% ] savepack | Storing File: res://scripts/bow_arrow.gd.remap
+[  98% ] savepack | Storing File: res://scripts/bow_boss.gd.remap
+[  98% ] savepack | Storing File: res://scripts/cave_layout.gd.remap
+[  98% ] savepack | Storing File: res://scripts/cave_scenery.gd.remap
+[  98% ] savepack | Storing File: res://scripts/combat_boss.gd.remap
+[  98% ] savepack | Storing File: res://scripts/combat_projectile.gd.remap
+[  98% ] savepack | Storing File: res://scripts/forest_arrival.gd.remap
+[  98% ] savepack | Storing File: res://scripts/forest_arrival_layout.gd.remap
+[  98% ] savepack | Storing File: res://scripts/forest_chamber.gd.remap
+[  98% ] savepack | Storing File: res://scripts/forest_dash_galleries.gd.remap
+[  98% ] savepack | Storing File: res://scripts/forest_dash_galleries_layout.gd.remap
+[  98% ] savepack | Storing File: res://scripts/forest_elevated_gallery.gd.remap
+[  98% ] savepack | Storing File: res://scripts/forest_elevated_gallery_layout.gd.remap
+[  98% ] savepack | Storing File: res://scripts/forest_entry.gd.remap
+[  98% ] savepack | Storing File: res://scripts/forest_final_stair.gd.remap
+[  98% ] savepack | Storing File: res://scripts/forest_final_stair_layout.gd.remap
+[  98% ] savepack | Storing File: res://scripts/forest_gallery.gd.remap
+[  98% ] savepack | Storing File: res://scripts/forest_gallery_layout.gd.remap
+[  98% ] savepack | Storing File: res://scripts/forest_guardian_fx.gd.remap
+[  98% ] savepack | Storing File: res://scripts/forest_guardian_impact.gd.remap
+[  98% ] savepack | Storing File: res://scripts/forest_guardian_spirit.gd.remap
+[  98% ] savepack | Storing File: res://scripts/forest_hunter_combat.gd.remap
+[  98% ] savepack | Storing File: res://scripts/forest_return_gallery.gd.remap
+[  98% ] savepack | Storing File: res://scripts/forest_return_gallery_layout.gd.remap
+[  98% ] savepack | Storing File: res://scripts/forest_smash_corridor.gd.remap
+[  98% ] savepack | Storing File: res://scripts/forest_smash_corridor_layout.gd.remap
+[  98% ] savepack | Storing File: res://scripts/forest_split_hall.gd.remap
+[  98% ] savepack | Storing File: res://scripts/forest_split_hall_layout.gd.remap
+[  98% ] savepack | Storing File: res://scripts/forest_stair.gd.remap
+[  98% ] savepack | Storing File: res://scripts/forest_stair_layout.gd.remap
+[  98% ] savepack | Storing File: res://scripts/forest_stepped_gallery.gd.remap
+[  98% ] savepack | Storing File: res://scripts/forest_stepped_gallery_layout.gd.remap
+[  98% ] savepack | Storing File: res://scripts/forest_temple_guardian.gd.remap
+[  98% ] savepack | Storing File: res://scripts/forest_temple_hand.gd.remap
+[  98% ] savepack | Storing File: res://scripts/forest_upper_gallery.gd.remap
+[  98% ] savepack | Storing File: res://scripts/forest_upper_gallery_layout.gd.remap
+[  98% ] savepack | Storing File: res://scripts/forest_world_layout.gd.remap
+[  98% ] savepack | Storing File: res://scripts/gallery_art.gd.remap
+[  98% ] savepack | Storing File: res://scripts/gallery_encounters.gd.remap
+[  98% ] savepack | Storing File: res://scripts/game_audio.gd.remap
+[  98% ] savepack | Storing File: res://scripts/game_menu.gd.remap
+[  98% ] savepack | Storing File: res://scripts/goblin_boss.gd.remap
+[  98% ] savepack | Storing File: res://scripts/goblin_combat_fx.gd.remap
+[  98% ] savepack | Storing File: res://scripts/hand_menu.gd.remap
+[  98% ] savepack | Storing File: res://scripts/hud.gd.remap
+[  98% ] savepack | Storing File: res://scripts/ledge_sentinel.gd.remap
+[  98% ] savepack | Storing File: res://scripts/loading_overlay.gd.remap
+[  98% ] savepack | Storing File: res://scripts/main_menu.gd.remap
+[  98% ] savepack | Storing File: res://scripts/map_art.gd.remap
+[  98% ] savepack | Storing File: res://scripts/nav_system.gd.remap
+[  98% ] savepack | Storing File: res://scripts/pause_menu.gd.remap
+[  98% ] savepack | Storing File: res://scripts/player.gd.remap
+[  98% ] savepack | Storing File: res://scripts/player_presentation.gd.remap
+[  98% ] savepack | Storing File: res://scripts/save_slots.gd.remap
+[  98% ] savepack | Storing File: res://scripts/scout.gd.remap
+[  98% ] savepack | Storing File: res://scripts/split_gallery.gd.remap
+[  98% ] savepack | Storing File: res://scripts/split_gallery_layout.gd.remap
+[  98% ] savepack | Storing File: res://scripts/will_orb.gd.remap
+[  98% ] savepack | Storing File: res://scripts/world_map.gd.remap
+[  98% ] savepack | Storing File: res://.godot/global_script_class_cache.cfg
+[  98% ] savepack | Storing File: res://.godot/uid_cache.bin
+[  98% ] savepack | Storing File: res://project.binary
+[ DONE ] savepack
+
+[godot-mcp] Plugin disabled
+ERROR: Cannot save file 'C:/Users/Aiden/AppData/Roaming/Godot/editor_settings-4.7.tres'.
+   at: save (scene/resources/resource_format_text.cpp:1768)
+ERROR: Error saving editor settings to C:/Users/Aiden/AppData/Roaming/Godot/editor_settings-4.7.tres
+   at: save (editor/settings/editor_settings.cpp:1525)

@@ -14,9 +14,11 @@ func _run() -> void:
 	var data: Dictionary = SAVE_SLOTS.new_slot()
 	data["seconds"] = 3610.0
 	data["checkpoint_x"] = 2610.0
+	data["checkpoint_y"] = 570.0
 	data["hand_activated"] = true
 	data["room"] = 3
 	data["has_dash"] = true
+	data["bow_boss_defeated"] = true
 	data["seal_broken"] = true
 	data["scout_defeated"] = true
 	if SAVE_SLOTS.write_slot(2, data, TEST_ROOT) != OK:
