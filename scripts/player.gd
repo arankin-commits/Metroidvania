@@ -59,7 +59,7 @@ var beam_remaining:=0
 var beam_interval:=0.0
 var has_heavy := false
 var has_bow := false
-var has_downstrike := false
+var has_downstrike := true
 var bow_ammo := 0
 const BOW_AMMO_MAX := 3
 var heavy_charge := 0.0
@@ -181,7 +181,7 @@ func _ready() -> void:
 func load_combat_progress(data: Dictionary) -> void:
 	if data.has("has_dash"):
 		has_dash=bool(data.get("has_dash",false))
-	has_downstrike = bool(data.get("has_downstrike", false))
+	has_downstrike = bool(data.get("has_downstrike", true))
 	if is_instance_valid(downstrike):
 		downstrike.unlocked = has_downstrike
 	has_air_dash=bool(data.get("has_air_dash", data.get("bow_boss_defeated", false)))
