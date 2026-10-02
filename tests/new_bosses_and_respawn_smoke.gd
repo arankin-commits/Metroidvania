@@ -54,28 +54,21 @@ func run() -> void:
 	print("   Sleeping goblin visual offset fix: OK")
 
 	# -------------------------------------------------------------------------
-	# 2. TEST: Goblin Spearmen Spawns at 5 Red X coordinates
+	# 2. TEST: Goblin Sentinel Spawn (only SealSpearman remains per Screenshot 063111)
 	# -------------------------------------------------------------------------
-	print("2. Testing Goblin Spearmen spawns in Cave Room 2...")
+	print("2. Testing Goblin Sentinel spawn in Cave Room 2...")
 	var encounters := GALLERY_LAYOUT.encounters()
 	var spearmen: Array[Dictionary] = []
 	for enc in encounters:
 		if enc.get("kind") == "goblin_sentinel" or enc.get("kind") == "spearman":
 			spearmen.append(enc)
-	if spearmen.size() != 5:
-		fail("Expected exactly 5 goblin spearmen, got %d" % spearmen.size())
+	if spearmen.size() != 1:
+		fail("Expected exactly 1 goblin sentinel (SealSpearman), got %d" % spearmen.size())
 		return
-	var expected_ids := ["EntranceSpearman", "AscentSpearman", "SealSpearman", "CrownSpearmanWest", "CrownSpearmanEast"]
-	for id in expected_ids:
-		var found := false
-		for s in spearmen:
-			if s.get("id") == id:
-				found = true
-				break
-		if not found:
-			fail("Missing expected spearman: %s" % id)
-			return
-	print("   Goblin Spearmen 5 Red X spawns verified: OK")
+	if spearmen[0].get("id") != "SealSpearman":
+		fail("Expected remaining sentinel to be SealSpearman, got %s" % spearmen[0].get("id"))
+		return
+	print("   Goblin Sentinel Seal Floor spawn verified (all others removed): OK")
 
 	# -------------------------------------------------------------------------
 	# 3. TEST: Death in Injured State / Respawn Behavior

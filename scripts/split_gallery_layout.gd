@@ -56,16 +56,8 @@ static func routes() -> Dictionary:
 # Existing entrance sentinel and undercroft scout are owned by tutorial_world.
 static func encounters() -> Array[Dictionary]:
 	return [
-		# The 5 Goblin Spearmen at the authoritative Red X locations from screenshots:
-		# 1. Screenshot 014541: Entrance floor (floor y=1500)
-		{"id":"EntranceSpearman", "kind":"goblin_sentinel", "position":Vector2(320,1473), "patrol":Vector2(80,550)},
-		# 2. Screenshot 014517: Ascent / Chain Well Approach (floor y=1230)
-		{"id":"AscentSpearman", "kind":"goblin_sentinel", "position":Vector2(1530,1203), "patrol":Vector2(1420,1630)},
-		# 3. Screenshot 014049: Seal Floor (floor y=-1500)
+		# Goblin Spearman / Sentinel: only the one on the Seal Floor (Screenshot 063111):
 		{"id":"SealSpearman", "kind":"goblin_sentinel", "position":Vector2(4680,-1500), "patrol":Vector2(4300,4900)},
-		# 4 & 5. Screenshot 014549: Crown Walk / Upper Gallery West & East (floor y=-1296)
-		{"id":"CrownSpearmanWest", "kind":"goblin_sentinel", "position":Vector2(2550,-1296), "patrol":Vector2(2500,2750)},
-		{"id":"CrownSpearmanEast", "kind":"goblin_sentinel", "position":Vector2(3050,-1296), "patrol":Vector2(2850,3100)},
 
 		# Stationary sleeping goblins (kind: "sentinel" -> ledge_sentinel.gd playing "sleep"):
 		{"id":"WellJunction", "kind":"sentinel", "position":Vector2(2220,-252)},
