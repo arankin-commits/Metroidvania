@@ -459,7 +459,6 @@ func _process(delta: float) -> void:
 		_lock_arena()
 		_show_toast("THE HOLLOW WARDEN  ·  Watch the red charge tell", 3.0)
 	_update_hud()
-	queue_redraw()
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo and event.physical_keycode == KEY_TAB:
@@ -1098,7 +1097,6 @@ func _update_hud() -> void:
 	hud.finished = complete
 	hud.prompt = _cave_prompt() if not note_open and not respawning and not transitioning_room else ""
 	hud.notice = toast if toast_time > 0.0 else ""
-	hud.queue_redraw()
 
 func _cave_prompt() -> String:
 	if player.waking_up: return ""

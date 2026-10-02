@@ -47,6 +47,7 @@ func _ready() -> void:
 	var collision := CollisionShape2D.new()
 	collision.shape = shape
 	add_child(collision)
+	queue_redraw()
 
 
 func is_facing_wall() -> bool:
@@ -98,9 +99,16 @@ func can_see_target(target: Node2D) -> bool:
 
 	return false
 
+var _edge_cache_frame := -1
+var _edge_cache_dir := 0
+var _edge_cache_val := false
+
 func is_edge_ahead(dir: int) -> bool:
 	if not is_on_floor() or dir == 0:
 		return false
+	var current_frame := Engine.get_physics_frames()
+	if _edge_cache_frame == current_frame and _edge_cache_dir == dir:
+		return _edge_cache_val
 	var half_width := body_size().x * 0.5
 	var probe_x := global_position.x + dir * (half_width + 8.0)
 	var foot_y := global_position.y + body_size().y * 0.5
@@ -111,14 +119,26 @@ func is_edge_ahead(dir: int) -> bool:
 	query.exclude = [get_rid()]
 	query.hit_from_inside = true
 	var hit := get_world_2d().direct_space_state.intersect_ray(query)
-	return hit.is_empty()
+	var edge := hit.is_empty()
+	_edge_cache_frame = current_frame
+	_edge_cache_dir = dir
+	_edge_cache_val = edge
+	return edge
 
 func _physics_process(delta: float) -> void:
 	spawn_grace=maxf(0,spawn_grace-delta)
 	hit_cooldown = maxf(0.0, hit_cooldown - delta)
 
+	var is_off_screen := false
+	if is_instance_valid(player):
+		var dx := absf(global_position.x - player.global_position.x)
+		var dy := absf(global_position.y - player.global_position.y)
+		is_off_screen = dx > 1250.0 or dy > 750.0
+
 	var direction := facing
-	var visible_target: CharacterBody2D = player if can_see_target(player) else null
+	var visible_target: CharacterBody2D = null
+	if not is_off_screen:
+		visible_target = player if can_see_target(player) else null
 
 	if navigation != null:
 		var traversal: Dictionary = navigation.update_enemy_ai_traverse(
@@ -135,14 +155,14 @@ func _physics_process(delta: float) -> void:
 		elif absf(global_position.x - origin_x) > 78.0:
 			direction = -1 if global_position.x > origin_x else 1
 
+	var old_facing := facing
 	if visible_target == null:
-		if is_edge_ahead(direction):
-			direction *= -1
-			facing = direction
 		if position.x <= patrol_bounds.x + 2:
 			direction = 1
 		elif position.x >= patrol_bounds.y - 2:
 			direction = -1
+		elif not is_off_screen and is_edge_ahead(direction):
+			direction *= -1
 		facing = direction
 	else:
 		if is_edge_ahead(direction):
@@ -155,12 +175,15 @@ func _physics_process(delta: float) -> void:
 	velocity.y += GRAVITY * delta
 
 	move_and_slide()
-	if visible_target == null and (is_edge_ahead(facing) or is_facing_wall()):
+	if visible_target == null and not is_off_screen and (is_edge_ahead(facing) or is_facing_wall()):
 		facing *= -1
+
+	if facing != old_facing:
+		queue_redraw()
 
 	var enemy_bounds := Rect2(global_position-body_size()/2,body_size())
 	var player_bounds := Rect2(player.global_position - Vector2(14, 23), Vector2(28, 46)) if player != null else Rect2()
-	if player != null and hit_cooldown <= 0.0 and enemy_bounds.grow(4.0).intersects(player_bounds):
+	if not is_off_screen and player != null and hit_cooldown <= 0.0 and enemy_bounds.grow(4.0).intersects(player_bounds):
 		if player.get("dash_time") != null and player.dash_time > 0.0:
 			pass
 		else:
@@ -169,7 +192,6 @@ func _physics_process(delta: float) -> void:
 			if player.health < health_before:
 				attack_landed.emit()
 			hit_cooldown = 0.8
-	queue_redraw()
 
 func take_hit(amount: float = 1.0, posture_damage: float = -1.0) -> void:
 	var p_dmg := amount if posture_damage < 0.0 else posture_damage

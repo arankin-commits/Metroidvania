@@ -151,6 +151,7 @@ func _ready() -> void:
 	_update_collision_position()
 	facing=facing
 	play_sequence("idle")
+	queue_redraw()
 
 func _update_collision_position() -> void:
 	if collision != null and collision.shape != null:
@@ -218,15 +219,21 @@ func is_facing_wall() -> bool:
 	return absf(n.y) < 0.35 and signf(n.x) == -facing
 
 var _edge_cache_frame := -1
-var _edge_cache_dir := 0
-var _edge_cache_val := false
+var _edge_cache_left := false
+var _edge_cache_right := false
+var _edge_cached_mask := 0
 
 func is_edge_ahead(dir: int) -> bool:
 	if not is_on_floor() or dir == 0:
 		return false
 	var current_frame := Engine.get_physics_frames()
-	if _edge_cache_frame == current_frame and _edge_cache_dir == dir:
-		return _edge_cache_val
+	if _edge_cache_frame != current_frame:
+		_edge_cache_frame = current_frame
+		_edge_cached_mask = 0
+	if dir < 0 and (_edge_cached_mask & 1) != 0:
+		return _edge_cache_left
+	if dir > 0 and (_edge_cached_mask & 2) != 0:
+		return _edge_cache_right
 	var size: Vector2 = SIZES.get(enemy_kind, Vector2(30, 56))
 	var half_width: float = size.x * 0.5
 	var probe_x: float = global_position.x + dir * (half_width + 8.0)
@@ -245,9 +252,12 @@ func is_edge_ahead(dir: int) -> bool:
 		var normal: Vector2 = hit.get("normal", Vector2.UP)
 		if normal.y > -0.35:
 			edge = true
-	_edge_cache_frame = current_frame
-	_edge_cache_dir = dir
-	_edge_cache_val = edge
+	if dir < 0:
+		_edge_cache_left = edge
+		_edge_cached_mask |= 1
+	else:
+		_edge_cache_right = edge
+		_edge_cached_mask |= 2
 	return edge
 
 func play_sequence(sequence: StringName, move := false, hold := false) -> void:
@@ -454,19 +464,24 @@ func _physics_process(delta: float) -> void:
 				elif sprite.animation!=&"idle": play_sequence("idle")
 		else:
 			# Patrol mode: turn around before exceeding patrol bounds or at walls/edges
-			if position.x <= patrol_bounds.x + 8.0 or (facing == -1 and is_facing_wall()) or is_edge_ahead(-1):
+			if position.x <= patrol_bounds.x + 8.0:
 				facing = 1
-			elif position.x >= patrol_bounds.y - 8.0 or (facing == 1 and is_facing_wall()) or is_edge_ahead(1):
+			elif position.x >= patrol_bounds.y - 8.0:
 				facing = -1
-			if is_edge_ahead(facing):
-				facing *= -1
+			elif not is_off_screen:
+				if (facing == -1 and is_facing_wall()) or is_edge_ahead(-1):
+					facing = 1
+				elif (facing == 1 and is_facing_wall()) or is_edge_ahead(1):
+					facing = -1
+				if is_edge_ahead(facing):
+					facing *= -1
 			if sprite.animation==&"idle" or sprite.animation==&"run":
 				play_sequence("walk", true)
 
 	var cur_run_speed := get_run_speed()
 	var cur_walk_speed := get_walk_speed()
 	if locomotion:
-		if is_edge_ahead(facing):
+		if (not is_off_screen or patrol_bounds.x == -INF) and is_edge_ahead(facing):
 			if sees_player:
 				velocity.x = 0
 				if sprite.animation != &"idle": play_sequence("idle")
@@ -498,8 +513,6 @@ func _physics_process(delta: float) -> void:
 				hit_cooldown = 0.8
 
 	tick_animation(delta)
-	if not is_off_screen:
-		queue_redraw()
 
 func _draw() -> void:
 	if health > 0 and ai_enabled:

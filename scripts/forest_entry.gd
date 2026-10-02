@@ -304,6 +304,7 @@ func _process(delta: float) -> void:
 		bow_boss.state_time = 0.65
 		arena_entrance = _solid(Rect2(BOUNDS[2].x, -60, 32, 660))
 		arena_exit = _solid(Rect2(BOUNDS[2].y, -60, 32, 660))
+		queue_redraw()
 		game_audio.play_forest_boss()
 		_show_toast("FOREST GUARDIAN  ·  Close the distance between volleys", 3.5)
 	if current_room == 11 and not rabbit_boss_defeated and not rabbit_boss.active and not transitioning:
@@ -331,7 +332,6 @@ func _process(delta: float) -> void:
 			if player.position.distance_to(sec9_offering.position) < 45.0:
 				_collect_offering(9)
 	_update_hud()
-	queue_redraw()
 
 func _check_transition() -> void:
 	if transitioning or current_room in [9,10]: return
@@ -408,6 +408,7 @@ func _set_camera() -> void:
 			ch.visible = current_room == r
 	if is_instance_valid(sec4_offering): sec4_offering.visible = current_room == 6
 	if is_instance_valid(sec9_offering): sec9_offering.visible = current_room == 6
+	queue_redraw()
 
 func _receiving_position(destination: int,entry_x: float) -> Vector2:
 	if destination==9: return DASH_LAYOUT.HAND
@@ -445,12 +446,14 @@ func _unlock_arena() -> void:
 		arena_exit.queue_free()
 	arena_entrance = null
 	arena_exit = null
+	queue_redraw()
 
 func _lock_rabbit_arena() -> void:
 	if not is_instance_valid(rabbit_arena_entrance):
 		rabbit_arena_entrance = _solid(Rect2(BOUNDS[6].x, -60, 32, 660))
 	if not is_instance_valid(rabbit_arena_exit):
 		rabbit_arena_exit = _solid(Rect2(BOUNDS[6].y - 32, -60, 32, 660))
+	queue_redraw()
 
 func _unlock_rabbit_arena() -> void:
 	if is_instance_valid(rabbit_arena_entrance):
@@ -459,12 +462,14 @@ func _unlock_rabbit_arena() -> void:
 		rabbit_arena_exit.queue_free()
 	rabbit_arena_entrance = null
 	rabbit_arena_exit = null
+	queue_redraw()
 
 func _lock_ironback_arena() -> void:
 	if not is_instance_valid(ironback_arena_entrance):
 		ironback_arena_entrance = _solid(Rect2(BOUNDS[7].x, -60, 32, 660))
 	if not is_instance_valid(ironback_arena_exit):
 		ironback_arena_exit = _solid(Rect2(BOUNDS[7].y - 32, -60, 32, 660))
+	queue_redraw()
 
 func _unlock_ironback_arena() -> void:
 	if is_instance_valid(ironback_arena_entrance):
@@ -473,6 +478,7 @@ func _unlock_ironback_arena() -> void:
 		ironback_arena_exit.queue_free()
 	ironback_arena_entrance = null
 	ironback_arena_exit = null
+	queue_redraw()
 
 func _ensure_rabbit_climb_wall() -> void:
 	if rabbit_boss_defeated:
@@ -788,7 +794,7 @@ func _on_bow(origin: Vector2, direction: Vector2) -> void:
 	if current_room==10 and temple_guardian.active: target=temple_guardian
 	elif current_room == 11 and is_instance_valid(rabbit_boss) and rabbit_boss.active: target = rabbit_boss
 	elif current_room == 12 and is_instance_valid(ironback_boss) and ironback_boss.active: target = ironback_boss
-	var arrow := ARROW.new()
+	var arrow: BowArrow = ARROW.acquire_arrow()
 	add_child(arrow)
 	arrow.setup(origin, direction, target, player.damage_multiplier())
 
@@ -1100,7 +1106,6 @@ func _update_hud() -> void:
 		hud.boss_max_posture = 1.0
 		hud.boss_title = "IRONBACK, THE SEISMIC FIST"
 	hud.notice = interaction_prompt() if not interaction_prompt().is_empty() else toast if toast_time > 0.0 else ""
-	hud.queue_redraw()
 
 func _save_progress() -> void:
 	if active_save_slot <= 0:

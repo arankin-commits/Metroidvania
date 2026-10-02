@@ -135,19 +135,16 @@ func _physics_process(delta: float) -> void:
 		excludes.append(owner_actor.get_rid())
 	if is_instance_valid(target) and target is CollisionObject2D:
 		excludes.append(target.get_rid())
-	for p in get_tree().get_nodes_in_group("player"):
-		if p is CollisionObject2D and not excludes.has(p.get_rid()):
-			excludes.append(p.get_rid())
+	var p_node := get_tree().get_first_node_in_group("player")
+	if is_instance_valid(p_node) and p_node is CollisionObject2D and not excludes.has(p_node.get_rid()):
+		excludes.append(p_node.get_rid())
 	ray.exclude = excludes
 	var wall_hit:=get_world_2d().direct_space_state.intersect_ray(ray)
 	if not wall_hit.is_empty():
 		forest_impact(wall_hit.position)
 		deactivate_and_recycle()
 		return
-	var candidates: Array[Node]=[]
-	if friendly:
-		candidates.assign(get_tree().get_nodes_in_group("combat_targets"))
-	elif is_instance_valid(target): candidates.append(target)
+	var candidates: Array = get_tree().get_nodes_in_group("combat_targets") if friendly else ([target] if is_instance_valid(target) else [])
 	for candidate in candidates:
 		if not is_instance_valid(candidate) or candidate in hit_targets or candidate.is_queued_for_deletion(): continue
 		if candidate.get("health")!=null and candidate.health<=0: continue
