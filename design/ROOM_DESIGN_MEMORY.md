@@ -1481,6 +1481,14 @@ review. Do not treat a headless visibility flag as proof that something renders 
   - Releasing early (`ability_charge < 1.0`) cancels the charge without firing and consumes zero charges.
   - While charging, horizontal turning remains strictly locked to the initial facing direction.
   - 12 rapid-fire beam charges are provided, restored when meditating at any hand statue.
+- **Dead Boss Lifecycle & Despawn**:
+  - Dead/defeated bosses must never spawn in or linger with active collision, combat bounds, or positive health.
+  - When a boss is defeated (or already marked defeated on world load), `_disable_defeated_boss()` zeroes health (`health = 0.0`), disables collision (`collision_layer = 0`, `collision_mask = 0`, all `CollisionShape2D.disabled = true`), removes the boss from groups (`combat_targets`, `bosses`, `enemies`, `mcp_watch`), disables processing, and moves position far offscreen (`Vector2(-99999, -99999)`).
+  - In `player.gd`, `_check_enemy_contact_damage()` ignores any collider or target that is not visible in tree, has `active == false`, is marked `defeated`/`is_dead`, or has `health <= 0.0`. Players walking near defeated boss spawn points take zero contact damage and experience zero collision impedance.
+- **Rabbit Boss Climbable Tree/Wall Despawn**:
+  - In Room 11, the 260 px climbable tree/wall (`rabbit_climb_wall`, group `"climbable_surface"`) acts as the arena surface for the Rabbit Boss to climb and pounce from, while blocking access to the right-side exit.
+  - When the Rabbit Boss is defeated (`_on_rabbit_defeated()`), this climbable tree/wall immediately disappears (`queue_free()`), opening the path to the right exit to Room 12 (Ironback Boss).
+  - If Rabbit Boss was already defeated, the tree/wall is never spawned. If the player dies before defeating Rabbit Boss, the tree/wall persists/respawns for the encounter.
 
 
 

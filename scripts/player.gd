@@ -708,9 +708,17 @@ func _check_enemy_contact_damage() -> void:
 		var col := get_slide_collision(i)
 		var collider := col.get_collider()
 		if is_instance_valid(collider) and (collider.is_in_group("enemies") or collider.is_in_group("combat_targets") or collider.is_in_group("bosses")):
-			if collider.get("health") == null or collider.health > 0:
-				take_damage(1.0, collider.global_position.x, false)
-				return
+			if not collider.is_visible_in_tree():
+				continue
+			if collider.get("active") != null and not collider.active:
+				continue
+			var collider_def = collider.get("defeated")
+			if (typeof(collider_def) == TYPE_BOOL and collider_def == true) or collider.get("is_dead") == true or str(collider.get("state")) == "defeated":
+				continue
+			if collider.get("health") != null and collider.health <= 0:
+				continue
+			take_damage(1.0, collider.global_position.x, false)
+			return
 	var player_box := combat_bounds()
 	var candidates: Array = []
 	if is_inside_tree():
@@ -719,6 +727,15 @@ func _check_enemy_contact_damage() -> void:
 				if is_instance_valid(node) and node != self and not candidates.has(node):
 					candidates.append(node)
 	for enemy in candidates:
+		if not is_instance_valid(enemy):
+			continue
+		if not enemy.is_visible_in_tree():
+			continue
+		if enemy.get("active") != null and not enemy.active:
+			continue
+		var enemy_def = enemy.get("defeated")
+		if (typeof(enemy_def) == TYPE_BOOL and enemy_def == true) or enemy.get("is_dead") == true or str(enemy.get("state")) == "defeated":
+			continue
 		if enemy.get("health") != null and enemy.health <= 0:
 			continue
 		var enemy_bounds: Rect2

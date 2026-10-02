@@ -302,10 +302,7 @@ func _ready() -> void:
 	boss.attack_cued.connect(game_audio.play_effect)
 	if saved_boss_defeated:
 		boss_defeated = true
-		boss.active = false
-		boss.visible = false
-		boss.health = 0.0
-		boss.set_physics_process(false)
+		_disable_defeated_boss(boss)
 	bow_boss_defeated = saved_bow_boss_defeated
 	var layer := CanvasLayer.new()
 	layer.name = "HUDLayer"
@@ -781,13 +778,10 @@ func _on_ledge_sentinel_defeated() -> void:
 
 func _on_boss_defeated() -> void:
 	boss_defeated = true
-	boss.active = false
-	boss.visible = false
-	boss.health = 0.0
-	boss.set_physics_process(false)
 	game_audio.play_cave()
 	_unlock_arena()
 	_spawn_will_orb(boss.global_position, 50)
+	_disable_defeated_boss(boss)
 	player.has_heavy = true
 	player.has_scimitar=true
 	player.has_wrath=true
@@ -796,6 +790,29 @@ func _on_boss_defeated() -> void:
 	artificer_rescued = true
 	_save_progress()
 	queue_redraw()
+
+func _disable_defeated_boss(b: Node) -> void:
+	if not is_instance_valid(b):
+		return
+	b.visible = false
+	if "active" in b:
+		b.active = false
+	if "health" in b:
+		b.health = 0.0
+	if b is CollisionObject2D:
+		b.collision_layer = 0
+		b.collision_mask = 0
+	for child in b.get_children():
+		if child is CollisionShape2D:
+			child.set_deferred("disabled", true)
+			child.disabled = true
+	for g in ["combat_targets", "bosses", "enemies", "mcp_watch"]:
+		if b.is_in_group(g):
+			b.remove_from_group(g)
+	b.set_process(false)
+	b.set_physics_process(false)
+	if "position" in b:
+		b.position = Vector2(-99999, -99999)
 
 func _spawn_will_orb(origin: Vector2, amount: int) -> void:
 	var orb := WILL_ORB.new()

@@ -179,12 +179,19 @@ func run() -> void:
 		fail("Rabbit chamber should be visible in Room 11")
 		return
 
+	if not is_instance_valid(forest.rabbit_climb_wall):
+		fail("Rabbit climb wall should exist before rabbit boss is defeated")
+		return
+
 	# Defeat Rabbit Boss
 	forest._on_rabbit_defeated()
 	if not forest.rabbit_boss_defeated:
 		fail("rabbit_boss_defeated should be true")
 		return
-	print("   Room 11 Rabbit Boss setup and defeat: OK")
+	if is_instance_valid(forest.rabbit_climb_wall):
+		fail("Rabbit climb wall must disappear when rabbit boss is defeated")
+		return
+	print("   Room 11 Rabbit Boss setup, climb wall despawn, and defeat: OK")
 
 	# Transition to Room 12 (Ironback Boss)
 	forest.player.position.x = 27280.0 + 80.0
@@ -230,6 +237,71 @@ func run() -> void:
 		fail("has_heavy_smash should be saved in slot")
 		return
 	print("   New boss progression and heavy smash persistence: OK")
+
+	# -------------------------------------------------------------------------
+	# 5. TEST: Dead Bosses Spawn Inactive & Deal Zero Damage / Zero Collision
+	# -------------------------------------------------------------------------
+	print("5. Testing Dead Bosses zero damage & inactive spawn...")
+	# Reload forest with save slot 2 where all bosses are defeated
+	set_meta("active_save_slot", 2)
+	set_meta("save_root", SAVE_ROOT)
+	set_meta("forest_entry_room", 11)
+	change_scene_to_file("res://scenes/forest_entry.tscn")
+	await process_frame
+	await physics_frame
+	var dead_bosses_forest: FOREST_ENTRY = current_scene
+	for i in 10:
+		await physics_frame
+
+	# Verify rabbit climb wall did not spawn
+	if is_instance_valid(dead_bosses_forest.rabbit_climb_wall):
+		fail("Rabbit climb wall should not spawn when rabbit boss is already defeated")
+		return
+
+	# Test player walking directly on rabbit boss spawn point
+	var p: CharacterBody2D = dead_bosses_forest.player
+	var hp_before: float = p.health
+	p.position = Vector2(forest.BOUNDS[6].x + 500, 504)
+	p.velocity = Vector2(100, 0)
+	for i in 10:
+		await physics_frame
+	if p.health < hp_before:
+		fail("Player took contact damage from dead rabbit boss!")
+		return
+
+	# Test player walking on bow boss spawn point
+	dead_bosses_forest.current_room = 7
+	p.position = Vector2(forest.BOUNDS[2].x + 700, 553)
+	p.velocity = Vector2(100, 0)
+	for i in 10:
+		await physics_frame
+	if p.health < hp_before:
+		fail("Player took contact damage from dead bow boss!")
+		return
+
+	# Test player walking on ironback boss spawn point
+	dead_bosses_forest.current_room = 12
+	p.position = Vector2((forest.BOUNDS[7].x + forest.BOUNDS[7].y) * 0.5, 560)
+	p.velocity = Vector2(100, 0)
+	for i in 10:
+		await physics_frame
+	if p.health < hp_before:
+		fail("Player took contact damage from dead ironback boss!")
+		return
+
+	# Test player walking on temple guardian spawn point
+	dead_bosses_forest.current_room = 10
+	dead_bosses_forest.temple_guardian_defeated = true
+	dead_bosses_forest._disable_defeated_boss(dead_bosses_forest.temple_guardian)
+	p.position = Vector2(23390, 553)
+	p.velocity = Vector2(100, 0)
+	for i in 10:
+		await physics_frame
+	if p.health < hp_before:
+		fail("Player took contact damage from dead temple guardian!")
+		return
+
+	print("   Dead bosses zero-damage and no-collision verification: OK")
 
 	print("NEW_BOSSES_AND_RESPAWN_SMOKE_PASS: All new boss rooms, spearmen spawns, sleeping goblin fix, and respawn logic verified successfully!")
 	quit(0)
