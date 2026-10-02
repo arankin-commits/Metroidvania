@@ -192,6 +192,7 @@
   "scripts/main_menu.gd",
   "scripts/map_art.gd",
   "scripts/nav_system.gd",
+  "scripts/offering_item.gd",
   "scripts/pause_menu.gd",
   "scripts/player.gd",
   "scripts/player_charge_flash.gdshader",

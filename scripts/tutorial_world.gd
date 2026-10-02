@@ -92,6 +92,7 @@ var data_equipped_weapon:="starter"
 var saved_seal_broken := false
 var saved_scout_defeated := false
 var sentinel_defeated := false
+var saved_data: Dictionary = {}
 var current_room := 1
 var transitioning_room := false
 var wall_broken := false
@@ -134,7 +135,8 @@ func _ready() -> void:
 		active_save_slot = int(get_tree().get_meta("active_save_slot"))
 		save_root = str(get_tree().get_meta("save_root", "user://"))
 	if active_save_slot > 0:
-		var data: Dictionary = SAVE_SLOTS.load_slot(active_save_slot, save_root)
+		saved_data = SAVE_SLOTS.load_slot(active_save_slot, save_root)
+		var data: Dictionary = saved_data
 		if not data.is_empty():
 			opening_seen=bool(data.get("opening_seen",true))
 			hand_activated = bool(data.get("hand_activated", false))
@@ -161,7 +163,7 @@ func _ready() -> void:
 				checkpoint = Vector2(float(data.get("checkpoint_x", 2610.0)), float(data.get("checkpoint_y", 570.0))) if hand_activated else CAVE_LAYOUT.START
 			elapsed_seconds = float(data.get("seconds", 0.0))
 			will_amount = int(data.get("will", 0))
-			player_level = int(data.get("level", 1))
+			player_level = clampi(maxi(int(data.get("level", 1)), 1 + int(will_amount / 25)), 1, 999)
 			saved_healing_charges = int(data.get("healing_charges", 3))
 			saved_aerial_practiced = bool(data.get("aerial_practiced", false))
 			sentinel_defeated = bool(data.get("sentinel_defeated", saved_aerial_practiced))
@@ -480,9 +482,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			_save_progress()
 		elif current_room == 2 and not gallery_cache_found and player.global_position.distance_to(CAVE_LAYOUT.GALLERY_CACHE) < 55.0:
 			gallery_cache_found = true
-			will_amount += 12
+			add_will(12)
 			_show_toast("A traveller's offering. +12 Will", 2.5)
-			_save_progress()
 			queue_redraw()
 		elif current_room == 3 and not cave_shortcut_open and player.global_position.distance_to(CAVE_LAYOUT.WINCH) < 55.0:
 			cave_shortcut_open = true
@@ -805,7 +806,16 @@ func _spawn_will_orb(origin: Vector2, amount: int) -> void:
 	orb.global_position = origin
 
 func _on_will_collected(amount: int) -> void:
+	add_will(amount)
+
+func add_will(amount: int) -> void:
 	will_amount += amount
+	var target_level := 1 + int(will_amount / 25)
+	if target_level > player_level:
+		player_level = target_level
+		_show_toast("LEVEL UP! Level %d" % player_level, 3.5)
+		if is_instance_valid(game_audio):
+			game_audio.play_effect("menu_confirm")
 	_save_progress()
 
 func _on_player_damaged() -> void:
@@ -917,8 +927,9 @@ func _respawn_regular_enemies() -> void:
 		ledge_sentinel.defeated.connect(_on_ledge_sentinel_defeated)
 		ledge_sentinel.attack_landed.connect(func() -> void: game_audio.play_effect("enemy_attack"))
 
-	_set_gallery_enemies_active(current_room == 2)
 	gallery_encounters.reset_at_hand()
+	gallery_encounters.set_active(current_room == 2)
+	_set_gallery_enemies_active(current_room == 2)
 
 func _save_progress() -> void:
 	if active_save_slot <= 0:
@@ -970,6 +981,10 @@ func _save_progress() -> void:
 	data["gallery_east_open"] = gallery_east_open
 	data["gallery_heavy_open"] = gallery_heavy_open
 	data["watch_cache_found"] = watch_cache_found
+	if not saved_data.is_empty():
+		for key in ["forest_smash_open", "forest_sec4_cache_found", "forest_sec9_cache_found", "forest_hand_activated", "temple_hand_activated", "temple_guardian_defeated", "rabbit_boss_defeated", "ironback_boss_defeated", "has_heavy_smash", "forest_defeated"]:
+			if saved_data.has(key):
+				data[key] = saved_data[key]
 	data["visited_rooms"] = visited_rooms.duplicate()
 	var result: Error = SAVE_SLOTS.write_slot(active_save_slot, data, save_root)
 	if result != OK:
@@ -1006,13 +1021,14 @@ func _respawn() -> void:
 	if not hand_activated:
 		player.set_injured(true)
 		player.health = player.injured_max_health
-		player.healing_charges = player.max_healing_charges
+		player.healing_charges = 1
 		player.has_dash = false
 	else:
 		player.set_injured(false)
 		player.heal_full()
 		player.healing_charges = player.max_healing_charges
 		player.has_dash = true
+	_respawn_regular_enemies()
 	player.controls_enabled = true
 	respawning = false
 	if boss.active and not boss_defeated:

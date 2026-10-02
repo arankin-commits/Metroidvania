@@ -56,23 +56,37 @@ static func routes() -> Dictionary:
 # Existing entrance sentinel and undercroft scout are owned by tutorial_world.
 static func encounters() -> Array[Dictionary]:
 	return [
-		{"id":"WellApproach", "kind":"sentinel", "position":Vector2(1530,1203)},
+		# The 5 Goblin Spearmen at the authoritative Red X locations from screenshots:
+		# 1. Screenshot 014541: Entrance floor (floor y=1500)
+		{"id":"EntranceSpearman", "kind":"goblin_sentinel", "position":Vector2(320,1473), "patrol":Vector2(80,550)},
+		# 2. Screenshot 014517: Ascent / Chain Well Approach (floor y=1230)
+		{"id":"AscentSpearman", "kind":"goblin_sentinel", "position":Vector2(1530,1203), "patrol":Vector2(1420,1630)},
+		# 3. Screenshot 014049: Seal Floor (floor y=-1500)
+		{"id":"SealSpearman", "kind":"goblin_sentinel", "position":Vector2(4680,-1500), "patrol":Vector2(4300,4900)},
+		# 4 & 5. Screenshot 014549: Crown Walk / Upper Gallery West & East (floor y=-1296)
+		{"id":"CrownSpearmanWest", "kind":"goblin_sentinel", "position":Vector2(2550,-1296), "patrol":Vector2(2500,2750)},
+		{"id":"CrownSpearmanEast", "kind":"goblin_sentinel", "position":Vector2(3050,-1296), "patrol":Vector2(2850,3100)},
+
+		# Stationary sleeping goblins (kind: "sentinel" -> ledge_sentinel.gd playing "sleep"):
 		{"id":"WellJunction", "kind":"sentinel", "position":Vector2(2220,-252)},
-		{"id":"MemorialPatrol", "kind":"scout", "position":Vector2(800,-546), "patrol":Vector2(700,960), "roster":["goblin","goblin_dog"], "offsets":[-50.0, 50.0]},
 		{"id":"MemorialReturn", "kind":"sentinel", "position":Vector2(410,-327)},
-		{"id":"OfferingApproach", "kind":"scout", "position":Vector2(650,-1371), "patrol":Vector2(450,850), "roster":["goblin","goblin_dog"], "offsets":[-55.0, 55.0]},
 		{"id":"CrownThreshold", "kind":"sentinel", "position":Vector2(1420,-1602)},
-		{"id":"CrownPatrolWest", "kind":"scout", "position":Vector2(2700,-1296), "patrol":Vector2(2570,2810), "roster":["goblin","goblin_dog","goblin_dog"], "offsets":[-75.0, 0.0, 75.0]},
-		{"id":"CrownPatrolEast", "kind":"scout", "position":Vector2(2950,-1296), "patrol":Vector2(2850,3030), "roster":["goblin","goblin","goblin_dog"], "offsets":[-70.0, 0.0, 70.0]},
 		{"id":"OverlookGuard", "kind":"sentinel", "position":Vector2(4050,-777)},
-		{"id":"DropApproach", "kind":"scout", "position":Vector2(2920,-21), "patrol":Vector2(2760,3070), "roster":["goblin","goblin_dog"], "offsets":[-50.0, 50.0]},
-		{"id":"FoundationPatrol", "kind":"scout", "position":Vector2(2800,1029), "patrol":Vector2(2730,2870), "roster":["goblin","goblin_dog"], "offsets":[-45.0, 45.0]},
 		{"id":"FallenGuard", "kind":"sentinel", "position":Vector2(2220,648)},
-		{"id":"FallenPatrol", "kind":"scout", "position":Vector2(2210,204), "patrol":Vector2(2120,2330), "roster":["goblin","goblin_dog","goblin_dog"], "offsets":[-75.0, 0.0, 75.0]},
-		{"id":"DeepPatrol", "kind":"scout", "position":Vector2(2210,-696), "patrol":Vector2(2120,2330), "roster":["goblin","goblin","goblin_dog"], "offsets":[-75.0, 0.0, 75.0]},
 		{"id":"ReturnGuard", "kind":"sentinel", "position":Vector2(1450,573)},
 		{"id":"WestWinchApproach", "kind":"sentinel", "position":Vector2(1670,1023)},
 		{"id":"AscentGuard", "kind":"sentinel", "position":Vector2(4400,648)},
+
+		# Patrol groups (roving zones):
+		{"id":"EntrancePatrol", "kind":"scout", "position":Vector2(600,1473), "patrol":Vector2(450,700), "roster":["goblin"], "offsets":[0.0]},
+		{"id":"SealPatrol", "kind":"scout", "position":Vector2(4900,-1500), "patrol":Vector2(4750,5000), "roster":["goblin_dog"], "offsets":[0.0]},
+		{"id":"CrownPatrolDogs", "kind":"scout", "position":Vector2(2800,-1296), "patrol":Vector2(2650,2950), "roster":["goblin_dog","goblin_dog"], "offsets":[-60.0, 60.0]},
+		{"id":"MemorialPatrol", "kind":"scout", "position":Vector2(800,-546), "patrol":Vector2(700,960), "roster":["goblin","goblin_dog"], "offsets":[-50.0, 50.0]},
+		{"id":"OfferingApproach", "kind":"scout", "position":Vector2(650,-1371), "patrol":Vector2(450,850), "roster":["goblin","goblin_dog"], "offsets":[-55.0, 55.0]},
+		{"id":"DropApproach", "kind":"scout", "position":Vector2(2920,-21), "patrol":Vector2(2760,3070), "roster":["goblin","goblin_dog"], "offsets":[-50.0, 50.0]},
+		{"id":"FoundationPatrol", "kind":"scout", "position":Vector2(2800,1029), "patrol":Vector2(2730,2870), "roster":["goblin","goblin_dog"], "offsets":[-45.0, 45.0]},
+		{"id":"FallenPatrol", "kind":"scout", "position":Vector2(2210,204), "patrol":Vector2(2120,2330), "roster":["goblin","goblin_dog","goblin_dog"], "offsets":[-75.0, 0.0, 75.0]},
+		{"id":"DeepPatrol", "kind":"scout", "position":Vector2(2210,-696), "patrol":Vector2(2120,2330), "roster":["goblin","goblin","goblin_dog"], "offsets":[-75.0, 0.0, 75.0]},
 	]
 
 static func blocks() -> Array[Rect2]:

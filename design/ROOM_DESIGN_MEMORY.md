@@ -1460,7 +1460,28 @@ review. Do not treat a headless visibility flag as proof that something renders 
   - **Cave Room 2 Goblin Sentinels**: Cave Room 2 red X positions spawn `goblin_sentinel` (8 HP, thrust/combo animations, ground origin false, awareness height 450.0).
   - **Enemy Immovability & Wall Physics**: Enemies, summons, and bosses act as immovable barriers against player movement. The player cannot displace or push enemies by walking or running into them. Hitting or contacting an enemy deals contact damage back to the player with knockback unless the player is invulnerable or dashing. Dashing phases freely through enemies without collision or damage.
   - **Stone Gauntlet Charges & Turn Lock**: While charging the Stone Gauntlet (`ability_charge > 0.0`), the player cannot turn (`facing` remains locked). The rapid-fire beam ability (hold U) is limited to 12 charges (`gauntlet_charges`), reset at hand chairs. Tap U beam and basic punches remain unmetered.
-  - **Forest Boss Summon Cadence & Distinct Variants**: The Forest Boss casts summon between every 3 attack cycles when fewer than 3 summons are on the field. If no summons are present, a random variant is chosen; if summons are present, a different unrepresented variant is summoned, ensuring distinct types up to the 3-summon cap.
+### 7. Progression, New Boss Rooms, Heavy Smash, and Combat Revisions
+- **Will & Level Progression**: The player levels up every 25 Will gained (`player_level = 1 + int(will_amount / 25)`). Gaining levels never consumes Will; Will remains an unspent resource.
+- **Injured State Respawn**: Dying in the injured state resets the player to the last hand checkpoint (or Cave Room 1 start if no hand was activated) with full injured health and exactly 1 healing charge (`healing_charges = 1`). Standard enemies respawn at their authored positions with full health and posture reset.
+- **Cave Room 2 Spearmen Spawns**: All goblin spearmen (`goblin_sentinel`) in Cave Room 2 are strictly restricted to the 5 Red X coordinates:
+  - Entrance Floor: `Vector2(320, 1473)` (floor y=1500)
+  - Ascent / Chain Well Approach: `Vector2(1530, 1203)` (floor y=1230)
+  - Seal Floor: `Vector2(4680, -1500)` (floor y=-1500)
+  - Crown Walk West: `Vector2(2550, -1296)` (floor y=-1296)
+  - Crown Walk East: `Vector2(3050, -1296)` (floor y=-1296)
+  All other stationary sentinels in Cave Room 2 are sleeping sentinels (`ledge_sentinel.gd` playing `"sleep"`).
+- **Sleeping Goblin Visual Alignment**: Fixed detached sprite offset bug by housing the goblin sprite inside a centered `visual = Node2D.new()` container at `(0, 0)`. Flipping horizontal facing scales `visual.scale.x = facing`, preserving correct alignment between sprite body, collision shape, and health/posture bar in both directions.
+- **Room 11 (Rabbit Boss Room) & Room 12 (Ironback Boss Room)**:
+  - Room 11 (`BOUNDS[6] = Vector2(25600, 27200)`) houses Rabbit, the Wall-Clinger (`rabbit_boss.gd`), featuring wall climbing, pounce telegraphs, and arena lockdown.
+  - Room 12 (`BOUNDS[7] = Vector2(27280, 29000)`) houses Ironback, the Seismic Fist (`ironback_full_boss.gd`), featuring seismic smashes, leaping strikes, shockwaves, and two-phase combat.
+  - Defeating the Ironback Boss unlocks the **Heavy Smash** ability (`player.has_heavy_smash = true`), persisted across save files.
+- **Breakable Platform Enforcement**: Only the Heavy Smash ability (`Down + Heavy` on floor with full charge or `Down + Attack` in mid-air) can shatter cracked stone platforms (`try_break_smash_floor`). Basic attacks and normal horizontal heavy attacks are stripped of the ability to break platforms.
+- **Stone Gauntlet Refinements**:
+  - Full charge time is doubled to 1.6 seconds (`delta / 1.6`).
+  - Releasing early (`ability_charge < 1.0`) cancels the charge without firing and consumes zero charges.
+  - While charging, horizontal turning remains strictly locked to the initial facing direction.
+  - 12 rapid-fire beam charges are provided, restored when meditating at any hand statue.
+
 
 
 

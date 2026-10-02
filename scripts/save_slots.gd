@@ -16,7 +16,7 @@ static func load_slot(slot: int, root: String = "user://") -> Dictionary:
 		"area": str(config.get_value("save", "area", AREA_NAME)),
 		"room": int(config.get_value("save", "room", 3 if float(config.get_value("save", "checkpoint_x", 120.0)) >= 1700.0 else 2)),
 		"seconds": float(config.get_value("save", "seconds", 0.0)),
-		"level": int(config.get_value("save", "level", 1)),
+		"level": maxi(int(config.get_value("save", "level", 1)), 1 + int(int(config.get_value("save", "will", 0)) / 25)),
 		"will": int(config.get_value("save", "will", 0)),
 		"healing_charges": int(config.get_value("save", "healing_charges", 3)),
 		"checkpoint_x": float(config.get_value("save", "checkpoint_x", -640.0)),
@@ -43,6 +43,9 @@ static func load_slot(slot: int, root: String = "user://") -> Dictionary:
 		"artificer_rescued": bool(config.get_value("save", "artificer_rescued", false)),
 		"has_heavy": bool(config.get_value("save", "has_heavy", config.get_value("save", "boss_defeated", false))),
 		"bow_boss_defeated": bool(config.get_value("save", "bow_boss_defeated", false)),
+		"rabbit_boss_defeated": bool(config.get_value("save", "rabbit_boss_defeated", false)),
+		"ironback_boss_defeated": bool(config.get_value("save", "ironback_boss_defeated", false)),
+		"has_heavy_smash": bool(config.get_value("save", "has_heavy_smash", false)),
 		"has_bow": bool(config.get_value("save", "has_bow", false)),
 		"bow_ammo": int(config.get_value("save", "bow_ammo", 3)),
 		"bow_tutorial_practiced": bool(config.get_value("save", "bow_tutorial_practiced", false)),
@@ -63,6 +66,9 @@ static func load_slot(slot: int, root: String = "user://") -> Dictionary:
 		"gallery_east_open": bool(config.get_value("save", "gallery_east_open", false)),
 		"gallery_heavy_open": bool(config.get_value("save", "gallery_heavy_open",false)),
 		"watch_cache_found": bool(config.get_value("save", "watch_cache_found", false)),
+		"forest_smash_open": bool(config.get_value("save", "forest_smash_open", false)),
+		"forest_sec4_cache_found": bool(config.get_value("save", "forest_sec4_cache_found", false)),
+		"forest_sec9_cache_found": bool(config.get_value("save", "forest_sec9_cache_found", false)),
 		"visited_rooms": Array(config.get_value("save", "visited_rooms", [2])),
 	}
 
@@ -101,6 +107,9 @@ static func new_slot() -> Dictionary:
 		"artificer_rescued": false,
 		"has_heavy": false,
 		"bow_boss_defeated": false,
+		"rabbit_boss_defeated": false,
+		"ironback_boss_defeated": false,
+		"has_heavy_smash": false,
 		"has_bow": false,
 		"bow_ammo": 0,
 		"bow_tutorial_practiced": false,
@@ -118,6 +127,9 @@ static func new_slot() -> Dictionary:
 		"gallery_east_open": false,
 		"gallery_heavy_open": false,
 		"watch_cache_found": false,
+		"forest_smash_open": false,
+		"forest_sec4_cache_found": false,
+		"forest_sec9_cache_found": false,
 		"visited_rooms": [1],
 	}
 

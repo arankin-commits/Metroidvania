@@ -10,6 +10,7 @@ var healing_charges := 3
 var max_healing_charges := 3
 var has_dash := false
 var has_heavy := false
+var has_heavy_smash := false
 var has_bow := false
 var bow_ammo := 0
 var gauntlet_charges := 12

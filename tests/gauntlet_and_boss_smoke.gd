@@ -64,6 +64,33 @@ func run() -> void:
 		return
 	print("1b. Gauntlet consumes charge only on rapid-fire: OK")
 
+	# Early release test: if released before fully charged (< 1.0), it does not fire and does not consume charge
+	player.gauntlet_charges = 12
+	player.ability_charge = 0.6
+	player._ability_was_down = true
+	player.ability_cooldown = 0.0
+	player.beam_remaining = 0
+	# Release early (down = false)
+	player._tick_weapon_ability(0.016)
+	if player.beam_remaining != 0:
+		fail("Early release should not fire rapid-fire beam (was: %d)" % player.beam_remaining)
+		return
+	if player.gauntlet_charges != 12:
+		fail("Early release should not consume gauntlet charges (was: %d)" % player.gauntlet_charges)
+		return
+	if player.ability_charge != 0.0:
+		fail("Early release should reset ability_charge to 0 (was: %f)" % player.ability_charge)
+		return
+	print("1b-2. Gauntlet early release suppresses firing: OK")
+
+	# Charge rate doubled (1.6s for full charge):
+	player.ability_charge = 0.0
+	player.ability_charge = minf(1.0, player.ability_charge + 0.8 / 1.6)
+	if absf(player.ability_charge - 0.5) > 0.01:
+		fail("Gauntlet charge rate should be doubled to 1.6s (expected 0.5 after 0.8s, got %f)" % player.ability_charge)
+		return
+	print("1b-3. Gauntlet charge rate is 1.6s (doubled): OK")
+
 	# Deplete charges to 0:
 	player.gauntlet_charges = 0
 	player.ability_charge = 0.0

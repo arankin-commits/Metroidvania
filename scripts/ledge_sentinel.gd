@@ -5,6 +5,7 @@ signal attack_landed
 
 const GOBLIN_FRAMES = preload("res://assets/characters/enemies/goblin.tres")
 
+var visual: Node2D
 var sprite: AnimatedSprite2D
 var player: CharacterBody2D
 var health := 4.0:
@@ -33,13 +34,22 @@ func _ready() -> void:
 	posture = max_posture
 	add_to_group("combat_targets")
 	add_to_group("enemies")
+	visual = Node2D.new()
+	visual.name = "Visual"
+	add_child(visual)
 	sprite = AnimatedSprite2D.new()
+	sprite.name = "Sprite"
 	sprite.sprite_frames = GOBLIN_FRAMES
 	sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	sprite.centered = false
 	sprite.position = Vector2(-128, -199)
 	sprite.play("sleep")
-	add_child(sprite)
+	visual.add_child(sprite)
+	_update_visual_facing()
+
+func _update_visual_facing() -> void:
+	if is_instance_valid(visual):
+		visual.scale.x = facing
 
 func combat_bounds() -> Rect2:
 	return Rect2(global_position - Vector2(20, 27), Vector2(40, 54))
@@ -130,8 +140,7 @@ func _process(delta: float) -> void:
 			time_since_last_seen = 0.0
 			if is_instance_valid(player):
 				facing = 1 if player.global_position.x > global_position.x else -1
-				if is_instance_valid(sprite):
-					sprite.scale.x = facing
+				_update_visual_facing()
 		else:
 			time_since_last_seen += delta
 			if time_since_last_seen >= 10.0:

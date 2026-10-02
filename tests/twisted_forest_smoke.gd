@@ -19,7 +19,7 @@ func _run() -> void:
 	await process_frame
 	await process_frame
 	var forest := current_scene
-	if forest.current_room != 5 or forest.BOUNDS.size() != 6 or not forest.visited_rooms.has(5):
+	if forest.current_room != 5 or forest.BOUNDS.size() < 6 or not forest.visited_rooms.has(5):
 		_fail("The Twisted Forest did not begin in its first room")
 		return
 	await forest._change_room(6, 3680.0)
