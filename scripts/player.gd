@@ -69,6 +69,8 @@ var controls_enabled := true
 var invulnerability := 0.0
 var combat_hitstun := 0.0
 var combat_impact_velocity := Vector2.ZERO
+var gloamweaver_slow_until := 0.0
+var gloamweaver_slow_refresh := -1.0
 var attack_time := 0.0
 var attack_style:="swing"
 var sword_combo_step := -1
@@ -449,6 +451,8 @@ func _physics_process(delta: float) -> void:
 		var is_walking := controls_enabled and (is_injured or Input.is_physical_key_pressed(KEY_C) or Input.is_physical_key_pressed(KEY_CTRL) or Input.is_physical_key_pressed(KEY_ALT))
 		var target_speed := WALK_SPEED if is_walking else SPEED
 		var movement_speed := target_speed * HEAVY_CHARGE_SPEED_MULTIPLIER if heavy_charge > 0.0 else target_speed
+		if is_on_floor() and gloamweaver_slow_until > 0.0:
+			movement_speed *= 0.70
 		velocity.x = move_toward(velocity.x, direction * movement_speed, 1700.0 * delta)
 		if heavy_charge > 0.0 or is_walking:
 			velocity.x = clampf(velocity.x, -movement_speed, movement_speed)
@@ -560,6 +564,19 @@ func _apply_combat_impact(impact_profile: Dictionary, from_x: float) -> void:
 	velocity.y = minf(velocity.y, -upward)
 	combat_impact_velocity = velocity
 	combat_hitstun = maxf(0.0, float(impact_profile.get("lock", 0.0)))
+
+func apply_gloamweaver_slow(duration: float) -> void:
+	if not is_on_floor():
+		return
+	var now := Time.get_ticks_msec() / 1000.0
+	if now - gloamweaver_slow_refresh < 0.50:
+		return
+	gloamweaver_slow_refresh = now
+	gloamweaver_slow_until = maxf(gloamweaver_slow_until, now + duration)
+
+func clear_gloamweaver_slow() -> void:
+	gloamweaver_slow_until = 0.0
+	gloamweaver_slow_refresh = -1.0
 
 func set_injured(injured: bool) -> void:
 	is_injured = injured

@@ -1,3 +1,5 @@
+> Revision 2 (2026-10-02): Read INTEGRATION_FIXES_V2.md first. Shared gameplay registration, continuous web sockets, swing/zip/drop motion VFX and guaranteed safe snare opportunities supersede conflicting earlier guidance.
+
 # Required animation, VFX and impact bindings
 
 Read with AI_AND_TEST_SCENE.md. The individual PNGs are animation KEY POSES and static FX keys. They are not complete interpolated frame-by-frame clips. Use timed holds and author missing in-betweens where practical. A loaded file is not evidence its animation plays. Manifest metadata gives ACTUAL delivered sizes, crop rectangles and estimated root; do not assume prompt dimensions were honored.
@@ -23,6 +25,10 @@ Read with AI_AND_TEST_SCENE.md. The individual PNGs are animation KEY POSES and 
 Body poses include camera-facing/front-facing variation; inspect orientations rather than blindly rotating a floor frame for ceiling attachment. Adjust individual visual offsets/support anchors without shifting the authoritative physics trajectory. Dynamic rope rendering needs measured spinneret socket coordinates per pose; a rectangle-center anchor is not adequate. Expose sockets for spinneret, front fangs, ceiling foot contacts and floor contact in debug overlay.
 
 When boss damage is accepted during idle/crawl/recovery, show hurt.png briefly while preserving logical cooldowns/attack clocks. During committed tell/active, keep critical tell/contact pose and show a hit spark/flash; queue hurt key for the first safe recovery without restarting its timeline. Attack commitment is not immunity. Lethal damage supersedes hurt/phase queues and removes danger. Report actual hurt playback and accepted damage in both support states.
+
+## Revision 2 motion effects and geometric registration
+
+See INTEGRATION_FIXES_V2.md for mandatory per-pose spinneret/foot sockets, shared world transform and no-gap rope updates. Add visible short velocity-aligned wind/silk trails during ZIP and DROP as well as swing, and actual-contact landing dust. No dedicated zip/drop wind PNG currently exists: supply these with short code-native pixel particles/trail geometry or suitable existing streak art; omission is incomplete. Trap and landing FX must register by visible floor baseline, not padded texture center.
 
 ## Every original effect has a separate implementation
 

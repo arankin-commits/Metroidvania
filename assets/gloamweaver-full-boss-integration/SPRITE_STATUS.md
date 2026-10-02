@@ -1,3 +1,5 @@
+> Revision 2 (2026-10-02): Read INTEGRATION_FIXES_V2.md first. Shared gameplay registration, continuous web sockets, swing/zip/drop motion VFX and guaranteed safe snare opportunities supersede conflicting earlier guidance.
+
 # Sprite and VFX status — actual delivered assets
 
 30 individual body PNGs use384x384 common padded canvases.12 VFX PNGs use640x640 common padded canvases. These padding sizes are not intended rendered body/effect size. Source body atlas is1536x1024, not requested1536x1280; FX source is1448x1086, not requested1024x768. Neither uses a reliable uniform cell import. Use individually separated PNGs and manifests.
@@ -11,3 +13,6 @@ The12 FX keys cover every effect category in the design sheet, but each is a sta
 Do not import preview-checkerboard.jpg as gameplay art. Checkerboards were added only to the review JPGs to reveal transparency. Do not use labeled sheet text/background as sprites. No body PNG contains hook cables, ground traps, dust or VFX: those live in vfx/ and MUST be attached to the actual state/event per ANIMATION_VFX_AND_IMPACT.md. Omitting them is incomplete integration.
 
 Provide explicit resource bindings and witnessed playback for every body/FX key, including all four ceiling-crawl keys, hurt, phase and defeat. Refine visibly unsuitable poses and report replacements; do not silently fall back to idle while moving or tint-only hurt in eligible states. These are key poses/static effect keys, not complete frame-by-frame animation clips.
+
+
+Revision 2 registration requirement: manifests contain estimated image roots only. Calibrate per-pose anatomical floor/ceiling contacts, spinneret and fang sockets in the actual animation resources. Do not use the padded image center for silk endpoints, floor mesh or floor-supported boss placement. Dedicated zip/drop wind keys are absent; code-native motion trails or additional assets are required by INTEGRATION_FIXES_V2.md.

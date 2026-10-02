@@ -1,3 +1,5 @@
+> Revision 2 (2026-10-02): Read INTEGRATION_FIXES_V2.md first. Shared gameplay registration, continuous web sockets, swing/zip/drop motion VFX and guaranteed safe snare opportunities supersede conflicting earlier guidance.
+
 # The Gloamweaver â€” spider boss encounter
 
 Original boss design and test-scene handoff. All numbers are moderate-difficulty starting targets, not measured balance. Follow this file and ANIMATION_VFX_AND_IMPACT.md alongside the current project's room/art memories. This task authorizes an isolated test scene, not an existing-room redesign or progression reward.
@@ -50,7 +52,7 @@ Patch lifetime8.0s from arming; phase1 cap2, phase2 cap3, counting both deployin
 
 Use ai/gloamweaver_ai.py as selection reference, ported into the existing engine. Evaluate only in ready after all attack recovery completes. Gap means horizontal BODY-edge separation; floor/ceiling status comes from actual support.
 
-Ceiling phase1 weights: swing60, zip20, trap20 when near/medium; at far gap>360 use swing35,zip45,drop20. Phase2 near adds double_swing20, keeping tell/velocity/damage unchanged. Filter cooldowns, support, path safety, trap limits and repeat rules BEFORE normalizing. No consecutive zip/trap/drop/bite/double swing; at most2 single swings. Floor close gap<=120: bite60,reattach40; floor farther: reattach only. Reattach is harmless physical return via validated hook route with visible cable, then arrival settle; no teleport. Avoid spending whole fight on floor or ceiling without the required recovery rhythm.
+Ceiling phase1 weights: swing60, zip20, trap20 when near/medium; at far gap>360 use swing35,zip45,drop20,trap20. A safe ready trap gains priority after3 other committed combat actions; preserve the first-swing lesson and required low-punish action before this priority. Counter resets on trap commitment/reset. See INTEGRATION_FIXES_V2.md for ordinary-fight snare acceptance and diagnostic requirements. Phase2 near adds double_swing20, keeping tell/velocity/damage unchanged. Filter cooldowns, support, path safety, trap limits and repeat rules BEFORE normalizing. No consecutive zip/trap/drop/bite/double swing; at most2 single swings. Floor close gap<=120: bite60,reattach40; floor farther: reattach only. Reattach is harmless physical return via validated hook route with visible cable, then arrival settle; no teleport. Avoid spending whole fight on floor or ceiling without the required recovery rhythm.
 
 First action is a full-tell single swing if geometry is safe; otherwise harmless crawl until it is. At most ONE zip/trap reposition in succession: after it, force an eligible swing/drop/double swing that gives a low punish opportunity. If all eligible moves unsafe/on cooldown, hold/crawl safely rather than violating this rule. Traps do not block all attack selection the way Ironback waves did, because they are temporary nondamaging status patches; active zip seed/hook remains owned by current busy state.
 

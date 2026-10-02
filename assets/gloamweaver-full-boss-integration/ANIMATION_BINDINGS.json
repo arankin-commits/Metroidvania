@@ -161,6 +161,12 @@
     "swing_trail": [
       "swing_streak"
     ],
+    "zip_motion_trail": [
+      "swing_streak"
+    ],
+    "drop_motion_trail": [
+      "swing_streak"
+    ],
     "seed_flight": [
       "trap_seed"
     ],
@@ -187,5 +193,24 @@
     ]
   },
   "tether_note": "dynamic anchored line/rope required; cable sprite is optional accent but has an explicit binding",
-  "no_silent_unused_assets": true
+  "no_silent_unused_assets": true,
+  "revision": 2,
+  "registration_authority": "INTEGRATION_FIXES_V2.md; calibrate actual per-pose contact/spinneret sockets, not estimated roots",
+  "motion_vfx_requirements": {
+    "zip_motion_trail": "velocity-aligned short procedural streaks or suitable supplied streak asset; never omit",
+    "drop_motion_trail": "short vertical falling trail above body; never omit",
+    "landing": "guarded actual floor-contact event, measured foot/floor anchor"
+  },
+  "snare_action_mapping": {
+    "scheduler_intent": "trap",
+    "executor": "silk_snare",
+    "required_stages": [
+      "reserve",
+      "seed_spawn",
+      "floor_landing",
+      "deploy",
+      "armed_overlap_status",
+      "expiry_release"
+    ]
+  }
 }

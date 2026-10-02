@@ -41,6 +41,8 @@ class GloamweaverPolicy:
         self.phase_seen = False
         self.force_low = False
         self.first_swing_done = False
+        self.nontrap_actions = 0
+        self.last_decision = {}
 
     def choose(self, now, c):
         if (not c.encounter_active or not c.player_alive
@@ -56,6 +58,14 @@ class GloamweaverPolicy:
             self.phase_pending = False
             self.phase_seen = self.phase_two = self.busy = True
             return 'phase_change'
+        trap_allowed = (c.trap_safe and c.active_traps < (3 if self.phase_two else 2)
+                        and now >= self.ready_at['trap'])
+        # A ceiling boss can place a floor snare at ANY horizontal distance.
+        # Guarantee variety after three other actions, without overriding safety,
+        # cooldowns, the initial swing lesson or the post-zip low-punish obligation.
+        trap_due = (c.support == 'ceiling' and self.first_swing_done
+                    and not self.force_low and self.nontrap_actions >= 3
+                    and trap_allowed)
         if c.support == 'floor':
             weights = {'bite': 60, 'reattach': 40} if c.gap <= 120 else {'reattach': 1}
         elif not self.first_swing_done:
@@ -64,8 +74,10 @@ class GloamweaverPolicy:
             weights = {'swing': 70, 'drop': 30}
             if self.phase_two:
                 weights['double_swing'] = 20
+        elif trap_due:
+            weights = {'trap': 1}
         elif c.gap > 360:
-            weights = {'swing': 35, 'zip': 45, 'drop': 20}
+            weights = {'swing': 35, 'zip': 45, 'drop': 20, 'trap': 20}
         else:
             weights = {'swing': 60, 'zip': 20, 'trap': 20}
             if self.phase_two:
@@ -75,14 +87,28 @@ class GloamweaverPolicy:
                 'trap': c.trap_safe and c.active_traps < (3 if self.phase_two else 2),
                 'reattach': c.reattach_safe, 'bite': True}
         options = []
+        rejected = {}
         for a, w in weights.items():
-            if not safe[a] or now < self.ready_at[a]:
+            if not safe[a]:
+                rejected[a] = 'unsafe_path_or_trap_limit'
+                continue
+            if now < self.ready_at[a]:
+                rejected[a] = 'cooldown'
                 continue
             if a == 'swing' and self.history[-2:] == ['swing', 'swing']:
+                rejected[a] = 'repeat_limit'
                 continue
             if a != 'swing' and self.history[-1:] == [a]:
+                rejected[a] = 'repeat_limit'
                 continue
             options.append((a, w))
+        self.last_decision = {'time': now, 'support': c.support, 'gap': c.gap,
+                              'trap_allowed': trap_allowed, 'trap_due': trap_due,
+                              'nontrap_actions': self.nontrap_actions,
+                              'force_low': self.force_low,
+                              'candidate_weights': dict(weights),
+                              'eligible': dict(options), 'rejected': rejected,
+                              'selected': None}
         if not options:
             return None  # Harmless hold/crawl; never bypass safety or cooldowns.
         roll = self.rng.random() * sum(w for _, w in options)
@@ -93,6 +119,11 @@ class GloamweaverPolicy:
                 action = a
                 break
         self.busy = True
+        self.last_decision['selected'] = action
+        if action == 'trap':
+            self.nontrap_actions = 0
+        elif action != 'reattach':
+            self.nontrap_actions += 1
         self.ready_at[action] = now + self.COOLDOWNS[action]
         self.history.append(action)
         self.history = self.history[-8:]

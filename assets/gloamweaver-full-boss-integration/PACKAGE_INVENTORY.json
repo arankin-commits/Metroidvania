@@ -1,38 +1,43 @@
 [
   {
     "path": "ai/gloamweaver_ai.py",
-    "bytes": 4655,
-    "sha256": "4622037d9c08444384989183df7d230f426ad43303a8c12609915b070809d240"
+    "bytes": 6277,
+    "sha256": "39c96ffc44900ba3b5cfde8364df37c04a2e1a73fd4cfb5a51973e5f96c4e822"
   },
   {
     "path": "ai/test_policy.py",
-    "bytes": 3630,
-    "sha256": "eef6a64adeddc24514c0591c2babca95d654ffdc3a315b3a254bcfd9c5ec4555"
+    "bytes": 5167,
+    "sha256": "5643e8d3c95f0278e86942ee66da0e44489ef0d5c8f0d4f14d79d934abb36d43"
   },
   {
     "path": "AI_AND_TEST_SCENE.md",
-    "bytes": 12964,
-    "sha256": "f066b5e0bb4036eca68fd1e6d90ea6b57c01d393c4d6d0ca00e0e8b3030db153"
+    "bytes": 13488,
+    "sha256": "d7b5dfc159b51224691a9a936d67979b31f6d9394532dcc586389f14116972c7"
   },
   {
     "path": "ANIMATION_BINDINGS.json",
-    "bytes": 4039,
-    "sha256": "cb747c98db4e6715f3b1e925623b7cd47b187892f3a378254b517272400deb32"
+    "bytes": 4885,
+    "sha256": "b96a10bb4cb9e29985b11f9eac011949dfc5c650b0d046fe86e3bb7fe7c0d56a"
   },
   {
     "path": "ANIMATION_VFX_AND_IMPACT.md",
-    "bytes": 8817,
-    "sha256": "7a2840fcc6fcebbdd9c8454d12ebcec309d46a84503a9f37174596014fd31486"
+    "bytes": 9683,
+    "sha256": "69e361bfc789f5520d5cec4f3e34087a5b0161ff712af9c96ff2c71359bd45d1"
+  },
+  {
+    "path": "INTEGRATION_FIXES_V2.md",
+    "bytes": 13257,
+    "sha256": "7fd129746832d662dd1816a0080c4e0691bd18c78a05cd456740267b05054a48"
   },
   {
     "path": "INTEGRATION_PROMPT.md",
-    "bytes": 4877,
-    "sha256": "a6e8a5a3d55919f0cdec279a7823fb38b1a218ae34720664bc38653915d737c0"
+    "bytes": 5780,
+    "sha256": "e4edaeb8c105708f887c7188270ffbf44c06466c81f52a1c47c8d82cbf5d334d"
   },
   {
     "path": "README.md",
-    "bytes": 2970,
-    "sha256": "4634329d73249759876d8bd90e82fdc890562f6f3f385ccb3eba41dc4f342af4"
+    "bytes": 3836,
+    "sha256": "caaa25b0f0d37626ffa311f480e53b0adc66909f546c41763f7648e9df6733e8"
   },
   {
     "path": "reference/body-generation-prompt.txt",
@@ -61,8 +66,8 @@
   },
   {
     "path": "SPRITE_STATUS.md",
-    "bytes": 2830,
-    "sha256": "5c1c8893715bc2b3908a5dec0593a6765bbc88e7a85b2f0aa43a612ed3597334"
+    "bytes": 3503,
+    "sha256": "a1f04a82e631cdd75eacef23db1e428e3288451c482addc0b96e61fd9ad5c3ce"
   },
   {
     "path": "sprites/bite_active.png",

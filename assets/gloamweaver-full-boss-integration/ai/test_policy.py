@@ -83,6 +83,40 @@ class PolicyChecks(unittest.TestCase):
         s.contact(4); s.clear()
         self.assertEqual(s.multiplier(4.1), 1.0)
 
+    def test_far_distance_cannot_starve_snare(self):
+        p = GloamweaverPolicy(17)
+        p.first_swing_done = True
+        p.nontrap_actions = 3
+        self.assertEqual(p.choose(20, Context(900, 1)), 'trap')
+        self.assertEqual(p.nontrap_actions, 0)
+        self.assertTrue(p.last_decision['trap_due'])
+        self.assertEqual(p.last_decision['selected'], 'trap')
+
+    def test_due_snare_preserves_safety_cooldown_and_low_punish(self):
+        for overrides in ({'trap_safe': False}, {'active_traps': 2}):
+            p = GloamweaverPolicy(1)
+            p.first_swing_done = True; p.nontrap_actions = 3
+            self.assertNotEqual(p.choose(20, Context(900, 1, **overrides)), 'trap')
+        p = GloamweaverPolicy(1)
+        p.first_swing_done = True; p.nontrap_actions = 3
+        p.ready_at['trap'] = 100
+        self.assertNotEqual(p.choose(20, Context(900, 1)), 'trap')
+        p = GloamweaverPolicy(1)
+        p.first_swing_done = True; p.nontrap_actions = 3; p.force_low = True
+        self.assertIn(p.choose(20, Context(900, 1)), p.LOW_OPPORTUNITY)
+
+    def test_live_ceiling_sequence_uses_trap(self):
+        p = GloamweaverPolicy(19)
+        seen = []
+        # Valid stable-ceiling opportunities, no old traps, generous intervals.
+        for t in range(0, 120, 10):
+            a = p.choose(t, Context(900, 1))
+            if a:
+                seen.append(a); p.finish(t + 3)
+        self.assertEqual(seen[0], 'swing')
+        self.assertIn('trap', seen)
+        self.assertLessEqual(seen.index('trap'), 3)
+
 
 if __name__ == '__main__':
     unittest.main()
