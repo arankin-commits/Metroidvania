@@ -73,6 +73,8 @@ var _heavy_was_down := false
 var facing := 1
 var controls_enabled := true
 var invulnerability := 0.0
+var combat_hitstun := 0.0
+var combat_impact_velocity := Vector2.ZERO
 var attack_time := 0.0
 var attack_style:="swing"
 var sword_combo_step := -1
@@ -393,6 +395,12 @@ func _physics_process(delta: float) -> void:
 		queue_redraw()
 		return
 	invulnerability = maxf(0.0, invulnerability - delta)
+	if combat_hitstun > 0.0:
+		combat_hitstun = maxf(0.0, combat_hitstun - delta)
+		velocity.y += GRAVITY * delta
+		move_and_slide()
+		queue_redraw()
+		return
 	attack_time = maxf(0.0, attack_time - delta)
 	attack_cooldown = maxf(0.0, attack_cooldown - delta)
 	heavy_attack_time = maxf(0.0, heavy_attack_time - delta)
@@ -721,7 +729,7 @@ func take_arrow_chain_damage(amount: float, from_x: float) -> void:
 		invulnerability=0.0
 		velocity=Vector2.ZERO
 
-func take_damage(amount: float, from_x: float, is_attack: bool = false) -> void:
+func take_damage(amount: float, from_x: float, is_attack: bool = false, impact_profile: Dictionary = {}) -> void:
 	if heal_time > 0.0 and amount > 0:
 		heal_time = 0.0
 		queue_redraw()
@@ -739,13 +747,27 @@ func take_damage(amount: float, from_x: float, is_attack: bool = false) -> void:
 	damaged.emit()
 	if is_attack:
 		invulnerability = 0.0
-		velocity = Vector2.ZERO
+		if impact_profile.is_empty():
+			velocity = Vector2.ZERO
+		else:
+			_apply_combat_impact(impact_profile, from_x)
 	else:
 		invulnerability = 0.8
 		velocity = Vector2(260.0 if global_position.x > from_x else -260.0, -260.0)
 	if health <= 0:
 		died.emit()
 	queue_redraw()
+
+func _apply_combat_impact(impact_profile: Dictionary, from_x: float) -> void:
+	var direction := int(impact_profile.get("direction", 0))
+	if direction == 0:
+		direction = 1 if global_position.x >= from_x else -1
+	var horizontal := clampf(float(impact_profile.get("horizontal", 0.0)), 0.0, 320.0)
+	var upward := clampf(float(impact_profile.get("upward", 0.0)), 0.0, 300.0)
+	velocity.x = float(direction) * horizontal
+	velocity.y = minf(velocity.y, -upward)
+	combat_impact_velocity = velocity
+	combat_hitstun = maxf(0.0, float(impact_profile.get("lock", 0.0)))
 
 func set_injured(injured: bool) -> void:
 	is_injured = injured

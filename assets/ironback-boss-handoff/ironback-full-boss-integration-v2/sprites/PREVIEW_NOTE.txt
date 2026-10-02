@@ -1,0 +1,2 @@
+preview-checkerboard.jpg is a review contact sheet ONLY. The checkerboard is added solely for previewing alpha and is not part of the individual PNG files. Do not import the JPG as a gameplay sprite.
+separation-provenance.py records the crop process and assumes the original workspace paths; it is provenance, not a runtime asset pipeline.
