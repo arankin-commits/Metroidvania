@@ -90,7 +90,6 @@ func _physics_process(delta: float) -> void:
 	hurt_override_time = maxf(0.0, hurt_override_time - delta)
 	invulnerability = maxf(0.0, invulnerability - delta)
 	if not active or health <= 0.0 or not is_instance_valid(player):
-		_update_sprite()
 		return
 	if health <= max_health * 0.5 and not phase_change_seen:
 		phase_change_pending = true
