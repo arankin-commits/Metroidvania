@@ -22,7 +22,7 @@ func _ready() -> void:
 	visual.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	visual.centered = false
 	visual.scale = Vector2(0.34, 0.34)
-	visual.position = Vector2(-320.0, -320.0) * 0.34
+	visual.position = Vector2(-320.0, -392.0) * 0.34
 	add_child(visual)
 	set_deferred("monitoring", false)
 
@@ -31,7 +31,7 @@ func arm() -> void:
 	set_deferred("monitoring", true)
 	visual.texture = load("res://assets/gloamweaver-full-boss-integration/vfx/trap_active.png")
 	visual.scale = Vector2(0.26, 0.26)
-	visual.position = Vector2(-320.0, -320.0) * 0.26
+	visual.position = Vector2(-320.0, -392.0) * 0.26
 
 func _physics_process(delta: float) -> void:
 	age += delta

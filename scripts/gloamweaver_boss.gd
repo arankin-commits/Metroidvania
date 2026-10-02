@@ -55,6 +55,8 @@ var drop_target_x := 0.0
 var impact_emitted := false
 var hurt_time := 0.0
 const FLOOR_ANCHOR_Y := 545.0
+var nontrap_actions := 0
+var trail_clock := 0.0
 
 func _ready() -> void:
 	add_to_group("mcp_watch")
@@ -72,6 +74,7 @@ func _physics_process(delta: float) -> void:
 	elapsed += delta
 	state_time -= delta
 	pose_clock += delta
+	trail_clock = maxf(0.0, trail_clock - delta)
 	hurt_time = maxf(0.0, hurt_time - delta)
 	if not active or health <= 0.0 or not is_instance_valid(player):
 		_update_pose()
@@ -113,12 +116,18 @@ func _tick_state(_delta: float) -> void:
 		"zip_travel":
 			var travel := global_position.direction_to(zip_target) * 600.0
 			velocity = travel
+			if trail_clock <= 0.0:
+				_spawn_fx("swing_streak", global_position - velocity.normalized() * 26.0, 0.14)
+				trail_clock = 0.08
 			move_and_slide()
 			if global_position.distance_to(zip_target) < 20.0: state_time = 0.0
 		"trap_prepare", "trap_release", "trap_recovery": velocity = Vector2.ZERO
 		"drop_gather": velocity = Vector2.ZERO
 		"drop_airborne":
 			velocity.y += 1250.0 / 60.0
+			if trail_clock <= 0.0:
+				_spawn_fx("swing_streak", global_position + Vector2(0.0, -34.0), 0.14)
+				trail_clock = 0.08
 			move_and_slide()
 			if is_on_floor(): state_time = 0.0
 		"drop_impact":
@@ -182,12 +191,16 @@ func _choose_attack() -> void:
 	if elapsed < next_decision_at: return
 	var gap := maxf(0.0, absf(player.global_position.x - global_position.x) - 90.0)
 	var choices: Array[String] = []
+	var trap_cap := 3 if phase_two else 2
+	var trap_due := support == "ceiling" and history.has("swing") and nontrap_actions >= 3 and _active_traps() < trap_cap and elapsed >= float(cooldowns.get("trap", 0.0))
 	if support == "floor":
 		choices.append("bite" if gap <= 120.0 else "reattach")
 		if gap <= 120.0: choices.append("reattach")
 	elif history.is_empty(): choices.append("swing")
+	elif trap_due: choices.append("trap")
 	elif gap > 360.0:
 		choices.append("swing"); choices.append("zip"); choices.append("drop")
+		choices.append("trap")
 	else:
 		choices.append("swing"); choices.append("zip"); choices.append("trap")
 	if phase_two and gap <= 360.0 and not history.is_empty(): choices.append("double_swing")
@@ -206,6 +219,8 @@ func _begin(name: String) -> void:
 	attack_name = name; facing = 1 if player.global_position.x > global_position.x else -1
 	if name != "phase_change": history.append(name)
 	if history.size() > 8: history.pop_front()
+	if name == "trap": nontrap_actions = 0
+	elif name != "reattach" and name != "phase_change": nontrap_actions += 1
 	if name == "zip": zip_target = anchor_a if facing > 0 else anchor_b
 	if name == "drop": drop_target_x = clampf(player.global_position.x, 220.0, 1380.0)
 	match name:
@@ -268,6 +283,7 @@ func debug_walk(direction: int) -> void:
 
 func reset_encounter() -> void:
 	_clear_owned(); health = max_health; active = true; state = "ceiling_ready"; support = "ceiling"; state_time = 0.8; position = Vector2(850.0, 160.0); velocity = Vector2.ZERO; phase_two = false; phase_seen = false; phase_pending = false; history.clear(); cooldowns.clear(); rng.seed = random_seed
+	nontrap_actions = 0
 
 func _spawn_fx(key: String, at: Vector2, duration: float) -> void:
 	var fx := VFX_SCRIPT.new(); fx.key = key; fx.lifetime = duration; fx.direction = facing; fx.global_position = at; add_child(fx); owned_fx.append(fx)
@@ -321,7 +337,12 @@ func _update_pose() -> void:
 	sprite.flip_h = facing < 0
 
 func _draw() -> void:
+	var spinneret := to_local(_spinneret_world())
+	draw_circle(spinneret, 3.0, Color("f1d9f3"))
 	if support == "ceiling" and state in ["swing_hang", "swing_rake", "swing_rise"]:
-		draw_line(Vector2(0.0, -80.0), to_local(swing_anchor), Color("e7d4ef"), 2.0)
+		draw_line(spinneret, to_local(swing_anchor), Color("e7d4ef"), 2.0)
 	if state == "zip_travel" or state == "zip_aim":
-		draw_line(Vector2(0.0, -80.0), to_local(zip_target), Color("e7d4ef"), 2.0)
+		draw_line(spinneret, to_local(zip_target), Color("e7d4ef"), 2.0)
+
+func _spinneret_world() -> Vector2:
+	return global_position + Vector2(float(facing) * 14.0, -76.0 if support == "ceiling" else -42.0)
