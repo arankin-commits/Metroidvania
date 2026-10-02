@@ -45,8 +45,8 @@ var pose_clock := 0.0
 var sprite: Sprite2D
 var owned_fx: Array[Node] = []
 var owned_traps: Array[Node] = []
-var anchor_a := Vector2(220.0, 90.0)
-var anchor_b := Vector2(1380.0, 90.0)
+var anchor_a := Vector2(160.0, 90.0)
+var anchor_b := Vector2(1240.0, 90.0)
 var swing_anchor := Vector2.ZERO
 var swing_angle := 0.0
 var swing_direction := 1.0
@@ -57,6 +57,8 @@ var hurt_time := 0.0
 const FLOOR_ANCHOR_Y := 545.0
 var nontrap_actions := 0
 var trail_clock := 0.0
+var tether_active := false
+var support_state := "ceiling_grip"
 
 func _ready() -> void:
 	add_to_group("mcp_watch")
@@ -112,6 +114,10 @@ func _tick_state(_delta: float) -> void:
 				var swing_angle := lerpf(-0.72 * float(facing), 0.72 * float(facing), swing_progress)
 				global_position = swing_anchor + Vector2(sin(swing_angle) * 420.0, cos(swing_angle) * 420.0)
 			if state == "swing_rake" and not impact_emitted: _emit_swing_hit()
+		"swing_retract":
+			velocity = Vector2.ZERO
+			support_state = "ceiling_retract"
+			global_position = global_position.lerp(swing_anchor + Vector2(0.0, 70.0), 0.12)
 		"zip_aim": velocity = Vector2.ZERO
 		"zip_travel":
 			var travel := global_position.direction_to(zip_target) * 600.0
@@ -145,12 +151,18 @@ func _advance_state() -> void:
 		"swing_hang": _enter("swing_rake", 1.10)
 		"swing_rake": _enter("swing_rise", 0.28)
 		"swing_rise": _enter("swing_recovery", 0.90)
-		"swing_recovery": _finish("swing", 0.60)
+		"swing_recovery": _enter("swing_retract", 0.60)
+		"swing_retract":
+			support_state = "ceiling_grip"
+			tether_active = false
+			_finish("swing", 0.60)
 		"double_reset": _enter("swing_rake", 1.25)
 		"zip_aim": _enter("zip_travel", 2.20)
 		"zip_travel": _enter("zip_arrival", 0.20)
 		"zip_arrival": _enter("zip_recovery", 0.80)
-		"zip_recovery": _finish("zip", 0.60)
+		"zip_recovery":
+			tether_active = false
+			_finish("zip", 0.60)
 		"trap_prepare": _enter("trap_release", 0.10)
 		"trap_release":
 			_spawn_trap()
@@ -169,10 +181,14 @@ func _enter(next_state: String, duration: float) -> void:
 	state = next_state; state_time = duration; pose_clock = 0.0; pose_index = 0; impact_emitted = false
 	attack_cued.emit("gloamweaver_" + next_state)
 	if next_state == "swing_hang":
-		swing_anchor = Vector2(global_position.x, 90.0)
+		swing_anchor = Vector2(clampf(player.global_position.x, 400.0, 1000.0), 90.0)
+		tether_active = true
+		support_state = "tethered_swing"
 		_spawn_fx("anchor_rosette", global_position, 0.55)
 	if next_state == "zip_aim": _spawn_fx("anchor_rosette", zip_target, 0.85)
 	if next_state == "zip_travel":
+		tether_active = true
+		support_state = "zip_travel"
 		_spawn_fx("hook_head", global_position, 0.35)
 		_spawn_fx("cable_segment", global_position, 2.2)
 	if next_state == "drop_airborne": _spawn_fx("landing_dust", global_position, 0.35)
@@ -293,7 +309,7 @@ func spawn_trap_trigger(at: Vector2) -> void:
 
 func _spawn_trap() -> void:
 	if _active_traps() >= (3 if phase_two else 2): return
-	var trap := TRAP_SCRIPT.new(); trap.boss_owner = self; trap.global_position = Vector2(clampf(player.global_position.x, 220.0, 1380.0), 620.0); get_parent().add_child(trap); owned_traps.append(trap); _spawn_fx("trap_seed", trap.global_position + Vector2(0.0, -160.0), 0.45); await get_tree().physics_frame; trap.arm(); _spawn_fx("trap_active", trap.global_position, 8.0)
+	var trap := TRAP_SCRIPT.new(); trap.boss_owner = self; trap.global_position = Vector2(clampf(player.global_position.x, 220.0, 1180.0), 596.0); get_parent().add_child(trap); owned_traps.append(trap); _spawn_fx("trap_seed", trap.global_position + Vector2(0.0, -160.0), 0.45); await get_tree().physics_frame; trap.arm(); _spawn_fx("trap_active", trap.global_position, 8.0)
 
 func _active_traps() -> int:
 	var count := 0
@@ -309,6 +325,8 @@ func _clear_owned() -> void:
 	for trap in owned_traps:
 		if is_instance_valid(trap): trap.queue_free()
 	owned_fx.clear(); owned_traps.clear()
+	tether_active = false
+	support_state = "ceiling_grip" if support == "ceiling" else "floor_contact"
 	if is_instance_valid(player) and player.has_method("clear_gloamweaver_slow"): player.clear_gloamweaver_slow()
 
 func _set_pose(name: String) -> void:
@@ -320,7 +338,7 @@ func _update_pose() -> void:
 	var desired := "ceiling_idle"
 	match state:
 		"ceiling_ready": desired = "crawl" if absf(velocity.x) > 8.0 else "ceiling_idle"
-		"swing_prepare", "swing_hang", "swing_rake", "swing_rise", "swing_recovery", "double_reset": desired = "swing"
+		"swing_prepare", "swing_hang", "swing_rake", "swing_rise", "swing_recovery", "swing_retract", "double_reset": desired = "swing"
 		"zip_aim", "zip_travel", "zip_arrival", "zip_recovery": desired = "zip"
 		"trap_prepare", "trap_release", "trap_recovery": desired = "trap"
 		"drop_gather", "drop_airborne", "drop_impact": desired = "drop"
@@ -339,10 +357,11 @@ func _update_pose() -> void:
 func _draw() -> void:
 	var spinneret := to_local(_spinneret_world())
 	draw_circle(spinneret, 3.0, Color("f1d9f3"))
-	if support == "ceiling" and state in ["swing_hang", "swing_rake", "swing_rise"]:
+	if tether_active:
 		draw_line(spinneret, to_local(swing_anchor), Color("e7d4ef"), 2.0)
 	if state == "zip_travel" or state == "zip_aim":
 		draw_line(spinneret, to_local(zip_target), Color("e7d4ef"), 2.0)
+	draw_circle(to_local(swing_anchor), 3.0, Color("e7d4ef"))
 
 func _spinneret_world() -> Vector2:
-	return global_position + Vector2(float(facing) * 14.0, -76.0 if support == "ceiling" else -42.0)
+	return global_position + Vector2(float(facing) * 8.0, -46.0 if support == "ceiling" else -30.0)

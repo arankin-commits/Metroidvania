@@ -38,7 +38,8 @@
         269
       ],
       "alpha_zero_pixels": 122138,
-      "source_crop_preserved": true
+      "source_crop_preserved": true,
+      "ground_revision_status": "retired_reference_only"
     },
     {
       "name": "ceiling_idle_02",
@@ -64,7 +65,8 @@
         262
       ],
       "alpha_zero_pixels": 124287,
-      "source_crop_preserved": true
+      "source_crop_preserved": true,
+      "ground_revision_status": "retired_reference_only"
     },
     {
       "name": "ceiling_crawl_01",
@@ -90,7 +92,8 @@
         266
       ],
       "alpha_zero_pixels": 121928,
-      "source_crop_preserved": true
+      "source_crop_preserved": true,
+      "ground_revision_status": "retired_reference_only"
     },
     {
       "name": "ceiling_crawl_02",
@@ -116,7 +119,8 @@
         271
       ],
       "alpha_zero_pixels": 123268,
-      "source_crop_preserved": true
+      "source_crop_preserved": true,
+      "ground_revision_status": "retired_reference_only"
     },
     {
       "name": "ceiling_crawl_03",
@@ -142,7 +146,8 @@
         272
       ],
       "alpha_zero_pixels": 124264,
-      "source_crop_preserved": true
+      "source_crop_preserved": true,
+      "ground_revision_status": "retired_reference_only"
     },
     {
       "name": "ceiling_crawl_04",
@@ -168,7 +173,8 @@
         273
       ],
       "alpha_zero_pixels": 121071,
-      "source_crop_preserved": true
+      "source_crop_preserved": true,
+      "ground_revision_status": "retired_reference_only"
     },
     {
       "name": "swing_prepare",
@@ -194,7 +200,8 @@
         281
       ],
       "alpha_zero_pixels": 127641,
-      "source_crop_preserved": true
+      "source_crop_preserved": true,
+      "ground_revision_status": "retired_reference_only"
     },
     {
       "name": "swing_hang",
@@ -220,7 +227,8 @@
         288
       ],
       "alpha_zero_pixels": 126571,
-      "source_crop_preserved": true
+      "source_crop_preserved": true,
+      "ground_revision_status": "retired_reference_only"
     },
     {
       "name": "swing_rake",
@@ -246,7 +254,8 @@
         288
       ],
       "alpha_zero_pixels": 121098,
-      "source_crop_preserved": true
+      "source_crop_preserved": true,
+      "ground_revision_status": "retired_reference_only"
     },
     {
       "name": "swing_rise",
@@ -272,7 +281,8 @@
         287
       ],
       "alpha_zero_pixels": 122832,
-      "source_crop_preserved": true
+      "source_crop_preserved": true,
+      "ground_revision_status": "retired_reference_only"
     },
     {
       "name": "swing_recovery",
@@ -298,7 +308,8 @@
         255
       ],
       "alpha_zero_pixels": 126237,
-      "source_crop_preserved": true
+      "source_crop_preserved": true,
+      "ground_revision_status": "retired_reference_only"
     },
     {
       "name": "reattach_catch",
@@ -324,7 +335,8 @@
         277
       ],
       "alpha_zero_pixels": 123720,
-      "source_crop_preserved": true
+      "source_crop_preserved": true,
+      "ground_revision_status": "retired_reference_only"
     },
     {
       "name": "zip_aim",
@@ -350,7 +362,8 @@
         268
       ],
       "alpha_zero_pixels": 126030,
-      "source_crop_preserved": true
+      "source_crop_preserved": true,
+      "ground_revision_status": "active_or_requires_ground_pose_validation"
     },
     {
       "name": "zip_release",
@@ -376,7 +389,8 @@
         249
       ],
       "alpha_zero_pixels": 127898,
-      "source_crop_preserved": true
+      "source_crop_preserved": true,
+      "ground_revision_status": "active_or_requires_ground_pose_validation"
     },
     {
       "name": "zip_compress",
@@ -402,7 +416,8 @@
         247
       ],
       "alpha_zero_pixels": 132406,
-      "source_crop_preserved": true
+      "source_crop_preserved": true,
+      "ground_revision_status": "active_or_requires_ground_pose_validation"
     },
     {
       "name": "zip_travel",
@@ -428,7 +443,8 @@
         258
       ],
       "alpha_zero_pixels": 128678,
-      "source_crop_preserved": true
+      "source_crop_preserved": true,
+      "ground_revision_status": "active_or_requires_ground_pose_validation"
     },
     {
       "name": "zip_arrival",
@@ -454,7 +470,8 @@
         275
       ],
       "alpha_zero_pixels": 122624,
-      "source_crop_preserved": true
+      "source_crop_preserved": true,
+      "ground_revision_status": "active_or_requires_ground_pose_validation"
     },
     {
       "name": "zip_recovery",
@@ -480,7 +497,8 @@
         279
       ],
       "alpha_zero_pixels": 121262,
-      "source_crop_preserved": true
+      "source_crop_preserved": true,
+      "ground_revision_status": "active_or_requires_ground_pose_validation"
     },
     {
       "name": "trap_prepare",
@@ -506,7 +524,8 @@
         266
       ],
       "alpha_zero_pixels": 123334,
-      "source_crop_preserved": true
+      "source_crop_preserved": true,
+      "ground_revision_status": "active_or_requires_ground_pose_validation"
     },
     {
       "name": "trap_release",
@@ -532,7 +551,8 @@
         266
       ],
       "alpha_zero_pixels": 122496,
-      "source_crop_preserved": true
+      "source_crop_preserved": true,
+      "ground_revision_status": "active_or_requires_ground_pose_validation"
     },
     {
       "name": "trap_recovery",
@@ -558,7 +578,8 @@
         257
       ],
       "alpha_zero_pixels": 124992,
-      "source_crop_preserved": true
+      "source_crop_preserved": true,
+      "ground_revision_status": "active_or_requires_ground_pose_validation"
     },
     {
       "name": "drop_gather",
@@ -584,7 +605,8 @@
         274
       ],
       "alpha_zero_pixels": 127168,
-      "source_crop_preserved": true
+      "source_crop_preserved": true,
+      "ground_revision_status": "retired_reference_only"
     },
     {
       "name": "drop_airborne",
@@ -610,7 +632,8 @@
         285
       ],
       "alpha_zero_pixels": 122014,
-      "source_crop_preserved": true
+      "source_crop_preserved": true,
+      "ground_revision_status": "retired_reference_only"
     },
     {
       "name": "drop_impact",
@@ -636,7 +659,8 @@
         247
       ],
       "alpha_zero_pixels": 127297,
-      "source_crop_preserved": true
+      "source_crop_preserved": true,
+      "ground_revision_status": "retired_reference_only"
     },
     {
       "name": "floor_idle",
@@ -662,7 +686,8 @@
         263
       ],
       "alpha_zero_pixels": 124289,
-      "source_crop_preserved": true
+      "source_crop_preserved": true,
+      "ground_revision_status": "active_or_requires_ground_pose_validation"
     },
     {
       "name": "bite_tell",
@@ -688,7 +713,8 @@
         278
       ],
       "alpha_zero_pixels": 121434,
-      "source_crop_preserved": true
+      "source_crop_preserved": true,
+      "ground_revision_status": "active_or_requires_ground_pose_validation"
     },
     {
       "name": "bite_active",
@@ -714,7 +740,8 @@
         258
       ],
       "alpha_zero_pixels": 121630,
-      "source_crop_preserved": true
+      "source_crop_preserved": true,
+      "ground_revision_status": "active_or_requires_ground_pose_validation"
     },
     {
       "name": "hurt",
@@ -740,7 +767,8 @@
         267
       ],
       "alpha_zero_pixels": 123484,
-      "source_crop_preserved": true
+      "source_crop_preserved": true,
+      "ground_revision_status": "active_or_requires_ground_pose_validation"
     },
     {
       "name": "phase_change",
@@ -766,7 +794,8 @@
         262
       ],
       "alpha_zero_pixels": 124599,
-      "source_crop_preserved": true
+      "source_crop_preserved": true,
+      "ground_revision_status": "active_or_requires_ground_pose_validation"
     },
     {
       "name": "defeat",
@@ -792,7 +821,9 @@
         237
       ],
       "alpha_zero_pixels": 128554,
-      "source_crop_preserved": true
+      "source_crop_preserved": true,
+      "ground_revision_status": "active_or_requires_ground_pose_validation"
     }
-  ]
+  ],
+  "runtime_authority": "Ground revision 3 ANIMATION_BINDINGS.json and SPRITE_STATUS.md"
 }

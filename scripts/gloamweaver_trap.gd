@@ -9,6 +9,8 @@ var last_trigger_time := -1.0
 
 func _ready() -> void:
 	add_to_group("gloamweaver_traps")
+	collision_layer = 0
+	collision_mask = 4
 	monitoring = true
 	monitorable = true
 	var shape := CollisionShape2D.new()

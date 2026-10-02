@@ -38,7 +38,8 @@
         364
       ],
       "alpha_zero_pixels": 391915,
-      "source_crop_preserved": true
+      "source_crop_preserved": true,
+      "ground_revision_status": "active_or_requires_ground_pose_validation"
     },
     {
       "name": "anchor_rosette",
@@ -64,7 +65,8 @@
         463
       ],
       "alpha_zero_pixels": 367316,
-      "source_crop_preserved": true
+      "source_crop_preserved": true,
+      "ground_revision_status": "active_or_requires_ground_pose_validation"
     },
     {
       "name": "cable_segment",
@@ -90,7 +92,8 @@
         443
       ],
       "alpha_zero_pixels": 386891,
-      "source_crop_preserved": true
+      "source_crop_preserved": true,
+      "ground_revision_status": "active_or_requires_ground_pose_validation"
     },
     {
       "name": "swing_streak",
@@ -116,7 +119,8 @@
         431
       ],
       "alpha_zero_pixels": 373806,
-      "source_crop_preserved": true
+      "source_crop_preserved": true,
+      "ground_revision_status": "active_or_requires_ground_pose_validation"
     },
     {
       "name": "trap_seed",
@@ -142,7 +146,8 @@
         394
       ],
       "alpha_zero_pixels": 386136,
-      "source_crop_preserved": true
+      "source_crop_preserved": true,
+      "ground_revision_status": "active_or_requires_ground_pose_validation"
     },
     {
       "name": "trap_unfold",
@@ -168,7 +173,8 @@
         419
       ],
       "alpha_zero_pixels": 372502,
-      "source_crop_preserved": true
+      "source_crop_preserved": true,
+      "ground_revision_status": "active_or_requires_ground_pose_validation"
     },
     {
       "name": "trap_active",
@@ -194,7 +200,8 @@
         392
       ],
       "alpha_zero_pixels": 367339,
-      "source_crop_preserved": true
+      "source_crop_preserved": true,
+      "ground_revision_status": "active_or_requires_ground_pose_validation"
     },
     {
       "name": "trap_trigger",
@@ -220,7 +227,8 @@
         464
       ],
       "alpha_zero_pixels": 367116,
-      "source_crop_preserved": true
+      "source_crop_preserved": true,
+      "ground_revision_status": "active_or_requires_ground_pose_validation"
     },
     {
       "name": "landing_dust",
@@ -246,7 +254,8 @@
         405
       ],
       "alpha_zero_pixels": 370945,
-      "source_crop_preserved": true
+      "source_crop_preserved": true,
+      "ground_revision_status": "active_or_requires_ground_pose_validation"
     },
     {
       "name": "bite_streak",
@@ -272,7 +281,8 @@
         392
       ],
       "alpha_zero_pixels": 373806,
-      "source_crop_preserved": true
+      "source_crop_preserved": true,
+      "ground_revision_status": "active_or_requires_ground_pose_validation"
     },
     {
       "name": "hit_fray",
@@ -298,7 +308,8 @@
         432
       ],
       "alpha_zero_pixels": 368290,
-      "source_crop_preserved": true
+      "source_crop_preserved": true,
+      "ground_revision_status": "active_or_requires_ground_pose_validation"
     },
     {
       "name": "web_dissolve",
@@ -324,7 +335,9 @@
         440
       ],
       "alpha_zero_pixels": 358326,
-      "source_crop_preserved": true
+      "source_crop_preserved": true,
+      "ground_revision_status": "active_or_requires_ground_pose_validation"
     }
-  ]
+  ],
+  "runtime_authority": "Ground revision 3 ANIMATION_BINDINGS.json and SPRITE_STATUS.md"
 }

@@ -1,50 +1,28 @@
 {
-  "status": "declarative integration blueprint, not engine AnimationPlayer/SpriteFrames resource",
+  "revision": 3,
+  "status": "declarative ground encounter blueprint; not an engine resource",
   "timing_authority": "AI_AND_TEST_SCENE.md",
   "body_clips": {
-    "ceiling_idle": {
+    "floor_idle": {
       "keys": [
-        "ceiling_idle_01",
-        "ceiling_idle_02"
+        "floor_idle"
       ],
-      "loop": true,
-      "cycle_seconds": 0.9
+      "hold": true
     },
-    "ceiling_crawl": {
-      "keys": [
-        "ceiling_crawl_01",
-        "ceiling_crawl_02",
-        "ceiling_crawl_03",
-        "ceiling_crawl_04"
-      ],
-      "loop": true,
-      "cycle_seconds": 0.8
+    "ground_crawl": {
+      "keys": [],
+      "required_new_art": true,
+      "minimum_frames": 4,
+      "loop": true
     },
-    "pendulum_rake": {
+    "fang_bite": {
       "keys": [
-        "swing_prepare",
-        "swing_hang",
-        "swing_rake",
-        "swing_rise",
-        "swing_recovery"
-      ],
-      "loop": false,
-      "events": [
-        "attach_tether_after_validated_anchor",
-        "active_low_crossing_only",
-        "low_recovery_then_retract"
+        "bite_tell",
+        "bite_active",
+        "floor_idle"
       ]
     },
-    "double_swing": {
-      "reuse": "pendulum_rake",
-      "passes": 2,
-      "events": [
-        "two_unique_rake_ids",
-        "harmless_lift_between",
-        "longer_final_low_recovery"
-      ]
-    },
-    "web_zip": {
+    "web_ground_charge": {
       "keys": [
         "zip_aim",
         "zip_release",
@@ -53,25 +31,15 @@
         "zip_arrival",
         "zip_recovery"
       ],
-      "loop": false,
+      "requires_ground_pose_validation": true,
       "events": [
-        "hook_at_release_once",
-        "travel_after_anchor_contact",
-        "active_front_during_zip_only",
-        "catch_on_actual_support"
+        "lock_lane_at_tell",
+        "hook_once",
+        "charge_on_anchor_confirmation",
+        "one_traversal_damage_id",
+        "disable_damage_on_stop",
+        "full_ground_recovery"
       ]
-    },
-    "reattach": {
-      "keys": [
-        "zip_aim",
-        "zip_release",
-        "zip_compress",
-        "zip_travel",
-        "reattach_catch",
-        "zip_recovery"
-      ],
-      "loop": false,
-      "damage_enabled": false
     },
     "silk_snare": {
       "keys": [
@@ -79,52 +47,18 @@
         "trap_release",
         "trap_recovery"
       ],
-      "loop": false,
       "events": [
-        "reserve_valid_trap_slot",
-        "seed_at_release_once",
-        "arm_on_floor_after_deploy"
-      ]
-    },
-    "drop": {
-      "keys": [
-        "drop_gather",
-        "drop_airborne",
-        "drop_impact",
-        "floor_idle"
-      ],
-      "loop": false,
-      "events": [
-        "detach_grip",
-        "impact_only_on_real_floor",
-        "full_floor_recovery"
-      ]
-    },
-    "floor_idle": {
-      "keys": [
-        "floor_idle"
-      ],
-      "loop": false,
-      "hold": true
-    },
-    "fang_bite": {
-      "keys": [
-        "bite_tell",
-        "bite_active",
-        "floor_idle"
-      ],
-      "loop": false,
-      "events": [
-        "committed_facing",
-        "active_fangs_only",
-        "recovery"
+        "reserve_slot",
+        "release_once",
+        "arm_after_floor_and_deploy",
+        "overlap_slow",
+        "expiry_cleanup"
       ]
     },
     "hurt": {
       "keys": [
         "hurt"
       ],
-      "loop": false,
       "seconds": 0.15,
       "visual_override_only": true
     },
@@ -132,85 +66,72 @@
       "keys": [
         "phase_change"
       ],
-      "loop": false,
-      "seconds": 0.85,
-      "damage_enabled": false
+      "seconds": 0.85
     },
     "defeat": {
       "keys": [
         "defeat"
       ],
-      "loop": false,
-      "hold": true,
       "events": [
-        "cleanup_all_danger_and_status_first",
-        "harmless_grounded_collapse"
+        "clear_damage_and_owned_status",
+        "grounded_collapse"
       ]
     }
   },
   "effect_bindings": {
-    "hook_flight": [
+    "hook": [
       "hook_head"
     ],
-    "anchor_pulse": [
+    "anchor": [
       "anchor_rosette"
     ],
-    "tether": [
+    "cable_accent": [
       "cable_segment"
     ],
-    "swing_trail": [
+    "charge_trail_accent": [
       "swing_streak"
     ],
-    "zip_motion_trail": [
-      "swing_streak"
-    ],
-    "drop_motion_trail": [
-      "swing_streak"
-    ],
-    "seed_flight": [
-      "trap_seed"
-    ],
-    "trap_deploy": [
-      "trap_unfold"
-    ],
-    "trap_armed": [
-      "trap_active"
-    ],
-    "slow_trigger": [
-      "trap_trigger"
-    ],
-    "landing": [
+    "charge_skid": [
       "landing_dust"
     ],
-    "bite_trail": [
+    "bite": [
       "bite_streak"
+    ],
+    "snare_seed": [
+      "trap_seed"
+    ],
+    "snare_deploy": [
+      "trap_unfold"
+    ],
+    "snare_armed": [
+      "trap_active"
+    ],
+    "snare_slow": [
+      "trap_trigger"
     ],
     "hurt_phase": [
       "hit_fray"
     ],
-    "expiry_death": [
+    "expiry_defeat": [
       "web_dissolve"
     ]
   },
-  "tether_note": "dynamic anchored line/rope required; cable sprite is optional accent but has an explicit binding",
-  "no_silent_unused_assets": true,
-  "revision": 2,
-  "registration_authority": "INTEGRATION_FIXES_V2.md; calibrate actual per-pose contact/spinneret sockets, not estimated roots",
-  "motion_vfx_requirements": {
-    "zip_motion_trail": "velocity-aligned short procedural streaks or suitable supplied streak asset; never omit",
-    "drop_motion_trail": "short vertical falling trail above body; never omit",
-    "landing": "guarded actual floor-contact event, measured foot/floor anchor"
+  "procedural_required": [
+    "dynamic_socket_to_hook_or_wall_cable",
+    "velocity_aligned_charge_trails"
+  ],
+  "retired_runtime_actions": [
+    "swing",
+    "double_swing",
+    "zip",
+    "drop",
+    "reattach",
+    "ceiling_crawl"
+  ],
+  "scheduler_mapping": {
+    "charge": "web_ground_charge",
+    "bite": "fang_bite",
+    "trap": "silk_snare"
   },
-  "snare_action_mapping": {
-    "scheduler_intent": "trap",
-    "executor": "silk_snare",
-    "required_stages": [
-      "reserve",
-      "seed_spawn",
-      "floor_landing",
-      "deploy",
-      "armed_overlap_status",
-      "expiry_release"
-    ]
-  }
+  "registration": "calibrated floor contacts and per-pose spinneret/fang sockets; no alpha-center assumptions"
 }
