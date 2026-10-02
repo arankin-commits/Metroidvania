@@ -193,7 +193,7 @@ func _ready() -> void:
 		chamber.close_right=int(config[0])==10
 		add_child(chamber)
 	player = PLAYER.new()
-	player.position = Vector2(HAND_X, 570) if current_room == 8 else ARRIVAL_LAYOUT.entry() if current_room == 5 else Vector2(BOUNDS[current_room - 5].x + 90, 570)
+	player.position = Vector2(HAND_X, 570) if current_room == 8 else ARRIVAL_LAYOUT.entry() if current_room == 5 else Vector2(BOUNDS[current_room - 5].x + 90, 535.0) if current_room in [11, 12] else Vector2(BOUNDS[current_room - 5].x + 90, 570)
 	if current_room==9: player.position=DASH_LAYOUT.HAND
 	player.has_dash = bool(saved_data.get("has_dash", true))
 	player.set_injured(bool(saved_data.get("is_injured", false)))
@@ -353,7 +353,7 @@ func _check_transition() -> void:
 			elif x>=BOUNDS[2].y-20 and bow_boss_defeated: _change_room(11,BOUNDS[6].x+80)
 		11:
 			if x<=BOUNDS[6].x+15: _change_room(7,BOUNDS[2].y-80)
-			elif x>=BOUNDS[6].y-20 and rabbit_boss_defeated: _change_room(12,BOUNDS[7].x+80)
+			elif x>=BOUNDS[6].y-20 and rabbit_boss_defeated: _change_room(12,BOUNDS[7].x+100)
 		12:
 			if x<=BOUNDS[7].x+15: _change_room(11,BOUNDS[6].y-80)
 
@@ -409,7 +409,7 @@ func _set_camera() -> void:
 func _receiving_position(destination: int,entry_x: float) -> Vector2:
 	if destination==9: return DASH_LAYOUT.HAND
 	if destination==10: return Vector2(23735,570)
-	if destination==11 or destination==12: return Vector2(entry_x, 560)
+	if destination==11 or destination==12: return Vector2(entry_x, 535.0)
 	if destination==6 and entry_x>=FINAL_LAYOUT.X: return Vector2(entry_x,FINAL_LAYOUT.surface_y(entry_x)-27)
 	if destination==5: return ARRIVAL_LAYOUT.receiving(entry_x)
 	if destination==6 and entry_x>=12600: return Vector2(entry_x,SPLIT_LAYOUT.EXIT_Y-27)
@@ -603,19 +603,11 @@ func _setup_ironback_arena() -> void:
 	g_poly.color = Color(0.18, 0.27, 0.29, 1.0)
 	ground.add_child(g_poly)
 	ironback_chamber.add_child(ground)
-	var left_wall := StaticBody2D.new()
-	left_wall.position = Vector2(i_bounds.x + 72, 360)
-	var lw_shape := CollisionShape2D.new()
-	var lw_rect := RectangleShape2D.new()
-	lw_rect.size = Vector2(48, 360)
-	lw_shape.shape = lw_rect
-	left_wall.add_child(lw_shape)
-	ironback_chamber.add_child(left_wall)
 	var right_wall := StaticBody2D.new()
-	right_wall.position = Vector2(i_bounds.y - 72, 360)
+	right_wall.position = Vector2(i_bounds.y - 16, 360)
 	var rw_shape := CollisionShape2D.new()
 	var rw_rect := RectangleShape2D.new()
-	rw_rect.size = Vector2(48, 360)
+	rw_rect.size = Vector2(32, 660)
 	rw_shape.shape = rw_rect
 	right_wall.add_child(rw_shape)
 	ironback_chamber.add_child(right_wall)
@@ -628,8 +620,8 @@ func _setup_ironback_arena() -> void:
 	ironback_boss.collision_mask = 1
 	ironback_boss.active = false
 	ironback_boss.max_health = 24.0
-	ironback_boss.arena_left = i_bounds.x + 72
-	ironback_boss.arena_right = i_bounds.y - 72
+	ironback_boss.arena_left = i_bounds.x + 60
+	ironback_boss.arena_right = i_bounds.y - 60
 	add_child(ironback_boss)
 	ironback_boss.defeated.connect(_on_ironback_defeated)
 	if ironback_boss_defeated:

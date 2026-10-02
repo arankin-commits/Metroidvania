@@ -194,12 +194,29 @@ func run() -> void:
 	print("   Room 11 Rabbit Boss setup, climb wall despawn, and defeat: OK")
 
 	# Transition to Room 12 (Ironback Boss)
-	forest.player.position.x = 27280.0 + 80.0
+	forest.player.global_position = forest._receiving_position(12, 27280.0 + 100.0)
 	forest.current_room = 12
 	forest._mark_room_visited(12)
 	forest._set_camera()
 	for i in 5:
 		await physics_frame
+
+	# Verify player is standing on floor and not stuck
+	if not forest.player.is_on_floor():
+		fail("Player should be standing on the floor in Room 12 (is_on_floor was false, y was %f)" % forest.player.position.y)
+		return
+	if absf(forest.player.position.y - 537.0) > 1.0:
+		fail("Player position Y should be ~537 on floor y=560 (was %f)" % forest.player.position.y)
+		return
+
+	# Verify player can move freely horizontally
+	var start_x: float = forest.player.position.x
+	forest.player.velocity.x = 255.0
+	await physics_frame
+	if forest.player.position.x <= start_x:
+		fail("Player could not move horizontally in Room 12; stuck in floor or wall!")
+		return
+	print("   Room 12 player floor and movement verification: OK")
 
 	if not is_instance_valid(forest.ironback_boss):
 		fail("Ironback boss should be instantiated in Room 12")
