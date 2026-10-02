@@ -52,7 +52,7 @@ func _spawn() -> void:
 			if world.gallery_defeated.has(placement.id):
 				continue
 			var enemy: Node2D
-			if placement.kind == "sentinel":
+			if placement.kind == "goblin_sentinel" or placement.kind == "spearman":
 				var ref = REFERENCE_ENEMY.new()
 				ref.enemy_kind = "goblin_sentinel"
 				ref.ground_origin = false

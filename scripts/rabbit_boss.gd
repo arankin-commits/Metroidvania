@@ -406,7 +406,7 @@ func update_visual_state() -> void:
 	else:
 		sprite.flip_h = facing < 0
 
-func take_hit(amount: float = 1.0) -> void:
+func take_hit(amount: float = 1.0, _posture_dmg: float = 0.0) -> void:
 	if health <= 0.0 or invulnerability > 0.0:
 		return
 	health = maxf(0.0, health - amount)

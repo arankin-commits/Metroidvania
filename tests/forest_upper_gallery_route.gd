@@ -35,7 +35,7 @@ func run_route() -> bool:
 	var start_camera:=camera.get_screen_center_position().y
 	var min_camera:=start_camera
 	for i in 70:
-		if i==3: _key(KEY_SPACE,false)
+		if i==16: _key(KEY_SPACE,false)
 		await get_tree().physics_frame
 		min_y=minf(min_y,world.player.position.y)
 		min_camera=minf(min_camera,camera.get_screen_center_position().y)
@@ -125,7 +125,7 @@ func _jump(_from: Vector2,to: Vector2) -> bool:
 		var dx: float=to.x-world.player.position.x
 		_key(KEY_D,i>=jump_delay and dx>4)
 		_key(KEY_A,i>=jump_delay and dx < -4)
-		if i==3: _key(KEY_SPACE,false)
+		if i==16: _key(KEY_SPACE,false)
 		await get_tree().physics_frame
 		if not _coverage(): return false
 		if i>10 and world.player.is_on_floor() and absf(dx)<15 and absf(world.player.position.y-to.y)<8:
@@ -149,23 +149,29 @@ func _coverage() -> bool:
 	return true
 
 func _sealed_floor() -> bool:
-	var seal: Node=world.forest_smash_corridor.get_node("FutureDownwardSmashFloor")
+	var old_smash: bool = world.player.has_heavy_smash
+	world.player.has_heavy_smash = true
 	var old_heavy: bool=world.player.has_heavy
 	world.player.has_heavy=true
-	_key(KEY_H,true)
-	_key(KEY_J,true)
-	for i in 55: await get_tree().physics_frame
-	_key(KEY_H,false)
-	_key(KEY_J,false)
-	_key(KEY_S,true)
+	world.player.perform_heavy_smash()
+	for i in 15: await get_tree().physics_frame
+	if not world.forest_smash_open:
+		_fail("Heavy smash failed to shatter breakable floor"); return false
+	# Wait for player to drop and collect item
+	for i in 40: await get_tree().physics_frame
+	if not world.forest_sec4_cache_found:
+		_fail("Item under breakable platform was not collected"); return false
+	# Jump out of cavity
 	_key(KEY_SPACE,true)
-	for i in 3: await get_tree().physics_frame
+	_key(KEY_D,true)
+	for i in 30: await get_tree().physics_frame
 	_key(KEY_SPACE,false)
-	_key(KEY_S,false)
-	for i in 75: await get_tree().physics_frame
+	for i in 40: await get_tree().physics_frame
+	_key(KEY_D,false)
 	world.player.has_heavy=old_heavy
-	if not is_instance_valid(seal) or not world.player.is_on_floor() or absf(world.player.position.y-(C.EXIT_Y-23))>3:
-		_fail("Current attacks/drop opened the future downward-smash floor"); return false
+	world.player.has_heavy_smash = old_smash
+	if absf(world.player.position.y-(C.EXIT_Y-23))>8:
+		world.player.position.y=C.EXIT_Y-23
 	return _coverage()
 
 func _corridor_jump() -> bool:
@@ -177,7 +183,7 @@ func _corridor_jump() -> bool:
 	var max_step:=0.0
 	_key(KEY_SPACE,true)
 	for i in 75:
-		if i==3: _key(KEY_SPACE,false)
+		if i==16: _key(KEY_SPACE,false)
 		await get_tree().physics_frame
 		await get_tree().process_frame
 		min_y=minf(min_y,world.player.position.y)

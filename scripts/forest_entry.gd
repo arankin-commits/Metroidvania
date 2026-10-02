@@ -43,6 +43,8 @@ const FOREST_ENCOUNTERS = preload("res://scripts/forest_encounters.gd")
 const WORLD_LAYOUT = preload("res://scripts/forest_world_layout.gd")
 const BOUNDS = WORLD_LAYOUT.BOUNDS
 const HAND_X = WORLD_LAYOUT.HAND_X
+const RABBIT_BOSS = preload("res://scripts/rabbit_boss.gd")
+const IRONBACK_BOSS = preload("res://scripts/ironback_full_boss.gd")
 
 var player: CharacterBody2D
 var hud: Control
@@ -54,6 +56,17 @@ var game_menu: CanvasLayer
 var hand_menu: CanvasLayer
 var hand_chair: Sprite2D
 var bow_boss: Node2D
+var rabbit_boss: Node2D
+var rabbit_boss_defeated := false
+var rabbit_arena_entrance: StaticBody2D
+var rabbit_arena_exit: StaticBody2D
+var rabbit_chamber: Node2D
+var rabbit_climb_wall: StaticBody2D
+var ironback_boss: Node2D
+var ironback_boss_defeated := false
+var ironback_arena_entrance: StaticBody2D
+var ironback_arena_exit: StaticBody2D
+var ironback_chamber: Node2D
 var training_scouts: Array[Node2D] = []
 var arena_entrance: StaticBody2D
 var arena_exit: StaticBody2D
@@ -92,6 +105,11 @@ var forest_return_gallery: Node2D
 var forest_split_hall: Node2D
 var forest_encounters: Node2D
 var forest_defeated: Array = []
+var forest_smash_open := false
+var forest_sec4_cache_found := false
+var forest_sec9_cache_found := false
+var sec4_offering: Node2D
+var sec9_offering: Node2D
 
 func _ready() -> void:
 	game_audio = AUDIO.new()
@@ -104,17 +122,22 @@ func _ready() -> void:
 		saved_data = SLOTS.load_slot(active_save_slot, save_root)
 		elapsed_seconds = float(saved_data.get("seconds", 0.0))
 		will_amount = int(saved_data.get("will", 0))
-		player_level = int(saved_data.get("level", 1))
+		player_level = clampi(maxi(int(saved_data.get("level", 1)), 1 + int(will_amount / 25)), 1, 999)
+		forest_smash_open = bool(saved_data.get("forest_smash_open", false))
+		forest_sec4_cache_found = bool(saved_data.get("forest_sec4_cache_found", false))
+		forest_sec9_cache_found = bool(saved_data.get("forest_sec9_cache_found", false))
 		visited_rooms.assign(saved_data.get("visited_rooms", [2]))
 		bow_boss_defeated = bool(saved_data.get("bow_boss_defeated", false))
 		bow_tutorial_practiced = bool(saved_data.get("bow_tutorial_practiced", false))
 		forest_hand_activated = bool(saved_data.get("forest_hand_activated", false))
 		temple_hand_activated = bool(saved_data.get("temple_hand_activated", false))
 		temple_guardian_defeated=bool(saved_data.get("temple_guardian_defeated",false))
+		rabbit_boss_defeated=bool(saved_data.get("rabbit_boss_defeated",false))
+		ironback_boss_defeated=bool(saved_data.get("ironback_boss_defeated",false))
 		last_hand_room = int(saved_data.get("last_hand_room", 8 if forest_hand_activated else 3 if bool(saved_data.get("hand_activated", false)) else 1))
 		forest_defeated.assign(saved_data.get("forest_defeated", []))
 		if get_tree().has_meta("forest_entry_room"):
-			current_room = clampi(int(get_tree().get_meta("forest_entry_room")), 5, 10)
+			current_room = clampi(int(get_tree().get_meta("forest_entry_room")), 5, 12)
 			get_tree().remove_meta("forest_entry_room")
 		elif get_tree().has_meta("arriving_room_transition"):
 			current_room = 5
@@ -128,7 +151,7 @@ func _ready() -> void:
 			elif forest_hand_activated:
 				current_room = 8
 			else:
-				current_room = clampi(int(saved_data.get("room", 5)), 5, 10)
+				current_room = clampi(int(saved_data.get("room", 5)), 5, 12)
 	_mark_room_visited(current_room)
 	arrival=ARRIVAL.new()
 	add_child(arrival)
@@ -140,6 +163,8 @@ func _ready() -> void:
 	add_child(forest_upper_gallery)
 	forest_smash_corridor=SMASH_CORRIDOR.new()
 	add_child(forest_smash_corridor)
+	if forest_smash_open and forest_smash_corridor.has_method("break_floor"):
+		forest_smash_corridor.break_floor(true)
 	forest_stepped_gallery=STEPPED_GALLERY.new()
 	add_child(forest_stepped_gallery)
 	forest_elevated_gallery=ELEVATED_GALLERY.new()
@@ -157,6 +182,7 @@ func _ready() -> void:
 	forest_encounters = FOREST_ENCOUNTERS.new()
 	forest_encounters.world = self
 	add_child(forest_encounters)
+	_setup_forest_offerings()
 	for config in [[7,preload("res://assets/forest_bow_arena_environment.png"),606.0],[8,preload("res://assets/forest_boss_hand_environment.png"),657.0],[10,preload("res://assets/forest_temple_guardian_environment.png"),634.0]]:
 		var chamber:=CHAMBER.new()
 		chamber.name="ForestChamber%d"%config[0]
@@ -164,10 +190,10 @@ func _ready() -> void:
 		chamber.art=config[1]
 		chamber.source_floor=config[2]
 		chamber.close_left=int(config[0])==10
-		chamber.close_right=int(config[0]) in [7,10]
+		chamber.close_right=int(config[0])==10
 		add_child(chamber)
 	player = PLAYER.new()
-	player.position = Vector2(HAND_X, 570) if current_room == 8 else ARRIVAL_LAYOUT.entry() if current_room == 5 else Vector2(BOUNDS[current_room - 5].x + 90, 570)
+	player.position = Vector2(HAND_X, 570) if current_room == 8 else ARRIVAL_LAYOUT.entry() if current_room == 5 else Vector2(BOUNDS[current_room - 5].x + 90, 535.0) if current_room in [11, 12] else Vector2(BOUNDS[current_room - 5].x + 90, 570)
 	if current_room==9: player.position=DASH_LAYOUT.HAND
 	player.has_dash = bool(saved_data.get("has_dash", true))
 	player.set_injured(bool(saved_data.get("is_injured", false)))
@@ -187,10 +213,13 @@ func _ready() -> void:
 	player.healed.connect(_save_progress)
 	player.attacked.connect(_on_attack)
 	player.heavy_attacked.connect(_on_heavy)
+	player.heavy_smashed.connect(_on_heavy_smash)
 	player.bow_fired.connect(_on_bow)
 	player.jumped.connect(func() -> void: game_audio.play_effect("jump"))
 	player.dodged.connect(func() -> void: game_audio.play_effect("dodge"))
 	player.died.connect(_on_death)
+	_setup_rabbit_arena()
+	_setup_ironback_arena()
 	_set_camera()
 	bow_boss = HUNTER.new()
 	bow_boss.position = Vector2(BOUNDS[2].x+700, 553)
@@ -198,14 +227,20 @@ func _ready() -> void:
 	add_child(bow_boss)
 	bow_boss.defeated.connect(_on_hunter_defeated)
 	bow_boss.attack_cued.connect(func(_cue: String) -> void: game_audio.play_effect("enemy_attack"))
-	bow_boss.visible = not bow_boss_defeated
+	if bow_boss_defeated:
+		_disable_defeated_boss(bow_boss)
+	else:
+		bow_boss.visible = not bow_boss_defeated
 	temple_guardian=GUARDIAN.new()
 	temple_guardian.position=Vector2(23390,553)
 	temple_guardian.player=player
 	add_child(temple_guardian)
 	temple_guardian.defeated.connect(_on_guardian_defeated)
 	temple_guardian.attack_cued.connect(func(_cue: String) -> void: game_audio.play_effect("enemy_attack"))
-	temple_guardian.visible=not temple_guardian_defeated
+	if temple_guardian_defeated:
+		_disable_defeated_boss(temple_guardian)
+	else:
+		temple_guardian.visible=not temple_guardian_defeated
 	hand_chair = Sprite2D.new()
 	hand_chair.texture = HAND_ART
 	hand_chair.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
@@ -255,22 +290,43 @@ func _process(delta: float) -> void:
 		_save_progress()
 	if not transitioning:
 		_check_transition()
-	if current_room==10 and not temple_guardian_defeated and not temple_guardian.active and not transitioning:
+	if current_room==10 and not temple_guardian_defeated and is_instance_valid(temple_guardian) and not temple_guardian.active and not transitioning:
 		temple_guardian.active=true
 		temple_guardian.state_time=0.85
 		game_audio.play_temple_boss()
 		_show_toast("TEMPLE GUARDIAN",3)
-	if current_room!=10: temple_guardian.active=false
-	if current_room == 7 and not bow_boss_defeated and not bow_boss.active and not transitioning:
+	if current_room!=10 and is_instance_valid(temple_guardian): temple_guardian.active=false
+	if current_room == 7 and not bow_boss_defeated and is_instance_valid(bow_boss) and not bow_boss.active and not transitioning:
 		bow_boss.active = true
 		bow_boss.state_time = 0.65
 		arena_entrance = _solid(Rect2(BOUNDS[2].x, -60, 32, 660))
 		arena_exit = _solid(Rect2(BOUNDS[2].y, -60, 32, 660))
 		game_audio.play_forest_boss()
 		_show_toast("FOREST GUARDIAN  ·  Close the distance between volleys", 3.5)
+	if current_room == 11 and not rabbit_boss_defeated and not rabbit_boss.active and not transitioning:
+		rabbit_boss.active = true
+		_lock_rabbit_arena()
+		game_audio.play_forest_boss()
+		_show_toast("RABBIT, THE WALL-CLINGER", 3.0)
+	if current_room != 11 and is_instance_valid(rabbit_boss):
+		rabbit_boss.active = false
+	if current_room == 12 and not ironback_boss_defeated and not ironback_boss.active and not transitioning:
+		ironback_boss.active = true
+		_lock_ironback_arena()
+		game_audio.play_goblin_boss()
+		_show_toast("IRONBACK, THE SEISMIC FIST", 3.0)
+	if current_room != 12 and is_instance_valid(ironback_boss):
+		ironback_boss.active = false
 	if current_room == 8 and player.has_bow and not bow_tutorial_practiced and not bow_hint_shown:
 		bow_hint_shown = true
 		_show_toast("Press L to fire. Meditate at the hand to refill arrows.", 4.0)
+	if current_room == 6:
+		if is_instance_valid(sec4_offering) and not forest_sec4_cache_found and forest_smash_open:
+			if player.position.distance_to(sec4_offering.position) < 45.0:
+				_collect_offering(4)
+		if is_instance_valid(sec9_offering) and not forest_sec9_cache_found:
+			if player.position.distance_to(sec9_offering.position) < 45.0:
+				_collect_offering(9)
 	_update_hud()
 	queue_redraw()
 
@@ -281,6 +337,8 @@ func _check_transition() -> void:
 		_return_to_cave()
 		return
 	if current_room==7 and bow_boss.active and not bow_boss_defeated: return
+	if current_room==11 and rabbit_boss.active and not rabbit_boss_defeated: return
+	if current_room==12 and ironback_boss.active and not ironback_boss_defeated: return
 	match current_room:
 		5:
 			if x>=BOUNDS[0].y: _change_room(6,3680)
@@ -292,6 +350,12 @@ func _check_transition() -> void:
 			elif x>=BOUNDS[3].y: _change_room(7,BOUNDS[2].x+80)
 		7:
 			if x<=BOUNDS[2].x+15: _change_room(8,BOUNDS[3].y-80)
+			elif x>=BOUNDS[2].y-20 and bow_boss_defeated: _change_room(11,BOUNDS[6].x+80)
+		11:
+			if x<=BOUNDS[6].x+15: _change_room(7,BOUNDS[2].y-80)
+			elif x>=BOUNDS[6].y-20 and rabbit_boss_defeated: _change_room(12,BOUNDS[7].x+100)
+		12:
+			if x<=BOUNDS[7].x+15: _change_room(11,BOUNDS[6].y-80)
 
 func _change_room(destination: int, entry_x: float) -> void:
 	transitioning = true
@@ -321,7 +385,7 @@ func _set_camera() -> void:
 	camera.limit_right = int(bounds.y)
 	camera.zoom=Vector2(0.96,0.96) if current_room in [5,6] else Vector2.ONE
 	camera.position=Vector2.ZERO if current_room in [5,6] else Vector2(0,-100)
-	camera.limit_top=ARRIVAL_LAYOUT.CAMERA_TOP if current_room==5 else SMASH_LAYOUT.CAMERA_TOP if current_room==6 else -60
+	camera.limit_top=ARRIVAL_LAYOUT.CAMERA_TOP if current_room==5 else SMASH_LAYOUT.CAMERA_TOP if current_room==6 else 0 if current_room in [11,12] else -60
 	camera.limit_bottom=ceili(ARRIVAL_LAYOUT.EXTENT.end.y) if current_room==5 else SPLIT_LAYOUT.CAMERA_BOTTOM if current_room==6 else 720
 	# Tracking smoothing alone still hard-clamps at the upper gallery's jump apex.
 	camera.limit_smoothed=current_room==6
@@ -331,14 +395,21 @@ func _set_camera() -> void:
 	if is_instance_valid(bow_boss): bow_boss.visible = current_room == 7 and not bow_boss_defeated
 	if is_instance_valid(temple_guardian): temple_guardian.visible = current_room == 10 and not temple_guardian_defeated
 	if is_instance_valid(hand_chair): hand_chair.visible = current_room == 8
+	if is_instance_valid(rabbit_boss): rabbit_boss.visible = current_room == 11 and not rabbit_boss_defeated
+	if is_instance_valid(ironback_boss): ironback_boss.visible = current_room == 12 and not ironback_boss_defeated
+	if is_instance_valid(rabbit_chamber): rabbit_chamber.visible = current_room == 11
+	if is_instance_valid(ironback_chamber): ironback_chamber.visible = current_room == 12
 	for r in [7, 8, 10]:
 		var ch := get_node_or_null("ForestChamber%d" % r)
 		if ch != null:
 			ch.visible = current_room == r
+	if is_instance_valid(sec4_offering): sec4_offering.visible = current_room == 6
+	if is_instance_valid(sec9_offering): sec9_offering.visible = current_room == 6
 
 func _receiving_position(destination: int,entry_x: float) -> Vector2:
 	if destination==9: return DASH_LAYOUT.HAND
 	if destination==10: return Vector2(23735,570)
+	if destination==11 or destination==12: return Vector2(entry_x, 535.0)
 	if destination==6 and entry_x>=FINAL_LAYOUT.X: return Vector2(entry_x,FINAL_LAYOUT.surface_y(entry_x)-27)
 	if destination==5: return ARRIVAL_LAYOUT.receiving(entry_x)
 	if destination==6 and entry_x>=12600: return Vector2(entry_x,SPLIT_LAYOUT.EXIT_Y-27)
@@ -372,6 +443,212 @@ func _unlock_arena() -> void:
 	arena_entrance = null
 	arena_exit = null
 
+func _lock_rabbit_arena() -> void:
+	if not is_instance_valid(rabbit_arena_entrance):
+		rabbit_arena_entrance = _solid(Rect2(BOUNDS[6].x, -60, 32, 660))
+	if not is_instance_valid(rabbit_arena_exit):
+		rabbit_arena_exit = _solid(Rect2(BOUNDS[6].y - 32, -60, 32, 660))
+
+func _unlock_rabbit_arena() -> void:
+	if is_instance_valid(rabbit_arena_entrance):
+		rabbit_arena_entrance.queue_free()
+	if is_instance_valid(rabbit_arena_exit):
+		rabbit_arena_exit.queue_free()
+	rabbit_arena_entrance = null
+	rabbit_arena_exit = null
+
+func _lock_ironback_arena() -> void:
+	if not is_instance_valid(ironback_arena_entrance):
+		ironback_arena_entrance = _solid(Rect2(BOUNDS[7].x, -60, 32, 660))
+	if not is_instance_valid(ironback_arena_exit):
+		ironback_arena_exit = _solid(Rect2(BOUNDS[7].y - 32, -60, 32, 660))
+
+func _unlock_ironback_arena() -> void:
+	if is_instance_valid(ironback_arena_entrance):
+		ironback_arena_entrance.queue_free()
+	if is_instance_valid(ironback_arena_exit):
+		ironback_arena_exit.queue_free()
+	ironback_arena_entrance = null
+	ironback_arena_exit = null
+
+func _ensure_rabbit_climb_wall() -> void:
+	if rabbit_boss_defeated:
+		if is_instance_valid(rabbit_climb_wall):
+			rabbit_climb_wall.queue_free()
+			rabbit_climb_wall = null
+		return
+	if is_instance_valid(rabbit_climb_wall) or not is_instance_valid(rabbit_chamber):
+		return
+	var r_bounds: Vector2 = BOUNDS[6]
+	rabbit_climb_wall = StaticBody2D.new()
+	rabbit_climb_wall.name = "ClimbWall"
+	rabbit_climb_wall.position = Vector2(r_bounds.x + 800 + 120, 430)
+	rabbit_climb_wall.add_to_group("climbable_surface")
+	var c_shape := CollisionShape2D.new()
+	var c_rect := RectangleShape2D.new()
+	c_rect.size = Vector2(48, 260)
+	c_shape.shape = c_rect
+	rabbit_climb_wall.add_child(c_shape)
+	var c_poly := Polygon2D.new()
+	c_poly.polygon = PackedVector2Array([
+		Vector2(-24, -130), Vector2(24, -130),
+		Vector2(24, 130), Vector2(-24, 130)
+	])
+	c_poly.color = Color(0.24, 0.33, 0.32, 1.0)
+	rabbit_climb_wall.add_child(c_poly)
+	rabbit_chamber.add_child(rabbit_climb_wall)
+
+func _disable_defeated_boss(b: Node) -> void:
+	if not is_instance_valid(b):
+		return
+	b.visible = false
+	if "active" in b:
+		b.active = false
+	if "health" in b:
+		b.health = 0.0
+	if b is CollisionObject2D:
+		b.collision_layer = 0
+		b.collision_mask = 0
+	for child in b.get_children():
+		if child is CollisionShape2D:
+			child.set_deferred("disabled", true)
+			child.disabled = true
+	for g in ["combat_targets", "bosses", "enemies", "mcp_watch"]:
+		if b.is_in_group(g):
+			b.remove_from_group(g)
+	b.set_process(false)
+	b.set_physics_process(false)
+	if "position" in b:
+		b.position = Vector2(-99999, -99999)
+
+func _setup_rabbit_arena() -> void:
+	rabbit_chamber = Node2D.new()
+	rabbit_chamber.name = "RabbitChamber"
+	var r_bounds: Vector2 = BOUNDS[6]
+	var bg := Polygon2D.new()
+	bg.polygon = PackedVector2Array([
+		Vector2(r_bounds.x, 0), Vector2(r_bounds.y, 0),
+		Vector2(r_bounds.y, 720), Vector2(r_bounds.x, 720)
+	])
+	bg.color = Color("101a20")
+	bg.z_index = -90
+	rabbit_chamber.add_child(bg)
+	var ground := StaticBody2D.new()
+	ground.name = "RabbitGround"
+	ground.position = Vector2((r_bounds.x + r_bounds.y) * 0.5, 590)
+	var g_shape := CollisionShape2D.new()
+	var g_rect := RectangleShape2D.new()
+	g_rect.size = Vector2(r_bounds.y - r_bounds.x, 60)
+	g_shape.shape = g_rect
+	ground.add_child(g_shape)
+	var g_poly := Polygon2D.new()
+	var half_w := (r_bounds.y - r_bounds.x) * 0.5
+	g_poly.polygon = PackedVector2Array([
+		Vector2(-half_w, -30), Vector2(half_w, -30),
+		Vector2(half_w, 30), Vector2(-half_w, 30)
+	])
+	g_poly.color = Color(0.19, 0.27, 0.26, 1.0)
+	ground.add_child(g_poly)
+	rabbit_chamber.add_child(ground)
+	add_child(rabbit_chamber)
+	rabbit_chamber.visible = current_room == 11
+	_ensure_rabbit_climb_wall()
+	rabbit_boss = RABBIT_BOSS.new()
+	rabbit_boss.position = Vector2(r_bounds.x + 500, 504)
+	rabbit_boss.player = player
+	rabbit_boss.collision_layer = 2
+	rabbit_boss.collision_mask = 1
+	rabbit_boss.active = false
+	rabbit_boss.max_health = 12.0
+	rabbit_boss.speed = 120.0
+	rabbit_boss.gravity = 1350.0
+	rabbit_boss.jump_velocity = -520.0
+	rabbit_boss.climb_speed = 120.0
+	rabbit_boss.pounce_speed = 360.0
+	rabbit_boss.detection_radius = 220.0
+	rabbit_boss.climbable_group_name = "climbable_surface"
+	add_child(rabbit_boss)
+	rabbit_boss.defeated.connect(_on_rabbit_defeated)
+	if rabbit_boss_defeated:
+		_disable_defeated_boss(rabbit_boss)
+	else:
+		rabbit_boss.visible = current_room == 11
+
+func _setup_ironback_arena() -> void:
+	ironback_chamber = Node2D.new()
+	ironback_chamber.name = "IronbackChamber"
+	var i_bounds: Vector2 = BOUNDS[7]
+	var bg := Polygon2D.new()
+	bg.polygon = PackedVector2Array([
+		Vector2(i_bounds.x, 0), Vector2(i_bounds.y, 0),
+		Vector2(i_bounds.y, 720), Vector2(i_bounds.x, 720)
+	])
+	bg.color = Color("0c1720")
+	bg.z_index = -90
+	ironback_chamber.add_child(bg)
+	var ground := StaticBody2D.new()
+	ground.name = "IronbackGround"
+	ground.position = Vector2((i_bounds.x + i_bounds.y) * 0.5, 590)
+	var g_shape := CollisionShape2D.new()
+	var g_rect := RectangleShape2D.new()
+	g_rect.size = Vector2(i_bounds.y - i_bounds.x, 60)
+	g_shape.shape = g_rect
+	ground.add_child(g_shape)
+	var g_poly := Polygon2D.new()
+	var half_w := (i_bounds.y - i_bounds.x) * 0.5
+	g_poly.polygon = PackedVector2Array([
+		Vector2(-half_w, -30), Vector2(half_w, -30),
+		Vector2(half_w, 30), Vector2(-half_w, 30)
+	])
+	g_poly.color = Color(0.18, 0.27, 0.29, 1.0)
+	ground.add_child(g_poly)
+	ironback_chamber.add_child(ground)
+	var right_wall := StaticBody2D.new()
+	right_wall.position = Vector2(i_bounds.y - 16, 360)
+	var rw_shape := CollisionShape2D.new()
+	var rw_rect := RectangleShape2D.new()
+	rw_rect.size = Vector2(32, 660)
+	rw_shape.shape = rw_rect
+	right_wall.add_child(rw_shape)
+	ironback_chamber.add_child(right_wall)
+	add_child(ironback_chamber)
+	ironback_chamber.visible = current_room == 12
+	ironback_boss = IRONBACK_BOSS.new()
+	ironback_boss.position = Vector2((i_bounds.x + i_bounds.y) * 0.5, 560)
+	ironback_boss.player = player
+	ironback_boss.collision_layer = 2
+	ironback_boss.collision_mask = 1
+	ironback_boss.active = false
+	ironback_boss.max_health = 24.0
+	ironback_boss.arena_left = i_bounds.x + 60
+	ironback_boss.arena_right = i_bounds.y - 60
+	add_child(ironback_boss)
+	ironback_boss.defeated.connect(_on_ironback_defeated)
+	if ironback_boss_defeated:
+		_disable_defeated_boss(ironback_boss)
+	else:
+		ironback_boss.visible = current_room == 12
+
+func _on_rabbit_defeated() -> void:
+	rabbit_boss_defeated = true
+	_disable_defeated_boss(rabbit_boss)
+	if is_instance_valid(rabbit_climb_wall):
+		rabbit_climb_wall.queue_free()
+		rabbit_climb_wall = null
+	game_audio.play_forest()
+	_unlock_rabbit_arena()
+	_show_toast("RABBIT DEFEATED - Path to Seismic Fist Unlocked", 4.0)
+	_save_progress()
+
+func _on_ironback_defeated() -> void:
+	ironback_boss_defeated = true
+	_disable_defeated_boss(ironback_boss)
+	game_audio.play_forest()
+	_unlock_ironback_arena()
+	player.has_heavy_smash = true
+	_show_toast("HEAVY SMASH UNLOCKED - Break cracked stone floors with Down + Heavy or Down in Air", 5.0)
+	_save_progress()
+
 func _unhandled_input(event: InputEvent) -> void:
 	if not (event is InputEventKey) or not event.pressed or event.echo:
 		return
@@ -386,7 +663,11 @@ func _unhandled_input(event: InputEvent) -> void:
 				get_viewport().set_input_as_handled()
 		KEY_E:
 			if transitioning or hand_menu.visible or world_map.visible or not player.meditation_state.is_empty() or get_tree().paused: return
-			if current_room==6 and player.position.distance_to(DASH_LAYOUT.PORTAL)<70:
+			if current_room == 6 and not forest_sec4_cache_found and forest_smash_open and is_instance_valid(sec4_offering) and player.position.distance_to(sec4_offering.position) < 65.0:
+				_collect_offering(4)
+			elif current_room == 6 and not forest_sec9_cache_found and is_instance_valid(sec9_offering) and player.position.distance_to(sec9_offering.position) < 65.0:
+				_collect_offering(9)
+			elif current_room==6 and player.position.distance_to(DASH_LAYOUT.PORTAL)<70:
 				_enter_temple_hand()
 			elif current_room==9 and player.position.distance_to(DASH_LAYOUT.HAND_MINIBOSS)<70:
 				_enter_temple_guardian()
@@ -406,6 +687,11 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func interaction_prompt() -> String:
 	if transitioning or hand_menu.visible or world_map.visible: return ""
+	if current_room == 6:
+		if not forest_sec4_cache_found and forest_smash_open and is_instance_valid(sec4_offering) and player.position.distance_to(sec4_offering.position) < 65.0:
+			return "E - Take traveller's offering"
+		if not forest_sec9_cache_found and is_instance_valid(sec9_offering) and player.position.distance_to(sec9_offering.position) < 65.0:
+			return "E - Take traveller's offering"
 	if current_room==6 and player.position.distance_to(DASH_LAYOUT.PORTAL)<70: return "E - Enter"
 	if current_room==8 and player.position.distance_to(Vector2(HAND_X,570))<70: return "E - Meditate"
 	if current_room==9 and player.position.distance_to(DASH_LAYOUT.HAND_MINIBOSS)<70: return "E - Enter temple"
@@ -419,8 +705,7 @@ func _enter_temple_guardian() -> void:
 
 func _on_guardian_defeated() -> void:
 	temple_guardian_defeated=true
-	temple_guardian.active=false
-	temple_guardian.visible=false
+	_disable_defeated_boss(temple_guardian)
 	player.has_gauntlet=true
 	player.equipped_weapon="gauntlet"
 	_show_toast("STONE GAUNTLET - J punch; U beam; hold U for charged rapid fire",5)
@@ -457,6 +742,10 @@ func _on_attack(hitbox: Rect2) -> void:
 	if bow_boss.active and not bow_boss_defeated and hitbox.intersects(bow_boss.combat_bounds()):
 		bow_boss.take_hit(1.0*player.damage_multiplier(), p_dmg)
 	if current_room==10 and temple_guardian.active and hitbox.intersects(temple_guardian.combat_bounds()): temple_guardian.take_hit(1.0*player.damage_multiplier(), p_dmg)
+	if current_room == 11 and is_instance_valid(rabbit_boss) and rabbit_boss.active and hitbox.intersects(rabbit_boss.combat_bounds()):
+		rabbit_boss.take_hit(1.0 * player.damage_multiplier(), p_dmg)
+	if current_room == 12 and is_instance_valid(ironback_boss) and ironback_boss.active and hitbox.intersects(ironback_boss.combat_bounds()):
+		ironback_boss.take_hit(1.0 * player.damage_multiplier(), p_dmg)
 	for scout in training_scouts:
 		if is_instance_valid(scout) and not scout.is_queued_for_deletion() and hitbox.intersects(Rect2(scout.global_position - Vector2(17, 20), Vector2(34, 40))):
 			scout.take_hit(1.0*player.damage_multiplier(), p_dmg)
@@ -468,9 +757,16 @@ func _on_heavy(hitbox: Rect2) -> void:
 	for enemy in get_tree().get_nodes_in_group("forest_boss_summons"):
 		if is_instance_valid(enemy) and not enemy.is_queued_for_deletion() and hitbox.intersects(enemy.combat_bounds()): enemy.take_hit(1.5*player.damage_multiplier(), p_dmg)
 	if current_room==10 and temple_guardian.active and hitbox.intersects(temple_guardian.combat_bounds()): temple_guardian.take_hit(1.5*player.damage_multiplier(), p_dmg)
+	if current_room == 11 and is_instance_valid(rabbit_boss) and rabbit_boss.active and hitbox.intersects(rabbit_boss.combat_bounds()):
+		rabbit_boss.take_hit(1.5 * player.damage_multiplier(), p_dmg)
+	if current_room == 12 and is_instance_valid(ironback_boss) and ironback_boss.active and hitbox.intersects(ironback_boss.combat_bounds()):
+		ironback_boss.take_hit(1.5 * player.damage_multiplier(), p_dmg)
 	game_audio.play_effect("heavy_attack")
 	if bow_boss.active and not bow_boss_defeated and hitbox.intersects(bow_boss.combat_bounds()):
 		bow_boss.take_hit(1.5*player.damage_multiplier(), p_dmg)
+
+func _on_heavy_smash(hitbox: Rect2) -> void:
+	try_break_smash_floor(hitbox)
 
 func _on_bow(origin: Vector2, direction: Vector2) -> void:
 	game_audio.play_effect("attack")
@@ -487,14 +783,18 @@ func _on_bow(origin: Vector2, direction: Vector2) -> void:
 		if is_instance_valid(scout) and not scout.is_queued_for_deletion() and (target == null or origin.distance_to(scout.global_position) < origin.distance_to(target.global_position)):
 			target = scout
 	if current_room==10 and temple_guardian.active: target=temple_guardian
+	elif current_room == 11 and is_instance_valid(rabbit_boss) and rabbit_boss.active: target = rabbit_boss
+	elif current_room == 12 and is_instance_valid(ironback_boss) and ironback_boss.active: target = ironback_boss
 	var arrow := ARROW.new()
 	add_child(arrow)
 	arrow.setup(origin, direction, target, player.damage_multiplier())
 
 func _on_hunter_defeated() -> void:
 	bow_boss_defeated = true
-	bow_boss.active = false
-	bow_boss.visible = false
+	_disable_defeated_boss(bow_boss)
+	for summon in get_tree().get_nodes_in_group("forest_boss_summons"):
+		if is_instance_valid(summon):
+			summon.queue_free()
 	game_audio.play_forest()
 	_unlock_arena()
 	player.has_bow = true
@@ -511,16 +811,25 @@ func _on_death() -> void:
 	player.controls_enabled = false
 	player.start_death_animation()
 	player.healing_charges = player.max_healing_charges
-	player.health = player.max_health
-	await get_tree().create_timer(1.0).timeout
 	_unlock_arena()
-	if not temple_guardian_defeated:
+	_unlock_rabbit_arena()
+	_unlock_ironback_arena()
+	if not temple_guardian_defeated and is_instance_valid(temple_guardian):
 		temple_guardian.reset_encounter()
 		temple_guardian.health=temple_guardian.max_health
 		temple_guardian.state="idle"
 		temple_guardian.state_time=0.85
 		temple_guardian.attack_count=0
 		temple_guardian.position=Vector2(23390,553)
+	if not rabbit_boss_defeated and is_instance_valid(rabbit_boss):
+		rabbit_boss.reset_encounter()
+		rabbit_boss.active = false
+		rabbit_boss.position = Vector2(BOUNDS[6].x + 500, 504)
+		_ensure_rabbit_climb_wall()
+	if not ironback_boss_defeated and is_instance_valid(ironback_boss):
+		ironback_boss.reset_encounter()
+		ironback_boss.active = false
+		ironback_boss.position = Vector2((BOUNDS[7].x + BOUNDS[7].y) * 0.5, 560)
 	player.healing_charges = player.max_healing_charges
 	player.health = player.max_health
 	if not ((last_hand_room==8 and forest_hand_activated) or (last_hand_room==9 and temple_hand_activated)):
@@ -580,8 +889,66 @@ func _spawn_will_orb(origin: Vector2, amount: int) -> void:
 	add_child(orb)
 	orb.global_position = origin
 
+func try_break_smash_floor(hitbox: Rect2) -> bool:
+	if forest_smash_open or current_room != 6:
+		return false
+	if not (is_instance_valid(player) and player.has_heavy_smash):
+		return false
+	var smash_rect := Rect2(7856.0, 140.0, 175.0, 90.0)
+	if not hitbox.intersects(smash_rect):
+		return false
+	forest_smash_open = true
+	if is_instance_valid(forest_smash_corridor) and forest_smash_corridor.has_method("break_floor"):
+		forest_smash_corridor.break_floor(false)
+	game_audio.play_effect("boss_stagger")
+	_show_toast("The cracked floor shatters.", 3.0)
+	_save_progress()
+	return true
+
+func _setup_forest_offerings() -> void:
+	if not forest_sec4_cache_found:
+		sec4_offering = preload("res://scripts/offering_item.gd").new()
+		sec4_offering.name = "Section4Offering"
+		sec4_offering.item_id = "forest_sec4"
+		sec4_offering.position = Vector2(7943.0, 212.0)
+		sec4_offering.collected.connect(func(): _collect_offering(4))
+		add_child(sec4_offering)
+	if not forest_sec9_cache_found:
+		sec9_offering = preload("res://scripts/offering_item.gd").new()
+		sec9_offering.name = "Section9Offering"
+		sec9_offering.item_id = "forest_sec9"
+		sec9_offering.position = Vector2(15200.0, DASH_LAYOUT.HIGH)
+		sec9_offering.collected.connect(func(): _collect_offering(9))
+		add_child(sec9_offering)
+
+func _collect_offering(section_num: int) -> void:
+	if section_num == 4:
+		if forest_sec4_cache_found: return
+		forest_sec4_cache_found = true
+		if is_instance_valid(sec4_offering):
+			sec4_offering.queue_free()
+	elif section_num == 9:
+		if forest_sec9_cache_found: return
+		forest_sec9_cache_found = true
+		if is_instance_valid(sec9_offering):
+			sec9_offering.queue_free()
+	if is_instance_valid(game_audio):
+		game_audio.play_effect("menu_confirm")
+	add_will(25)
+
 func _on_will_collected(amount: int) -> void:
+	add_will(amount)
+
+func add_will(amount: int) -> void:
 	will_amount += amount
+	var target_level := 1 + int(will_amount / 25)
+	if target_level > player_level:
+		player_level = target_level
+		_show_toast("LEVEL UP! Level %d" % player_level, 3.5)
+		if is_instance_valid(game_audio):
+			game_audio.play_effect("menu_confirm")
+	else:
+		_show_toast("A traveller's offering. +%d Will" % amount if amount >= 25 else "+%d Will" % amount, 2.5)
 	_save_progress()
 
 func save_at_hand() -> void:
@@ -681,6 +1048,8 @@ func _completed_rooms() -> Array[int]:
 	if visited_rooms.has(9) and temple_hand_activated:
 		completed.append(9)
 	if visited_rooms.has(10) and temple_guardian_defeated: completed.append(10)
+	if visited_rooms.has(11) and rabbit_boss_defeated: completed.append(11)
+	if visited_rooms.has(12) and ironback_boss_defeated: completed.append(12)
 	return completed
 
 func _show_toast(message: String, duration: float) -> void:
@@ -698,21 +1067,34 @@ func _update_hud() -> void:
 	hud.has_dash = player.has_dash
 	hud.equipped_weapon=player.equipped_weapon
 	hud.has_heavy = player.has_heavy
+	hud.has_heavy_smash = player.has_heavy_smash
 	hud.has_bow = player.has_bow
 	hud.bow_ammo = player.bow_ammo
 	hud.gauntlet_charges = player.gauntlet_charges
 	hud.area = "THE TWISTED FOREST"
-	hud.boss_health = bow_boss.health if bow_boss.active and not bow_boss_defeated else 0
-	hud.boss_max_health = int(bow_boss.max_health)
-	hud.boss_posture = bow_boss.posture if bow_boss.active and not bow_boss_defeated else 0.0
-	hud.boss_max_posture = bow_boss.max_posture
+	hud.boss_health = bow_boss.health if is_instance_valid(bow_boss) and bow_boss.active and not bow_boss_defeated else 0
+	hud.boss_max_health = int(bow_boss.max_health) if is_instance_valid(bow_boss) and bow_boss.active and not bow_boss_defeated else 0
+	hud.boss_posture = bow_boss.posture if is_instance_valid(bow_boss) and bow_boss.active and not bow_boss_defeated else 0.0
+	hud.boss_max_posture = bow_boss.max_posture if is_instance_valid(bow_boss) and bow_boss.active and not bow_boss_defeated else 0.0
 	hud.boss_title = "FOREST GUARDIAN"
-	if current_room==10 and temple_guardian.active and not temple_guardian_defeated:
+	if current_room==10 and is_instance_valid(temple_guardian) and temple_guardian.active and not temple_guardian_defeated:
 		hud.boss_health=temple_guardian.health
 		hud.boss_max_health=int(temple_guardian.max_health)
 		hud.boss_posture=temple_guardian.posture
 		hud.boss_max_posture=temple_guardian.max_posture
 		hud.boss_title="TEMPLE GUARDIAN"
+	elif current_room == 11 and is_instance_valid(rabbit_boss) and rabbit_boss.active and not rabbit_boss_defeated:
+		hud.boss_health = rabbit_boss.health
+		hud.boss_max_health = int(rabbit_boss.max_health)
+		hud.boss_posture = 0.0
+		hud.boss_max_posture = 1.0
+		hud.boss_title = "RABBIT, THE WALL-CLINGER"
+	elif current_room == 12 and is_instance_valid(ironback_boss) and ironback_boss.active and not ironback_boss_defeated:
+		hud.boss_health = ironback_boss.health
+		hud.boss_max_health = int(ironback_boss.max_health)
+		hud.boss_posture = 0.0
+		hud.boss_max_posture = 1.0
+		hud.boss_title = "IRONBACK, THE SEISMIC FIST"
 	hud.notice = interaction_prompt() if not interaction_prompt().is_empty() else toast if toast_time > 0.0 else ""
 	hud.queue_redraw()
 
@@ -732,6 +1114,7 @@ func _save_progress() -> void:
 	data["has_dash"] = player.has_dash
 	data.merge(player.combat_save_data(),true)
 	data["has_heavy"] = player.has_heavy
+	data["has_heavy_smash"] = player.has_heavy_smash
 	data["has_bow"] = player.has_bow
 	data["bow_ammo"] = player.bow_ammo
 	data["bow_boss_defeated"] = bow_boss_defeated
@@ -739,8 +1122,13 @@ func _save_progress() -> void:
 	data["forest_hand_activated"] = forest_hand_activated
 	data["temple_hand_activated"] = temple_hand_activated
 	data["temple_guardian_defeated"] = temple_guardian_defeated
+	data["rabbit_boss_defeated"] = rabbit_boss_defeated
+	data["ironback_boss_defeated"] = ironback_boss_defeated
 	data["last_hand_room"] = last_hand_room
 	data["forest_defeated"] = forest_defeated.duplicate()
+	data["forest_smash_open"] = forest_smash_open
+	data["forest_sec4_cache_found"] = forest_sec4_cache_found
+	data["forest_sec9_cache_found"] = forest_sec9_cache_found
 	data["visited_rooms"] = visited_rooms.duplicate()
 	var result: Error = SLOTS.write_slot(active_save_slot, data, save_root)
 	if result != OK:
@@ -752,7 +1140,7 @@ func _exit_tree() -> void:
 		_save_progress()
 
 func _draw() -> void:
-	for gate in [arena_entrance,arena_exit]:
+	for gate in [arena_entrance, arena_exit, rabbit_arena_entrance, rabbit_arena_exit, ironback_arena_entrance, ironback_arena_exit]:
 		if is_instance_valid(gate) and not gate.is_queued_for_deletion():
 			draw_rect(Rect2(gate.position-Vector2(16,330),Vector2(32,660)),Color("315057"))
 

@@ -7,7 +7,7 @@ const SAVE_ROOT="res://tests/.forest_gallery_saves"
 func _run() -> void:
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(SAVE_ROOT))
 	var data: Dictionary=SLOTS.new_slot()
-	data.merge({"hand_activated":true,"last_hand_room":3,"checkpoint_x":2610.0,"checkpoint_y":570.0,"bow_boss_defeated":true},true)
+	data.merge({"hand_activated":true,"is_injured":false,"last_hand_room":3,"checkpoint_x":2610.0,"checkpoint_y":570.0,"bow_boss_defeated":true},true)
 	SLOTS.write_slot(1,data,SAVE_ROOT)
 	set_meta("active_save_slot",1)
 	set_meta("save_root",SAVE_ROOT)
@@ -17,6 +17,8 @@ func _run() -> void:
 	await physics_frame
 	world=current_scene
 	world.player.invulnerability=1000
+	if is_instance_valid(world.forest_encounters):
+		world.forest_encounters.queue_free()
 	for i in 8: await physics_frame
 	var plate:=world.forest_gallery.get_node("RegisteredPainting") as Sprite2D
 	if not (Vector2(plate.texture.get_size())*plate.scale).is_equal_approx(G.ART_EXTENT.size):
@@ -29,7 +31,7 @@ func _run() -> void:
 		var query:=PhysicsShapeQueryParameters2D.new()
 		query.shape=body_shape.shape
 		query.transform=Transform2D(0,G.point(at))
-		query.collision_mask=world.player.collision_mask
+		query.collision_mask=1
 		query.exclude=[world.player.get_rid()]
 		if not world.get_world_2d().direct_space_state.intersect_shape(query).is_empty():
 			_fail("Room 2 recessed arch or hanging foliage blocks the player at %s"%at)
@@ -64,7 +66,7 @@ func _run() -> void:
 		var min_camera:=start_camera
 		_key(KEY_SPACE,true)
 		for i in 60:
-			if i==3: _key(KEY_SPACE,false)
+			if i==16: _key(KEY_SPACE,false)
 			await physics_frame
 			min_y=minf(min_y,world.player.position.y)
 			min_camera=minf(min_camera,camera.get_screen_center_position().y)

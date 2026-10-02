@@ -165,6 +165,7 @@ func take_hit(amount: float=1.0, posture_damage: float = -1.0) -> void:
 	hurt_flash=.16
 	invulnerability=.12
 	if health<=0:
+		active=false
 		state="defeated"
 		phase={}
 		phases.clear()

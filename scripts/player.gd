@@ -2,6 +2,7 @@ extends CharacterBody2D
 
 signal attacked(hitbox: Rect2)
 signal heavy_attacked(hitbox: Rect2)
+signal heavy_smashed(hitbox: Rect2)
 signal bow_fired(origin: Vector2, direction: Vector2)
 signal dodged
 signal healed
@@ -41,6 +42,7 @@ var has_dash := false
 var has_air_dash := false
 var has_scimitar:=false
 var has_gauntlet:=false
+var has_heavy_smash := false
 const GAUNTLET_CHARGES_MAX := 12
 var gauntlet_charges := 12
 var has_wrath:=false
@@ -235,6 +237,7 @@ func load_combat_progress(data: Dictionary) -> void:
 	has_air_dash=bool(data.get("has_air_dash", data.get("bow_boss_defeated", false)))
 	has_scimitar=bool(data.get("boss_defeated",false))
 	has_gauntlet=bool(data.get("temple_guardian_defeated",false))
+	has_heavy_smash=bool(data.get("has_heavy_smash", data.get("ironback_boss_defeated", false)))
 	if data.has("gauntlet_charges"):
 		gauntlet_charges = clampi(int(data.get("gauntlet_charges", GAUNTLET_CHARGES_MAX)), 0, GAUNTLET_CHARGES_MAX)
 	else:
@@ -245,7 +248,7 @@ func load_combat_progress(data: Dictionary) -> void:
 		equipped_weapon="scimitar" if has_scimitar else "starter"
 
 func combat_save_data() -> Dictionary:
-	return {"has_scimitar":has_scimitar,"has_gauntlet":has_gauntlet,"has_wrath":has_wrath,"equipped_weapon":equipped_weapon,"has_dash":has_dash,"has_air_dash":has_air_dash,"gauntlet_charges":gauntlet_charges}
+	return {"has_scimitar":has_scimitar,"has_gauntlet":has_gauntlet,"has_heavy_smash":has_heavy_smash,"has_wrath":has_wrath,"equipped_weapon":equipped_weapon,"has_dash":has_dash,"has_air_dash":has_air_dash,"gauntlet_charges":gauntlet_charges}
 
 func damage_multiplier() -> float:
 	return WRATH_MULTIPLIER if has_wrath and wrath_time>0 else 1.0
@@ -295,7 +298,7 @@ func _tick_weapon_ability(delta: float) -> void:
 	if equipped_weapon=="gauntlet" and has_gauntlet:
 		if down and ability_cooldown<=0:
 			if gauntlet_charges > 0:
-				ability_charge = minf(1.0, ability_charge + delta / 0.8)
+				ability_charge = minf(1.0, ability_charge + delta / 1.6)
 			else:
 				ability_charge = 0.0
 		elif _ability_was_down and ability_cooldown<=0:
@@ -303,9 +306,7 @@ func _tick_weapon_ability(delta: float) -> void:
 				gauntlet_charges -= 1
 				beam_remaining=4
 				beam_interval=0.0
-			else:
-				_friendly_shot("beam",Vector2(facing,0),1.0)
-			ability_cooldown=.85
+				ability_cooldown=.85
 			ability_charge=0.0
 	elif down and not _ability_was_down and ability_cooldown<=0:
 		if equipped_weapon=="scimitar" and has_scimitar:
@@ -501,7 +502,16 @@ func _physics_process(delta: float) -> void:
 	else:
 		jump_buffer = maxf(0.0, jump_buffer - delta)
 	if controls_enabled and attack_down and not _attack_was_down and attack_cooldown <= 0.0:
-		_normal_attack()
+		var is_down_pressed := Input.is_physical_key_pressed(KEY_S) or Input.is_physical_key_pressed(KEY_DOWN) or Input.is_key_pressed(KEY_S) or Input.is_key_pressed(KEY_DOWN)
+		if has_heavy_smash and is_down_pressed and not is_on_floor():
+			velocity.y = 850.0
+			velocity.x = 0.0
+			attack_time = 0.35
+			attack_cooldown = 0.45
+			var smash_box := Rect2(global_position.x - 70, global_position.y - 10, 140, 70)
+			heavy_smashed.emit(smash_box)
+		else:
+			_normal_attack()
 	if controls_enabled and dash_down and not _dash_was_down and dash_cooldown <= 0.0:
 		dash_hold_timer = 0.0
 		dash_z = 0.0
@@ -548,7 +558,12 @@ func _physics_process(delta: float) -> void:
 		if heavy_charge >= 1.0 and controls_enabled:
 			heavy_attack_time = 0.25
 			heavy_cooldown = 0.65
-			heavy_attacked.emit(Rect2(global_position + Vector2(10 if facing > 0 else -106, -40), Vector2(96, 80)))
+			var heavy_box := Rect2(global_position + Vector2(10 if facing > 0 else -106, -40), Vector2(96, 80))
+			heavy_attacked.emit(heavy_box)
+			var is_down_pressed := Input.is_physical_key_pressed(KEY_S) or Input.is_physical_key_pressed(KEY_DOWN) or Input.is_key_pressed(KEY_S) or Input.is_key_pressed(KEY_DOWN)
+			if has_heavy_smash and is_down_pressed:
+				var smash_box := Rect2(global_position.x - 70, global_position.y - 20, 140, 80)
+				heavy_smashed.emit(smash_box)
 		heavy_charge = 0.0
 		heavy_ready_time = 0.0
 	_dash_was_down = dash_down
@@ -693,9 +708,17 @@ func _check_enemy_contact_damage() -> void:
 		var col := get_slide_collision(i)
 		var collider := col.get_collider()
 		if is_instance_valid(collider) and (collider.is_in_group("enemies") or collider.is_in_group("combat_targets") or collider.is_in_group("bosses")):
-			if collider.get("health") == null or collider.health > 0:
-				take_damage(1.0, collider.global_position.x, false)
-				return
+			if not collider.is_visible_in_tree():
+				continue
+			if collider.get("active") != null and not collider.active:
+				continue
+			var collider_def = collider.get("defeated")
+			if (typeof(collider_def) == TYPE_BOOL and collider_def == true) or collider.get("is_dead") == true or str(collider.get("state")) == "defeated":
+				continue
+			if collider.get("health") != null and collider.health <= 0:
+				continue
+			take_damage(1.0, collider.global_position.x, false)
+			return
 	var player_box := combat_bounds()
 	var candidates: Array = []
 	if is_inside_tree():
@@ -704,6 +727,15 @@ func _check_enemy_contact_damage() -> void:
 				if is_instance_valid(node) and node != self and not candidates.has(node):
 					candidates.append(node)
 	for enemy in candidates:
+		if not is_instance_valid(enemy):
+			continue
+		if not enemy.is_visible_in_tree():
+			continue
+		if enemy.get("active") != null and not enemy.active:
+			continue
+		var enemy_def = enemy.get("defeated")
+		if (typeof(enemy_def) == TYPE_BOOL and enemy_def == true) or enemy.get("is_dead") == true or str(enemy.get("state")) == "defeated":
+			continue
 		if enemy.get("health") != null and enemy.health <= 0:
 			continue
 		var enemy_bounds: Rect2
@@ -929,5 +961,13 @@ func _draw_death_animation() -> void:
 		var size := 5.0 if index % 3 == 0 else 3.0
 		draw_rect(Rect2(fragment, Vector2(size, size)), Color(0.55, 1.0, 0.88, fade))
 
+func perform_heavy_smash() -> void:
+	if not has_heavy_smash:
+		return
+	heavy_attack_time = 0.3
+	heavy_cooldown = 0.65
+	var smash_box := Rect2(global_position.x - 70, global_position.y - 20, 140, 80)
+	heavy_smashed.emit(smash_box)
+
 func _mcp_state() -> Dictionary:
-	return {"health": health, "healing_charges": healing_charges, "has_dash": has_dash, "has_air_dash": has_air_dash, "has_heavy": has_heavy, "heavy_charge": heavy_charge, "dash_cooldown": dash_cooldown, "on_floor": is_on_floor()}
+	return {"health": health, "healing_charges": healing_charges, "has_dash": has_dash, "has_air_dash": has_air_dash, "has_heavy": has_heavy, "has_heavy_smash": has_heavy_smash, "heavy_charge": heavy_charge, "dash_cooldown": dash_cooldown, "on_floor": is_on_floor()}

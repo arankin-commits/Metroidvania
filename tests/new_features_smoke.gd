@@ -159,12 +159,12 @@ func run() -> void:
 			if child.max_health != 8.0:
 				fail("Goblin sentinel must have 8.0 max health")
 				return
-	if sentinels_found < 4:
-		fail("Expected at least 4 goblin sentinels in Cave Room 2 encounters, found: %d" % sentinels_found)
+	if sentinels_found != 1:
+		fail("Expected exactly 1 goblin sentinel in Cave Room 2 encounters (SealSpearman), found: %d" % sentinels_found)
 		return
 	encounters.queue_free()
 	mock_world.queue_free()
-	print("5. Cave Room 2 Goblin Sentinels verified (found %d): OK" % sentinels_found)
+	print("5. Cave Room 2 Goblin Sentinel verified (found %d): OK" % sentinels_found)
 
 	# 6. Save load spawn locations
 	var test_saves_dir := "res://tests/.test_spawns_saves"

@@ -63,6 +63,7 @@ func _ready() -> void:
 	home_y = position.y
 	rng.seed = random_seed
 	_reset_policy()
+	_ensure_collision_shape()
 	sprite = Sprite2D.new()
 	sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	sprite.centered = false
@@ -70,6 +71,17 @@ func _ready() -> void:
 	sprite.position = Vector2(-192.0, -340.0) * 0.72
 	add_child(sprite)
 	_set_pose("idle")
+
+func _ensure_collision_shape() -> void:
+	if get_node_or_null("CollisionShape2D") != null:
+		return
+	var shape := RectangleShape2D.new()
+	shape.size = Vector2(132.0, 108.0)
+	var collision := CollisionShape2D.new()
+	collision.name = "CollisionShape2D"
+	collision.position = Vector2(0.0, -54.0)
+	collision.shape = shape
+	add_child(collision)
 
 func _physics_process(delta: float) -> void:
 	elapsed += delta
@@ -326,7 +338,7 @@ func _spawn_wave_pair(damage_event: int, wave_speed: float, crest_height: float,
 
 func combat_bounds() -> Rect2: return Rect2(global_position - Vector2(66.0, 132.0), Vector2(132.0, 108.0))
 
-func take_hit(amount: float = 1.0) -> void:
+func take_hit(amount: float = 1.0, _posture_dmg: float = 0.0) -> void:
 	if not active or health <= 0.0 or invulnerability > 0.0: return
 	health = maxf(0.0, health - amount); hurt_flash = 0.16; invulnerability = 0.12
 	hurt_restore_pose = current_pose
