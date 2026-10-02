@@ -3,6 +3,7 @@ extends Node2D
 const PLAYER_SCRIPT = preload("res://scripts/player.gd")
 const SCOUT_SCRIPT = preload("res://scripts/scout.gd")
 const NAVIGATION_SYSTEM = preload("res://scripts/nav_system.gd")
+const INHERITANCE_STATE = preload("res://scripts/inheritance_state.gd")
 const BOSS_SCRIPT = preload("res://scripts/boss.gd")
 const BOW_ARROW_SCRIPT = preload("res://scripts/bow_arrow.gd")
 const HUD_SCRIPT = preload("res://scripts/hud.gd")
@@ -37,6 +38,7 @@ const NOTE_POSITION = CAVE_LAYOUT.NOTE
 var player: CharacterBody2D
 var scout: CharacterBody2D
 var navigation_system: Node
+var inheritance = INHERITANCE_STATE.new()
 var ledge_sentinel: Node2D
 var boss: Node2D
 var hud: Control
@@ -751,7 +753,7 @@ func _on_player_heavy_attacked(hitbox: Rect2) -> void:
 		scout.take_hit(1.5*player.damage_multiplier(), p_dmg)
 	if current_room == 4 and boss.active and not boss_defeated and hitbox.intersects(boss.combat_bounds()):
 		boss.take_hit(1.5*player.damage_multiplier(), p_dmg)
-	if current_room == 4 and boss_defeated and not wall_broken and hitbox.intersects(CAVE_LAYOUT.EXIT_WALL):
+	if current_room == 4 and inheritance.has_ability("heavy_break") and not wall_broken and hitbox.intersects(CAVE_LAYOUT.EXIT_WALL):
 		wall_broken = true
 		exit_barrier.queue_free()
 		_show_toast("The cracked wall shatters. The forest lies ahead.", 3.5)
@@ -777,6 +779,7 @@ func _on_ledge_sentinel_defeated() -> void:
 	_save_progress()
 
 func _on_boss_defeated() -> void:
+	inheritance.on_boss_defeated("hollow_warden")
 	boss_defeated = true
 	game_audio.play_cave()
 	_unlock_arena()
@@ -1138,7 +1141,7 @@ func _cave_prompt() -> String:
 			return "Jump to the edge, then press [SPACE / UP] to climb"
 		if not dash_gap_practiced and position.x > 2090.0 and position.x < 2450.0:
 			return "[SPACE] Jump, then [K / SHIFT] dash across" if player.has_dash else "[SPACE] Jump across the basin ledges"
-	if current_room == 4 and boss_defeated and not wall_broken and position.x > 3700.0:
+	if current_room == 4 and inheritance.has_ability("heavy_break") and not wall_broken and position.x > 3700.0:
 		return "Hold [H], then release to break the cracked stone"
 	if not heal_practiced and player.health < player.max_health and player.healing_charges > 0:
 		return "[F] Heal when you have space"
