@@ -21,6 +21,8 @@ const MIN_JUMP_SPEED := -320.0
 const DASH_SPEED := 780.0
 const PRESENTATION = preload("res://scripts/player_presentation.gd")
 const FOOTSTEP = preload("res://assets/footstep.wav")
+const DOWNSTRIKE_SCRIPT = preload("res://scripts/player_abilities/downstrike.gd")
+const DOWNSTRIKE_VISUAL = preload("res://scripts/player_abilities/downstrike_visual.gd")
 
 var visual_time := 0.0
 var visual_state := ""
@@ -57,6 +59,7 @@ var beam_remaining:=0
 var beam_interval:=0.0
 var has_heavy := false
 var has_bow := false
+var has_downstrike := false
 var bow_ammo := 0
 const BOW_AMMO_MAX := 3
 var heavy_charge := 0.0
@@ -87,6 +90,7 @@ var _jump_was_down := false
 var _attack_was_down := false
 var _dash_was_down := false
 var _bow_was_down := false
+var _downstrike_was_down := false
 var footstep_audio: AudioStreamPlayer2D
 var footstep_timer := 0.0
 var footstep_count := 0
@@ -112,6 +116,8 @@ var death_time := 0.0
 const WAKE_DURATION := 4.0
 var waking_up := false
 var wake_elapsed := 0.0
+var downstrike: Node2D
+var downstrike_visual: Sprite2D
 
 func begin_waking_up() -> void:
 	reset_movement_state()
@@ -157,10 +163,27 @@ func _ready() -> void:
 	footstep_audio.stream = FOOTSTEP
 	footstep_audio.volume_db = -10.0
 	add_child(footstep_audio)
+	downstrike = DOWNSTRIKE_SCRIPT.new()
+	downstrike.name = "Downstrike"
+	downstrike.player = self
+	downstrike.enemy_mask = 2
+	downstrike.terrain_mask = 1
+	downstrike.unlocked = has_downstrike
+	add_child(downstrike)
+	downstrike_visual = DOWNSTRIKE_VISUAL.new()
+	downstrike_visual.name = "DownstrikeVisual"
+	downstrike_visual.scale = Vector2(0.22, 0.22)
+	downstrike_visual.position = Vector2(0.0, 23.0 - 164.0 * 0.22)
+	add_child(downstrike_visual)
+	downstrike.animation_requested.connect(downstrike_visual.request)
+	downstrike.finished.connect(downstrike_visual.finish)
 
 func load_combat_progress(data: Dictionary) -> void:
 	if data.has("has_dash"):
 		has_dash=bool(data.get("has_dash",false))
+	has_downstrike = bool(data.get("has_downstrike", false))
+	if is_instance_valid(downstrike):
+		downstrike.unlocked = has_downstrike
 	has_air_dash=bool(data.get("has_air_dash", data.get("bow_boss_defeated", false)))
 	has_scimitar=bool(data.get("boss_defeated",false))
 	has_gauntlet=bool(data.get("temple_guardian_defeated",false))
@@ -170,7 +193,7 @@ func load_combat_progress(data: Dictionary) -> void:
 		equipped_weapon="scimitar" if has_scimitar else "starter"
 
 func combat_save_data() -> Dictionary:
-	return {"has_scimitar":has_scimitar,"has_gauntlet":has_gauntlet,"has_wrath":has_wrath,"equipped_weapon":equipped_weapon,"has_dash":has_dash,"has_air_dash":has_air_dash}
+	return {"has_scimitar":has_scimitar,"has_gauntlet":has_gauntlet,"has_wrath":has_wrath,"equipped_weapon":equipped_weapon,"has_dash":has_dash,"has_air_dash":has_air_dash,"has_downstrike":has_downstrike}
 
 func damage_multiplier() -> float:
 	return WRATH_MULTIPLIER if has_wrath and wrath_time>0 else 1.0
@@ -252,6 +275,15 @@ func _friendly_shot(kind: String,direction: Vector2,amount: float,down:=false) -
 				nearest=distance
 				shot.target=candidate
 	get_parent().add_child(shot)
+
+func _can_start_downstrike() -> bool:
+	return has_downstrike and controls_enabled and health > 0.0 and not waking_up and not death_active and meditation_state.is_empty() and not ledge_grabbed and ledge_climb_time <= 0.0 and not drop_exception_active and volley_time <= 0.0 and beam_remaining <= 0 and heal_time <= 0.0 and dash_time <= 0.0 and attack_time <= 0.0 and heavy_charge <= 0.0 and heavy_attack_time <= 0.0 and combat_hitstun <= 0.0
+
+func _update_downstrike_input() -> void:
+	_downstrike_was_down = controls_enabled and Input.is_physical_key_pressed(KEY_E)
+	_attack_was_down = false
+	_jump_was_down = false
+	_dash_was_down = false
 
 func _physics_process(delta: float) -> void:
 	if waking_up:
@@ -385,6 +417,22 @@ func _physics_process(delta: float) -> void:
 		_attack_was_down = attack_down
 		queue_redraw()
 		return
+	var downstrike_down := controls_enabled and Input.is_physical_key_pressed(KEY_E)
+	if downstrike_down and not _downstrike_was_down and _can_start_downstrike():
+		downstrike.damage_multiplier = damage_multiplier()
+		if downstrike.begin():
+			jump_buffer = 0.0
+			coyote_time = 0.0
+			_reset_sword_combo()
+			attack_time = 0.0
+			heavy_charge = 0.0
+			heavy_ready_time = 0.0
+	if downstrike.before_move(delta):
+		move_and_slide()
+		downstrike.after_move()
+		_update_downstrike_input()
+		queue_redraw()
+		return
 	var drop_down := controls_enabled and jump_down and not _jump_was_down and (Input.is_physical_key_pressed(KEY_S) or Input.is_physical_key_pressed(KEY_DOWN))
 	var dropping := false
 	var on_drop_surface := drop_region.has_point(global_position + Vector2(0, 23)) and absf(global_position.y + 23.0 - drop_region.position.y) <= 9.0
@@ -439,6 +487,7 @@ func _physics_process(delta: float) -> void:
 	_heavy_was_down = heavy_down
 	_attack_was_down = attack_down
 	_jump_was_down = jump_down
+	_downstrike_was_down = downstrike_down
 	if dash_time > 0.0:
 		dash_time -= delta
 		velocity = Vector2(facing * dash_speed_current, 0)
@@ -531,6 +580,8 @@ func take_damage(amount: float, from_x: float, is_attack: bool = false, impact_p
 		queue_redraw()
 	if waking_up or invulnerability > 0.0 or health <= 0 or amount<=0:
 		return
+	if is_instance_valid(downstrike) and downstrike.active():
+		downstrike.cancel()
 	health -= amount
 	_reset_sword_combo()
 	if has_wrath: wrath_time=WRATH_DURATION
@@ -613,6 +664,8 @@ func reset_movement_state() -> void:
 	_bow_was_down = false
 	_heal_was_down = false
 	velocity = Vector2.ZERO
+	if is_instance_valid(downstrike):
+		downstrike.reset()
 	death_active = false
 	death_time = 0.0
 	meditation_state = ""
@@ -684,6 +737,8 @@ func _draw() -> void:
 		return
 	if death_active:
 		_draw_death_animation()
+		return
+	if is_instance_valid(downstrike_visual) and downstrike_visual.visible:
 		return
 	var alpha := 0.55 if invulnerability > 0.0 and Engine.get_physics_frames() % 6 < 3 else 1.0
 	if not meditation_state.is_empty():

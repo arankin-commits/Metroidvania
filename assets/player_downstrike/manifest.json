@@ -1,0 +1,273 @@
+{
+  "canvas": [
+    512,
+    512
+  ],
+  "contact_y_offset": 164,
+  "demo_scale": 0.22,
+  "frames": [
+    {
+      "key": "windup_01",
+      "path": "windup_01.png",
+      "source_rect": [
+        40,
+        218,
+        314,
+        392
+      ],
+      "source_contact": [
+        205,
+        383
+      ],
+      "canvas_contact": [
+        256,
+        420
+      ],
+      "contact_note": "boot/body floor contact for every pose; fist impact ahead of feet; hand calibrated approximation"
+    },
+    {
+      "key": "windup_02",
+      "path": "windup_02.png",
+      "source_rect": [
+        426,
+        135,
+        629,
+        347
+      ],
+      "source_contact": [
+        550,
+        337
+      ],
+      "canvas_contact": [
+        256,
+        420
+      ],
+      "contact_note": "boot/body floor contact for every pose; fist impact ahead of feet; hand calibrated approximation"
+    },
+    {
+      "key": "windup_03",
+      "path": "windup_03.png",
+      "source_rect": [
+        798,
+        95,
+        992,
+        380
+      ],
+      "source_contact": [
+        945,
+        370
+      ],
+      "canvas_contact": [
+        256,
+        420
+      ],
+      "contact_note": "boot/body floor contact for every pose; fist impact ahead of feet; hand calibrated approximation"
+    },
+    {
+      "key": "windup_04",
+      "path": "windup_04.png",
+      "source_rect": [
+        1145,
+        77,
+        1371,
+        382
+      ],
+      "source_contact": [
+        1296,
+        370
+      ],
+      "canvas_contact": [
+        256,
+        420
+      ],
+      "contact_note": "boot/body floor contact for every pose; fist impact ahead of feet; hand calibrated approximation"
+    },
+    {
+      "key": "plunge_01",
+      "path": "plunge_01.png",
+      "source_rect": [
+        86,
+        409,
+        293,
+        751
+      ],
+      "source_contact": [
+        240,
+        741
+      ],
+      "canvas_contact": [
+        256,
+        420
+      ],
+      "contact_note": "boot/body floor contact for every pose; fist impact ahead of feet; hand calibrated approximation"
+    },
+    {
+      "key": "plunge_02",
+      "path": "plunge_02.png",
+      "source_rect": [
+        464,
+        413,
+        683,
+        722
+      ],
+      "source_contact": [
+        583,
+        711
+      ],
+      "canvas_contact": [
+        256,
+        420
+      ],
+      "contact_note": "boot/body floor contact for every pose; fist impact ahead of feet; hand calibrated approximation"
+    },
+    {
+      "key": "impact_01",
+      "path": "impact_01.png",
+      "source_rect": [
+        777,
+        543,
+        1045,
+        751
+      ],
+      "source_contact": [
+        900,
+        742
+      ],
+      "canvas_contact": [
+        256,
+        420
+      ],
+      "contact_note": "boot/body floor contact for every pose; fist impact ahead of feet; hand calibrated approximation"
+    },
+    {
+      "key": "impact_02",
+      "path": "impact_02.png",
+      "source_rect": [
+        1145,
+        590,
+        1398,
+        753
+      ],
+      "source_contact": [
+        1275,
+        743
+      ],
+      "canvas_contact": [
+        256,
+        420
+      ],
+      "contact_note": "boot/body floor contact for every pose; fist impact ahead of feet; hand calibrated approximation"
+    },
+    {
+      "key": "recover_01",
+      "path": "recover_01.png",
+      "source_rect": [
+        63,
+        844,
+        329,
+        1036
+      ],
+      "source_contact": [
+        201,
+        1026
+      ],
+      "canvas_contact": [
+        256,
+        420
+      ],
+      "contact_note": "boot/body floor contact for every pose; fist impact ahead of feet; hand calibrated approximation"
+    },
+    {
+      "key": "recover_02",
+      "path": "recover_02.png",
+      "source_rect": [
+        426,
+        803,
+        666,
+        1035
+      ],
+      "source_contact": [
+        563,
+        1026
+      ],
+      "canvas_contact": [
+        256,
+        420
+      ],
+      "contact_note": "boot/body floor contact for every pose; fist impact ahead of feet; hand calibrated approximation"
+    },
+    {
+      "key": "recover_03",
+      "path": "recover_03.png",
+      "source_rect": [
+        793,
+        792,
+        997,
+        1039
+      ],
+      "source_contact": [
+        931,
+        1026
+      ],
+      "canvas_contact": [
+        256,
+        420
+      ],
+      "contact_note": "boot/body floor contact for every pose; fist impact ahead of feet; hand calibrated approximation"
+    },
+    {
+      "key": "idle",
+      "path": "idle.png",
+      "source_rect": [
+        1174,
+        798,
+        1370,
+        1039
+      ],
+      "source_contact": [
+        1290,
+        1026
+      ],
+      "canvas_contact": [
+        256,
+        420
+      ],
+      "contact_note": "boot/body floor contact for every pose; fist impact ahead of feet; hand calibrated approximation"
+    }
+  ],
+  "status": "AI-generated static key poses separated without repainting/rescaling; refine anatomy and pose contacts in game",
+  "clips": {
+    "slam_windup": {
+      "keys": [
+        "windup_01",
+        "windup_02",
+        "windup_03",
+        "windup_04"
+      ],
+      "seconds": 0.14
+    },
+    "slam_plunge": {
+      "keys": [
+        "plunge_01",
+        "plunge_02"
+      ],
+      "frame_seconds": 0.08,
+      "loop": true
+    },
+    "slam_land": {
+      "keys": [
+        "impact_01",
+        "impact_02",
+        "recover_01",
+        "recover_02",
+        "recover_03"
+      ],
+      "seconds": 0.3
+    },
+    "idle_reference": {
+      "keys": [
+        "idle"
+      ]
+    }
+  }
+}

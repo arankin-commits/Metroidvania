@@ -1,11 +1,9 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/gloamweaver_boss_test.gd" id="1_test"]
-[ext_resource type="Script" path="res://scripts/gloamweaver_boss.gd" id="2_boss"]
+[ext_resource type="Script" path="res://scripts/gloamweaver_ground_boss.gd" id="2_boss"]
 
 [sub_resource type="RectangleShape2D" id="GroundShape"]
-size = Vector2(1400, 48)
-[sub_resource type="RectangleShape2D" id="CeilingShape"]
 size = Vector2(1400, 48)
 [sub_resource type="RectangleShape2D" id="WallShape"]
 size = Vector2(48, 560)
@@ -21,13 +19,6 @@ polygon = PackedVector2Array(-700, -24, 700, -24, 700, 24, -700, 24)
 color = Color(0.16, 0.18, 0.28, 1)
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Ground"]
 shape = SubResource("GroundShape")
-[node name="Ceiling" type="StaticBody2D" parent="."]
-position = Vector2(700, 60)
-[node name="Visual" type="Polygon2D" parent="Ceiling"]
-polygon = PackedVector2Array(-700, -24, 700, -24, 700, 24, -700, 24)
-color = Color(0.20, 0.18, 0.30, 1)
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Ceiling"]
-shape = SubResource("CeilingShape")
 [node name="LeftWall" type="StaticBody2D" parent="."]
 position = Vector2(72, 340)
 [node name="CollisionShape2D" type="CollisionShape2D" parent="LeftWall"]
@@ -37,10 +28,10 @@ position = Vector2(1328, 340)
 [node name="CollisionShape2D" type="CollisionShape2D" parent="RightWall"]
 shape = SubResource("WallShape")
 [node name="Gloamweaver" type="CharacterBody2D" parent="."]
-position = Vector2(850, 160)
+position = Vector2(850, 567)
 script = ExtResource("2_boss")
 active = true
 max_health = 24.0
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Gloamweaver"]
-position = Vector2(0, -9)
+position = Vector2(0, -31)
 shape = SubResource("BossShape")

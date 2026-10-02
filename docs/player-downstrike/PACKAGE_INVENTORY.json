@@ -1,0 +1,120 @@
+{
+  "files": [
+    {
+      "path": "INTEGRATION_PROMPT.md",
+      "sha256": "4899d2534743b2342c8ce94d3559ec2f530069c9bcc5aefd547dec8670c9b516"
+    },
+    {
+      "path": "project.godot",
+      "sha256": "90a38c30af6c0af338c70073dd37f00368393638948de5872f62efbb7ae0f286"
+    },
+    {
+      "path": "README.md",
+      "sha256": "cb63365866f66e34964e8aaef846b2d20769ce3320ecf496eff9a01192adf260"
+    },
+    {
+      "path": "VALIDATION.md",
+      "sha256": "9815ab03d43f2ab4cafc1f0efa6ba66c7bc70f79a0a1d9a5d0f94e195820a283"
+    },
+    {
+      "path": "demo/demo.gd",
+      "sha256": "f5c16bcd75a1eae7ca46d2f34327d4cb0dc158f763463e845515dd41bc80596e"
+    },
+    {
+      "path": "demo/demo.tscn",
+      "sha256": "bd04bc1c3cdec0779ef252cade14c21b6d2e249b323ddc2dd0ca336403cb5982"
+    },
+    {
+      "path": "demo/player.gd",
+      "sha256": "196927281efe5b0b2f92e5f0d1d2d495bb609548128f9b91efa617f9348753b0"
+    },
+    {
+      "path": "demo/target.gd",
+      "sha256": "5bed8d99ebbaacb35a6760b1a27e3383a9a9ee15445d2e687d8d082bc643436b"
+    },
+    {
+      "path": "demo/test_downstrike.gd",
+      "sha256": "ab48f0f7bf2b6655d201575596a55a48bd8cc90ef18a1c07ab679c31e0f31b67"
+    },
+    {
+      "path": "reference/downstrike-source-atlas.png",
+      "sha256": "e9a70f281d9fcff91f7b832c6864d1611a76084043d10026fa881ce89212ccec"
+    },
+    {
+      "path": "reference/generation-prompt.txt",
+      "sha256": "c68eb98553d8b6809c41d4d96e08e00fd9094a7274c9a5230b85625df6c75109"
+    },
+    {
+      "path": "reference/separation-provenance.py",
+      "sha256": "410a84576a99b3c994503ada3cd80d4779192e56cba6dbf8aef62166e1e63a51"
+    },
+    {
+      "path": "scripts/cracked_floor.gd",
+      "sha256": "68d8c71de5354959fdb4e2c095d9785c77c7a9de13f881c19b116389da19a9da"
+    },
+    {
+      "path": "scripts/downstrike.gd",
+      "sha256": "3a9fc4fd5e58472ff3d5c318f5b8a6cc81bfaf09e00a88180d35e457b7d13000"
+    },
+    {
+      "path": "scripts/downstrike_fx.gd",
+      "sha256": "442643cbbc725c02e7e7a42989373fa53b9db29e208836409b248faf41ded09d"
+    },
+    {
+      "path": "scripts/downstrike_visual.gd",
+      "sha256": "70b40d63c3bcf7011cc3386b8e556fed0fd2bf3517bd636529c98f60e662a4f4"
+    },
+    {
+      "path": "sprites/idle.png",
+      "sha256": "89b2f22adbe248841ac0ca0dee9f70c0dc853f29c4d301bb49b82bef3b5f68df"
+    },
+    {
+      "path": "sprites/impact_01.png",
+      "sha256": "30517ab01fad07d0ac9b667dece29e010772922fb04214d8c7dd542cb6b3ac76"
+    },
+    {
+      "path": "sprites/impact_02.png",
+      "sha256": "85f746816e4910fbcd358efe8713838837fa076189b7a8c84a0d4e1a600ea6f3"
+    },
+    {
+      "path": "sprites/manifest.json",
+      "sha256": "8af3e9bcd784c1d21a71592ee9353359e48669a27bd59d2c3ac1f05ae015fcff"
+    },
+    {
+      "path": "sprites/plunge_01.png",
+      "sha256": "7969adb4cb5313df129e0ad03d958c05855405e92f45a69b1e59d94cb237c848"
+    },
+    {
+      "path": "sprites/plunge_02.png",
+      "sha256": "a4d8bf5c0fd0ee0777da4169867f1c44698ad8dd8144d7b5077b7f06c6306afd"
+    },
+    {
+      "path": "sprites/recover_01.png",
+      "sha256": "cd4e95241fb2fa0a2f8daae926f8d8818b3ac3a221734beabe9532f1a0998455"
+    },
+    {
+      "path": "sprites/recover_02.png",
+      "sha256": "e2e24c8a0f0c35d2f78a2d7dd16f818f750faca930c991ff5d476e73a8112e7d"
+    },
+    {
+      "path": "sprites/recover_03.png",
+      "sha256": "e39ba7f894f4e71f42ea2f721577e2b75bf47b128a494bb7a23d67ada0b148f8"
+    },
+    {
+      "path": "sprites/windup_01.png",
+      "sha256": "3026b521fe96e0e51b926383ad218b8c390babbf82a970937942b868b97249d4"
+    },
+    {
+      "path": "sprites/windup_02.png",
+      "sha256": "551c3583c8baa712bd01414f17c10f7edda9ac49074640e7a42d89630d1e656b"
+    },
+    {
+      "path": "sprites/windup_03.png",
+      "sha256": "5005bf736df3c905de5afbb2b7da5dbf563b0d6eb5d93c30807708c0b6bf0ce1"
+    },
+    {
+      "path": "sprites/windup_04.png",
+      "sha256": "05f64eec85b7c10b45301fe8b423eb4dce41587baf3199e609eeb1997dafac3b"
+    }
+  ]
+}

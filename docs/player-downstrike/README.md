@@ -1,0 +1,13 @@
+# Player ground smash / Groundbreaker
+
+Godot 4 package: twelve separate transparent body animation keys, a damage/descent component, procedural cyan shockwave and dust, cracked-floor script, and a standalone test project. E triggers the ability on the floor or in the air. A/D move, Space jumps, R restarts the demo. Open this package's project.godot in Godot; it is isolated from the real game's saves.
+
+Behavior: 0.14 s windup -> vertical descent at 650 px/s -> one landing shockwave within 72 px to either side and 30 px above the floor -> 0.30 s recovery. Ground activation uses the same strike and landing effect without a jump. Descent deals 1.0 basic-hit damage; landing deals 1.5. A target gets at most one damage attempt per cast across both stages. Descent does not bounce on enemies. Landing directly on cracked floor breaks it; merely jumping or striking normally does not. The shockwave does not destroy adjacent floor panels.
+
+Read INTEGRATION_PROMPT.md before inserting into your actual controller. The component supplies explicit before/after movement hooks, never owns a second physics loop. No invulnerability is added. Receiving damage, dying, traversal grabs, cutscenes, teleportation, and scene exits must cancel it.
+
+Sprites were generated with the built-in imagegen tool from both supplied hooded player references, then cropped into individual RGBA PNGs without repainting or scaling. The animation is a raised-fist, two-handed floor smash with a feet-first descent; the sword stays sheathed. This is a healthy base animation, using the injured sheet for proportions and costume rather than injury coloration. Matching is an approximation: review pixel density and contact positions in-game. Source atlas and full generation prompt are included. Body PNGs have no baked-in VFX; shockwave/dust are separate code-native effects. The demo uses a plain blue collision-body placeholder during ordinary movement, and character sprites during this ability only.
+
+scripts/downstrike.gd: reusable component. scripts/cracked_floor.gd: standalone StaticBody2D floor panel. scripts/downstrike_fx.gd: world-space effects. scripts/downstrike_visual.gd: ability-only sprite playback. demo/: isolated example controller/targets/room. sprites/manifest.json: timing and extracted frame registration.
+
+Official engine references: [CharacterBody2D movement](https://docs.godotengine.org/en/stable/classes/class_characterbody2d.html), [physics shape and ray queries](https://docs.godotengine.org/en/stable/classes/class_physicsdirectspacestate2d.html). Runtime verification results are in VALIDATION.md.
