@@ -1,0 +1,191 @@
+{
+  "status": "declarative integration blueprint, not engine AnimationPlayer/SpriteFrames resource",
+  "timing_authority": "AI_AND_TEST_SCENE.md",
+  "body_clips": {
+    "ceiling_idle": {
+      "keys": [
+        "ceiling_idle_01",
+        "ceiling_idle_02"
+      ],
+      "loop": true,
+      "cycle_seconds": 0.9
+    },
+    "ceiling_crawl": {
+      "keys": [
+        "ceiling_crawl_01",
+        "ceiling_crawl_02",
+        "ceiling_crawl_03",
+        "ceiling_crawl_04"
+      ],
+      "loop": true,
+      "cycle_seconds": 0.8
+    },
+    "pendulum_rake": {
+      "keys": [
+        "swing_prepare",
+        "swing_hang",
+        "swing_rake",
+        "swing_rise",
+        "swing_recovery"
+      ],
+      "loop": false,
+      "events": [
+        "attach_tether_after_validated_anchor",
+        "active_low_crossing_only",
+        "low_recovery_then_retract"
+      ]
+    },
+    "double_swing": {
+      "reuse": "pendulum_rake",
+      "passes": 2,
+      "events": [
+        "two_unique_rake_ids",
+        "harmless_lift_between",
+        "longer_final_low_recovery"
+      ]
+    },
+    "web_zip": {
+      "keys": [
+        "zip_aim",
+        "zip_release",
+        "zip_compress",
+        "zip_travel",
+        "zip_arrival",
+        "zip_recovery"
+      ],
+      "loop": false,
+      "events": [
+        "hook_at_release_once",
+        "travel_after_anchor_contact",
+        "active_front_during_zip_only",
+        "catch_on_actual_support"
+      ]
+    },
+    "reattach": {
+      "keys": [
+        "zip_aim",
+        "zip_release",
+        "zip_compress",
+        "zip_travel",
+        "reattach_catch",
+        "zip_recovery"
+      ],
+      "loop": false,
+      "damage_enabled": false
+    },
+    "silk_snare": {
+      "keys": [
+        "trap_prepare",
+        "trap_release",
+        "trap_recovery"
+      ],
+      "loop": false,
+      "events": [
+        "reserve_valid_trap_slot",
+        "seed_at_release_once",
+        "arm_on_floor_after_deploy"
+      ]
+    },
+    "drop": {
+      "keys": [
+        "drop_gather",
+        "drop_airborne",
+        "drop_impact",
+        "floor_idle"
+      ],
+      "loop": false,
+      "events": [
+        "detach_grip",
+        "impact_only_on_real_floor",
+        "full_floor_recovery"
+      ]
+    },
+    "floor_idle": {
+      "keys": [
+        "floor_idle"
+      ],
+      "loop": false,
+      "hold": true
+    },
+    "fang_bite": {
+      "keys": [
+        "bite_tell",
+        "bite_active",
+        "floor_idle"
+      ],
+      "loop": false,
+      "events": [
+        "committed_facing",
+        "active_fangs_only",
+        "recovery"
+      ]
+    },
+    "hurt": {
+      "keys": [
+        "hurt"
+      ],
+      "loop": false,
+      "seconds": 0.15,
+      "visual_override_only": true
+    },
+    "phase_change": {
+      "keys": [
+        "phase_change"
+      ],
+      "loop": false,
+      "seconds": 0.85,
+      "damage_enabled": false
+    },
+    "defeat": {
+      "keys": [
+        "defeat"
+      ],
+      "loop": false,
+      "hold": true,
+      "events": [
+        "cleanup_all_danger_and_status_first",
+        "harmless_grounded_collapse"
+      ]
+    }
+  },
+  "effect_bindings": {
+    "hook_flight": [
+      "hook_head"
+    ],
+    "anchor_pulse": [
+      "anchor_rosette"
+    ],
+    "tether": [
+      "cable_segment"
+    ],
+    "swing_trail": [
+      "swing_streak"
+    ],
+    "seed_flight": [
+      "trap_seed"
+    ],
+    "trap_deploy": [
+      "trap_unfold"
+    ],
+    "trap_armed": [
+      "trap_active"
+    ],
+    "slow_trigger": [
+      "trap_trigger"
+    ],
+    "landing": [
+      "landing_dust"
+    ],
+    "bite_trail": [
+      "bite_streak"
+    ],
+    "hurt_phase": [
+      "hit_fray"
+    ],
+    "expiry_death": [
+      "web_dissolve"
+    ]
+  },
+  "tether_note": "dynamic anchored line/rope required; cable sprite is optional accent but has an explicit binding",
+  "no_silent_unused_assets": true
+}

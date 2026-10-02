@@ -1,0 +1,307 @@
+[
+  {
+    "path": "ai/gloamweaver_ai.py",
+    "bytes": 4655,
+    "sha256": "4622037d9c08444384989183df7d230f426ad43303a8c12609915b070809d240"
+  },
+  {
+    "path": "ai/test_policy.py",
+    "bytes": 3630,
+    "sha256": "eef6a64adeddc24514c0591c2babca95d654ffdc3a315b3a254bcfd9c5ec4555"
+  },
+  {
+    "path": "AI_AND_TEST_SCENE.md",
+    "bytes": 12964,
+    "sha256": "f066b5e0bb4036eca68fd1e6d90ea6b57c01d393c4d6d0ca00e0e8b3030db153"
+  },
+  {
+    "path": "ANIMATION_BINDINGS.json",
+    "bytes": 4039,
+    "sha256": "cb747c98db4e6715f3b1e925623b7cd47b187892f3a378254b517272400deb32"
+  },
+  {
+    "path": "ANIMATION_VFX_AND_IMPACT.md",
+    "bytes": 8817,
+    "sha256": "7a2840fcc6fcebbdd9c8454d12ebcec309d46a84503a9f37174596014fd31486"
+  },
+  {
+    "path": "INTEGRATION_PROMPT.md",
+    "bytes": 4877,
+    "sha256": "a6e8a5a3d55919f0cdec279a7823fb38b1a218ae34720664bc38653915d737c0"
+  },
+  {
+    "path": "README.md",
+    "bytes": 2970,
+    "sha256": "4634329d73249759876d8bd90e82fdc890562f6f3f385ccb3eba41dc4f342af4"
+  },
+  {
+    "path": "reference/body-generation-prompt.txt",
+    "bytes": 2101,
+    "sha256": "00e27ecd2230164edb75cad489e6011820270b63345ddfd360d28443c93c19f2"
+  },
+  {
+    "path": "reference/design-generation-prompt.txt",
+    "bytes": 2875,
+    "sha256": "309e2218bc1ed611bfa6468ffe7c29a465630d0b462fe1d801776a257f3a07a1"
+  },
+  {
+    "path": "reference/gloamweaver-design-sheet.png",
+    "bytes": 2374277,
+    "sha256": "25072d7a371d2aaf64aa8a84f438c9dec65f23dd9c2aa656726159ed798970cc"
+  },
+  {
+    "path": "reference/separation-provenance.py",
+    "bytes": 3577,
+    "sha256": "1fcde870a57a663aded62f426d1f056118422373c8534f2d5a160255c2b19847"
+  },
+  {
+    "path": "reference/vfx-generation-prompt.txt",
+    "bytes": 1874,
+    "sha256": "55daad8f87b6f946d17dd364f728589455baead91baedcb5c2e3022afe9cbe2c"
+  },
+  {
+    "path": "SPRITE_STATUS.md",
+    "bytes": 2830,
+    "sha256": "5c1c8893715bc2b3908a5dec0593a6765bbc88e7a85b2f0aa43a612ed3597334"
+  },
+  {
+    "path": "sprites/bite_active.png",
+    "bytes": 72799,
+    "sha256": "276b71fa3af8fe8bdaf95aeff8c14b0fc990d36bf0b537bdd7955a6f7e6e3c04"
+  },
+  {
+    "path": "sprites/bite_tell.png",
+    "bytes": 71486,
+    "sha256": "6a853f194be7e4f30502b08234f92325749ad7e3ae917e6ada65ea0941043aee"
+  },
+  {
+    "path": "sprites/body-atlas-source.png",
+    "bytes": 2486691,
+    "sha256": "1729d4b91489c159d49400025d0a0f4835f907f20f7cdd1fb37eeda6dd169f28"
+  },
+  {
+    "path": "sprites/ceiling_crawl_01.png",
+    "bytes": 71878,
+    "sha256": "afed9d375e18dc41e5d0cc8587cdfdbe39efaeb54d9889a866d8a4679c115bea"
+  },
+  {
+    "path": "sprites/ceiling_crawl_02.png",
+    "bytes": 67859,
+    "sha256": "2321438567c0ac63b488dfb81d549c5389a91094d860d7961c395f5bb21823f4"
+  },
+  {
+    "path": "sprites/ceiling_crawl_03.png",
+    "bytes": 67226,
+    "sha256": "beda611068fe314c34f522e1fcdfd7e578cd30507154a4099027d3cfaf9d367b"
+  },
+  {
+    "path": "sprites/ceiling_crawl_04.png",
+    "bytes": 73019,
+    "sha256": "8d9aea92eb1b3a961b396f1ce8c046b93588a35ee8486393d26ba2c7cdbbdabb"
+  },
+  {
+    "path": "sprites/ceiling_idle_01.png",
+    "bytes": 72530,
+    "sha256": "90922f16218044c4cd2b209136a58336f983e5391d0efb5de8c6def80a01698f"
+  },
+  {
+    "path": "sprites/ceiling_idle_02.png",
+    "bytes": 67084,
+    "sha256": "70b142848e974146f45b4c14e67c17547c17cfeda1086e35edcaf8a87a5f902a"
+  },
+  {
+    "path": "sprites/defeat.png",
+    "bytes": 55748,
+    "sha256": "cf4d9391de9a0b6d47c07ca93f2870bc40f99f4fe59f6b034562ff4f6c1826d0"
+  },
+  {
+    "path": "sprites/drop_airborne.png",
+    "bytes": 70276,
+    "sha256": "be13e0cf7bc7e6209366a008baece94246336e56c59843dd21754d531032d2f3"
+  },
+  {
+    "path": "sprites/drop_gather.png",
+    "bytes": 56256,
+    "sha256": "2ad5c0be2cfdaab9669299a284330bedc65db6809d3752dfb08d77f4c9607fa5"
+  },
+  {
+    "path": "sprites/drop_impact.png",
+    "bytes": 57816,
+    "sha256": "aa960385d47558d839811c16419d46c72e5b0797c57e57ab97f9a6a1fa2e3d08"
+  },
+  {
+    "path": "sprites/floor_idle.png",
+    "bytes": 65123,
+    "sha256": "ef03974846c2d39db5f5f63bcb8963309667bf654c0ec37eeea81d71d4a58367"
+  },
+  {
+    "path": "sprites/hurt.png",
+    "bytes": 68931,
+    "sha256": "5bc60dd8e27a7b640919187d5e9137644346079e5abfb64be71f58ad46d5053a"
+  },
+  {
+    "path": "sprites/manifest.json",
+    "bytes": 13908,
+    "sha256": "9cdedf99362549887cb7df797e78f2e6c203c124e5e51f0d30c808add89af05f"
+  },
+  {
+    "path": "sprites/phase_change.png",
+    "bytes": 65774,
+    "sha256": "9aae1f245b7f6661e17d1bdec8122ffed54bfc53aa1819706ad022b598a475ff"
+  },
+  {
+    "path": "sprites/preview-checkerboard.jpg",
+    "bytes": 419848,
+    "sha256": "6a6bea88b9920ee42422fedcfb367410d68a85b4025b06e47061be0a1b8e6849"
+  },
+  {
+    "path": "sprites/reattach_catch.png",
+    "bytes": 66259,
+    "sha256": "5341a85c7d1c42f2b0e10a8efc824e87eb83f20738fc775896eda14b538c6fe0"
+  },
+  {
+    "path": "sprites/swing_hang.png",
+    "bytes": 57801,
+    "sha256": "f4da3c1827b3bd1fc2d316f875852db1904b82ac19d462e3ce882c297056ca70"
+  },
+  {
+    "path": "sprites/swing_prepare.png",
+    "bytes": 58077,
+    "sha256": "2e5a6992a931631dd94eef7c22359da86ec3ef1b97bead96ef56ede802079f3d"
+  },
+  {
+    "path": "sprites/swing_rake.png",
+    "bytes": 71362,
+    "sha256": "4efe667bac5e0fcf1d6704db86cd0b29c8016aa59d8ad98b77c491aa49ad2496"
+  },
+  {
+    "path": "sprites/swing_recovery.png",
+    "bytes": 61190,
+    "sha256": "c23721b39dd01a6e3a21f80fcd4afd8efbae4d71baf2d729d63e5ebbd253af09"
+  },
+  {
+    "path": "sprites/swing_rise.png",
+    "bytes": 70541,
+    "sha256": "a927fc4225285e19c7a2275c2536f154480644e97ff6b9461f11bb4ad72fde0b"
+  },
+  {
+    "path": "sprites/trap_prepare.png",
+    "bytes": 67807,
+    "sha256": "40a0d29d8e9c65ad91211ddd3fca5f31e21ac4088fb6dca3a03b671b3359c84b"
+  },
+  {
+    "path": "sprites/trap_recovery.png",
+    "bytes": 62734,
+    "sha256": "b98bda50d7adfb3ce47c5d5e6ccefc98548e784f70e3034f4a79c767f9eaff4f"
+  },
+  {
+    "path": "sprites/trap_release.png",
+    "bytes": 70078,
+    "sha256": "90aaafe5832e594246c605cc7fd3e915cb2bec0f4f7e7a442355a76c9ddd16d2"
+  },
+  {
+    "path": "sprites/zip_aim.png",
+    "bytes": 60793,
+    "sha256": "f6759233451c90ee66c883ed92cf98f0c8bbdade264ebaa3e953458619584834"
+  },
+  {
+    "path": "sprites/zip_arrival.png",
+    "bytes": 68395,
+    "sha256": "f80eba3e73937154201c0838a49cb977b9742e004bfdf6befc5f33707181a62f"
+  },
+  {
+    "path": "sprites/zip_compress.png",
+    "bytes": 45217,
+    "sha256": "21ec776ecdd1bbc076cea83d2ab48c8107d49501fbd54e1d0f6b98d535e20ad0"
+  },
+  {
+    "path": "sprites/zip_recovery.png",
+    "bytes": 72295,
+    "sha256": "d49818c4df8643932509adfcbeaa56e7ad5a2b608b51d25956545b5c377ef53d"
+  },
+  {
+    "path": "sprites/zip_release.png",
+    "bytes": 57408,
+    "sha256": "00e3fc07b287d795791943caf9bee394384077de0665082b22d5ec1ab641c48b"
+  },
+  {
+    "path": "sprites/zip_travel.png",
+    "bytes": 55597,
+    "sha256": "af801d463dbb4bfa74146e28e18a12ffc2be3dcd7c742847961813bd24966037"
+  },
+  {
+    "path": "vfx/anchor_rosette.png",
+    "bytes": 105792,
+    "sha256": "063f87a863bc03a4c5cfcbbfd3f17750873ed0e709220a56f9a99b51f520832c"
+  },
+  {
+    "path": "vfx/bite_streak.png",
+    "bytes": 77790,
+    "sha256": "b0b0540e997bd1d035aef3a57b0c05b8eaa9785f59673f68473edd96bf297574"
+  },
+  {
+    "path": "vfx/cable_segment.png",
+    "bytes": 57506,
+    "sha256": "a77f21fcd428d02392773e7c3bdaeab89077bc4b49ec6f2921715b7e2aee340e"
+  },
+  {
+    "path": "vfx/hit_fray.png",
+    "bytes": 84272,
+    "sha256": "6891e1770c0d9eaaea0e5267b6449fd1291ca62854d04cabcf39c967fac05f7f"
+  },
+  {
+    "path": "vfx/hook_head.png",
+    "bytes": 44972,
+    "sha256": "7c944b82df5f691eb86b7a61651b320ebb4ab5eb44821f592ac66e2aba297e62"
+  },
+  {
+    "path": "vfx/landing_dust.png",
+    "bytes": 84031,
+    "sha256": "460a684aa757e363bde02f3046413feb440c258aff482f44862df1cc2dac09c7"
+  },
+  {
+    "path": "vfx/manifest.json",
+    "bytes": 5764,
+    "sha256": "6aa40ccd71ae4d4bdd98e519cff2b943b9c66f280ac3f84d94154eed82b40f0b"
+  },
+  {
+    "path": "vfx/preview-checkerboard.jpg",
+    "bytes": 307629,
+    "sha256": "7bd2cf060fb16a4d19d5cb5dd0efa46430e511492162576a9e7cb4dd4313d53d"
+  },
+  {
+    "path": "vfx/swing_streak.png",
+    "bytes": 78386,
+    "sha256": "a96ca93a9f72a2b5695b63069f38ef7a161d425d65d79d3892e762877c2e3fde"
+  },
+  {
+    "path": "vfx/trap_active.png",
+    "bytes": 99575,
+    "sha256": "3e56f80e56086d02ddab2bdaa91543d7f2f36f02b8e8b3031c1b911bbdb28099"
+  },
+  {
+    "path": "vfx/trap_seed.png",
+    "bytes": 59057,
+    "sha256": "b0540f0290afeeada069fe336d29576aa1ec72be2cade7bdb1dea49746f4ba09"
+  },
+  {
+    "path": "vfx/trap_trigger.png",
+    "bytes": 85620,
+    "sha256": "5bd1b0f26ab70c2b0ce332a826fbd0208bbb13332ee96c7d62c969b75ece383c"
+  },
+  {
+    "path": "vfx/trap_unfold.png",
+    "bytes": 88067,
+    "sha256": "6ed5744857019b633767919ba4c0b6b97b9b4dc1f56e9ac50d69d2deb0e891c3"
+  },
+  {
+    "path": "vfx/vfx-atlas-source.png",
+    "bytes": 930435,
+    "sha256": "481d64e006114d53b064f72d75d41fa814f6e88ba979593126a1f47703e50adc"
+  },
+  {
+    "path": "vfx/web_dissolve.png",
+    "bytes": 81441,
+    "sha256": "b13f1948f05a7a6bd8f8c27b2ad4facf5aaef9dcd6531caafb9398f5aa92ea9c"
+  }
+]

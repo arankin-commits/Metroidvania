@@ -1,0 +1,330 @@
+{
+  "status": "static key poses/effect keys, not complete animated frame sequences",
+  "source_size": [
+    1448,
+    1086
+  ],
+  "canvas": [
+    640,
+    640
+  ],
+  "estimated_root": [
+    320,
+    320
+  ],
+  "root_method": "center of alpha>=160 silhouette bounds, refine anatomical sockets/support in engine",
+  "frames": [
+    {
+      "name": "hook_head",
+      "path": "hook_head.png",
+      "source_rect": [
+        0,
+        0,
+        382,
+        354
+      ],
+      "canvas": [
+        640,
+        640
+      ],
+      "estimated_root": [
+        320,
+        320
+      ],
+      "opaque_bounds": [
+        168,
+        276,
+        473,
+        364
+      ],
+      "alpha_zero_pixels": 391915,
+      "source_crop_preserved": true
+    },
+    {
+      "name": "anchor_rosette",
+      "path": "anchor_rosette.png",
+      "source_rect": [
+        382,
+        0,
+        335,
+        354
+      ],
+      "canvas": [
+        640,
+        640
+      ],
+      "estimated_root": [
+        320,
+        320
+      ],
+      "opaque_bounds": [
+        179,
+        177,
+        462,
+        463
+      ],
+      "alpha_zero_pixels": 367316,
+      "source_crop_preserved": true
+    },
+    {
+      "name": "cable_segment",
+      "path": "cable_segment.png",
+      "source_rect": [
+        717,
+        0,
+        397,
+        354
+      ],
+      "canvas": [
+        640,
+        640
+      ],
+      "estimated_root": [
+        320,
+        320
+      ],
+      "opaque_bounds": [
+        165,
+        198,
+        476,
+        443
+      ],
+      "alpha_zero_pixels": 386891,
+      "source_crop_preserved": true
+    },
+    {
+      "name": "swing_streak",
+      "path": "swing_streak.png",
+      "source_rect": [
+        1114,
+        0,
+        334,
+        354
+      ],
+      "canvas": [
+        640,
+        640
+      ],
+      "estimated_root": [
+        320,
+        320
+      ],
+      "opaque_bounds": [
+        184,
+        209,
+        456,
+        431
+      ],
+      "alpha_zero_pixels": 373806,
+      "source_crop_preserved": true
+    },
+    {
+      "name": "trap_seed",
+      "path": "trap_seed.png",
+      "source_rect": [
+        0,
+        354,
+        365,
+        378
+      ],
+      "canvas": [
+        640,
+        640
+      ],
+      "estimated_root": [
+        320,
+        320
+      ],
+      "opaque_bounds": [
+        239,
+        246,
+        402,
+        394
+      ],
+      "alpha_zero_pixels": 386136,
+      "source_crop_preserved": true
+    },
+    {
+      "name": "trap_unfold",
+      "path": "trap_unfold.png",
+      "source_rect": [
+        365,
+        354,
+        316,
+        378
+      ],
+      "canvas": [
+        640,
+        640
+      ],
+      "estimated_root": [
+        320,
+        320
+      ],
+      "opaque_bounds": [
+        190,
+        221,
+        451,
+        419
+      ],
+      "alpha_zero_pixels": 372502,
+      "source_crop_preserved": true
+    },
+    {
+      "name": "trap_active",
+      "path": "trap_active.png",
+      "source_rect": [
+        681,
+        354,
+        440,
+        378
+      ],
+      "canvas": [
+        640,
+        640
+      ],
+      "estimated_root": [
+        320,
+        320
+      ],
+      "opaque_bounds": [
+        115,
+        249,
+        525,
+        392
+      ],
+      "alpha_zero_pixels": 367339,
+      "source_crop_preserved": true
+    },
+    {
+      "name": "trap_trigger",
+      "path": "trap_trigger.png",
+      "source_rect": [
+        1121,
+        354,
+        327,
+        378
+      ],
+      "canvas": [
+        640,
+        640
+      ],
+      "estimated_root": [
+        320,
+        320
+      ],
+      "opaque_bounds": [
+        198,
+        177,
+        443,
+        464
+      ],
+      "alpha_zero_pixels": 367116,
+      "source_crop_preserved": true
+    },
+    {
+      "name": "landing_dust",
+      "path": "landing_dust.png",
+      "source_rect": [
+        0,
+        732,
+        414,
+        354
+      ],
+      "canvas": [
+        640,
+        640
+      ],
+      "estimated_root": [
+        320,
+        320
+      ],
+      "opaque_bounds": [
+        143,
+        236,
+        498,
+        405
+      ],
+      "alpha_zero_pixels": 370945,
+      "source_crop_preserved": true
+    },
+    {
+      "name": "bite_streak",
+      "path": "bite_streak.png",
+      "source_rect": [
+        414,
+        732,
+        332,
+        354
+      ],
+      "canvas": [
+        640,
+        640
+      ],
+      "estimated_root": [
+        320,
+        320
+      ],
+      "opaque_bounds": [
+        185,
+        248,
+        455,
+        392
+      ],
+      "alpha_zero_pixels": 373806,
+      "source_crop_preserved": true
+    },
+    {
+      "name": "hit_fray",
+      "path": "hit_fray.png",
+      "source_rect": [
+        746,
+        732,
+        340,
+        354
+      ],
+      "canvas": [
+        640,
+        640
+      ],
+      "estimated_root": [
+        320,
+        320
+      ],
+      "opaque_bounds": [
+        201,
+        209,
+        439,
+        432
+      ],
+      "alpha_zero_pixels": 368290,
+      "source_crop_preserved": true
+    },
+    {
+      "name": "web_dissolve",
+      "path": "web_dissolve.png",
+      "source_rect": [
+        1086,
+        732,
+        362,
+        354
+      ],
+      "canvas": [
+        640,
+        640
+      ],
+      "estimated_root": [
+        320,
+        320
+      ],
+      "opaque_bounds": [
+        175,
+        200,
+        465,
+        440
+      ],
+      "alpha_zero_pixels": 358326,
+      "source_crop_preserved": true
+    }
+  ]
+}
