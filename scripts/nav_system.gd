@@ -4,6 +4,9 @@ extends Node
 # Combat enemies read it to decide how to traverse toward the player.
 var enemy_ai_traverse: Dictionary = {}
 
+func can_break_cave_exit(artificer_rescued: bool, has_heavy: bool) -> bool:
+	return artificer_rescued and has_heavy
+
 func update_enemy_ai_traverse(
 	enemy: CharacterBody2D,
 	player: CharacterBody2D,
