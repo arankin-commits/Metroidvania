@@ -1,6 +1,6 @@
 {
-  "bytes": 95798912,
-  "directory": 95761696,
+  "bytes": 95811504,
+  "directory": 95774288,
   "count": 413,
   "entries": [
     {
@@ -102,7 +102,7 @@
     {
       "path": ".godot/global_script_class_cache.cfg",
       "source": ".godot/global_script_class_cache.cfg",
-      "offset": 95748800,
+      "offset": 95761392,
       "size": 1843,
       "md5": "00d67aedeedc64b991e30bd6569d0248",
       "flags": 0
@@ -974,7 +974,7 @@
     {
       "path": ".godot/uid_cache.bin",
       "source": ".godot/uid_cache.bin",
-      "offset": 95750656,
+      "offset": 95763248,
       "size": 10022,
       "md5": "7dee807fc2cd87a1a40ba96079f8581a",
       "flags": 0
@@ -982,7 +982,7 @@
     {
       "path": "addons/godot_mcp/core/mcp_log.gd.remap",
       "source": "addons/godot_mcp/core/mcp_log.gd.remap",
-      "offset": 95742560,
+      "offset": 95755152,
       "size": 56,
       "md5": "e0ec552adb59173deb9c3c00be04dda6",
       "flags": 0
@@ -998,7 +998,7 @@
     {
       "path": "addons/godot_mcp/game_bridge/joy_names.gd.remap",
       "source": "addons/godot_mcp/game_bridge/joy_names.gd.remap",
-      "offset": 95742624,
+      "offset": 95755216,
       "size": 65,
       "md5": "4c8f7448522a8469ccaf85889dc19456",
       "flags": 0
@@ -1014,7 +1014,7 @@
     {
       "path": "addons/godot_mcp/game_bridge/key_names.gd.remap",
       "source": "addons/godot_mcp/game_bridge/key_names.gd.remap",
-      "offset": 95742704,
+      "offset": 95755296,
       "size": 65,
       "md5": "0d106051731daf04224efc9df888069c",
       "flags": 0
@@ -1030,7 +1030,7 @@
     {
       "path": "addons/godot_mcp/game_bridge/mcp_exec_guard.gd.remap",
       "source": "addons/godot_mcp/game_bridge/mcp_exec_guard.gd.remap",
-      "offset": 95742784,
+      "offset": 95755376,
       "size": 70,
       "md5": "4172d5ac8da8509e8a7e80ccb114ba91",
       "flags": 0
@@ -1046,7 +1046,7 @@
     {
       "path": "addons/godot_mcp/game_bridge/mcp_frame_profiler.gd.remap",
       "source": "addons/godot_mcp/game_bridge/mcp_frame_profiler.gd.remap",
-      "offset": 95742864,
+      "offset": 95755456,
       "size": 74,
       "md5": "3e97c0e7f6dc49c2bb5461b42b83ffac",
       "flags": 0
@@ -1062,7 +1062,7 @@
     {
       "path": "addons/godot_mcp/game_bridge/mcp_game_bridge.gd.remap",
       "source": "addons/godot_mcp/game_bridge/mcp_game_bridge.gd.remap",
-      "offset": 95742944,
+      "offset": 95755536,
       "size": 71,
       "md5": "34772862a91a2596bee581fdaa47cbf9",
       "flags": 0
@@ -1078,7 +1078,7 @@
     {
       "path": "addons/godot_mcp/game_bridge/mcp_runtime_state_sampler.gd.remap",
       "source": "addons/godot_mcp/game_bridge/mcp_runtime_state_sampler.gd.remap",
-      "offset": 95743024,
+      "offset": 95755616,
       "size": 81,
       "md5": "d5564c8f070b6b0fad1eb9bdd650b2c0",
       "flags": 0
@@ -1094,7 +1094,7 @@
     {
       "path": "addons/godot_mcp/game_bridge/mesh_validator.gd.remap",
       "source": "addons/godot_mcp/game_bridge/mesh_validator.gd.remap",
-      "offset": 95743120,
+      "offset": 95755712,
       "size": 70,
       "md5": "182ab9e90134771c47de2f480c7a1e64",
       "flags": 0
@@ -1110,7 +1110,7 @@
     {
       "path": "addons/godot_mcp/game_bridge/onscreen.gd.remap",
       "source": "addons/godot_mcp/game_bridge/onscreen.gd.remap",
-      "offset": 95743200,
+      "offset": 95755792,
       "size": 64,
       "md5": "369bcd9740be75f6b4e334f8b85601e6",
       "flags": 0
@@ -1222,7 +1222,7 @@
     {
       "path": "assets/characters/enemies/goblin.tres.remap",
       "source": "assets/characters/enemies/goblin.tres.remap",
-      "offset": 95743264,
+      "offset": 95755856,
       "size": 99,
       "md5": "a9002f708f58327911e915ee979c68ea",
       "flags": 0
@@ -1238,7 +1238,7 @@
     {
       "path": "assets/characters/enemies/goblin_dog.tres.remap",
       "source": "assets/characters/enemies/goblin_dog.tres.remap",
-      "offset": 95743376,
+      "offset": 95755968,
       "size": 103,
       "md5": "601d25f7ae7774f37eec14bdc0e5b4a6",
       "flags": 0
@@ -1254,7 +1254,7 @@
     {
       "path": "assets/characters/enemies/goblin_sentinel.tres.remap",
       "source": "assets/characters/enemies/goblin_sentinel.tres.remap",
-      "offset": 95743488,
+      "offset": 95756080,
       "size": 108,
       "md5": "d7ae4363d5c57cf2eb62a83e9ce32f70",
       "flags": 0
@@ -1270,7 +1270,7 @@
     {
       "path": "assets/characters/enemies/kobold_archer.tres.remap",
       "source": "assets/characters/enemies/kobold_archer.tres.remap",
-      "offset": 95743600,
+      "offset": 95756192,
       "size": 106,
       "md5": "347f2952487ef1d1aa01a4e12e231f4d",
       "flags": 0
@@ -1286,7 +1286,7 @@
     {
       "path": "assets/characters/enemies/kobold_clubber.tres.remap",
       "source": "assets/characters/enemies/kobold_clubber.tres.remap",
-      "offset": 95743712,
+      "offset": 95756304,
       "size": 107,
       "md5": "6f66a1939d6adcbe8fde97d62cdbea24",
       "flags": 0
@@ -1302,7 +1302,7 @@
     {
       "path": "assets/characters/enemies/kobold_summoner.tres.remap",
       "source": "assets/characters/enemies/kobold_summoner.tres.remap",
-      "offset": 95743824,
+      "offset": 95756416,
       "size": 108,
       "md5": "80f1afa4914309f059b722689e0c3f61",
       "flags": 0
@@ -2070,7 +2070,7 @@
     {
       "path": "main.tscn.remap",
       "source": "main.tscn.remap",
-      "offset": 95743936,
+      "offset": 95756528,
       "size": 97,
       "md5": "c74a9853779200b38c91a70cebd41c10",
       "flags": 0
@@ -2078,7 +2078,7 @@
     {
       "path": "project.binary",
       "source": "project.binary",
-      "offset": 95760688,
+      "offset": 95773280,
       "size": 881,
       "md5": "70d37f4e1f66fc5c29ee701db7988a47",
       "flags": 0
@@ -2086,7 +2086,7 @@
     {
       "path": "scenes/forest_entry.tscn.remap",
       "source": "scenes/forest_entry.tscn.remap",
-      "offset": 95744048,
+      "offset": 95756640,
       "size": 105,
       "md5": "698a81ca4dab22cc5e93ac5ee21d4109",
       "flags": 0
@@ -2094,7 +2094,7 @@
     {
       "path": "scenes/ironback_boss_test.tscn.remap",
       "source": "scenes/ironback_boss_test.tscn.remap",
-      "offset": 95744160,
+      "offset": 95756752,
       "size": 111,
       "md5": "090c71268cd8e1ea0911a8dc470e048f",
       "flags": 0
@@ -2102,7 +2102,7 @@
     {
       "path": "scenes/main_menu.tscn.remap",
       "source": "scenes/main_menu.tscn.remap",
-      "offset": 95744272,
+      "offset": 95756864,
       "size": 102,
       "md5": "f5c88a9df557a8ea724c3a108e7e3c7d",
       "flags": 0
@@ -2110,7 +2110,7 @@
     {
       "path": "scenes/rabbit_boss_test.tscn.remap",
       "source": "scenes/rabbit_boss_test.tscn.remap",
-      "offset": 95744384,
+      "offset": 95756976,
       "size": 109,
       "md5": "ddd3cbfc074aaf64655222bf657a4b75",
       "flags": 0
@@ -2118,7 +2118,7 @@
     {
       "path": "scenes/tutorial.tscn.remap",
       "source": "scenes/tutorial.tscn.remap",
-      "offset": 95744496,
+      "offset": 95757088,
       "size": 101,
       "md5": "1c4c60ea663cb18589cc682737ef65df",
       "flags": 0
@@ -2126,7 +2126,7 @@
     {
       "path": "scripts/ability_icon.gd.remap",
       "source": "scripts/ability_icon.gd.remap",
-      "offset": 95744672,
+      "offset": 95757264,
       "size": 47,
       "md5": "3342f88de2e30129504708ac8dd94b66",
       "flags": 0
@@ -2134,7 +2134,7 @@
     {
       "path": "scripts/ability_icon.gdc",
       "source": "scripts/ability_icon.gdc",
-      "offset": 95399536,
+      "offset": 95400048,
       "size": 1612,
       "md5": "5dc4d24bf2bc21c3a0becc2742ae8153",
       "flags": 0
@@ -2142,7 +2142,7 @@
     {
       "path": "scripts/boss.gd.remap",
       "source": "scripts/boss.gd.remap",
-      "offset": 95744720,
+      "offset": 95757312,
       "size": 39,
       "md5": "943058fdbda1ffb32a7ebd18d50b6450",
       "flags": 0
@@ -2150,7 +2150,7 @@
     {
       "path": "scripts/boss.gdc",
       "source": "scripts/boss.gdc",
-      "offset": 95401152,
+      "offset": 95401664,
       "size": 89,
       "md5": "a55b0cd4ebaecfe0d5fd24b2934c4ab8",
       "flags": 0
@@ -2158,7 +2158,7 @@
     {
       "path": "scripts/bow_arrow.gd.remap",
       "source": "scripts/bow_arrow.gd.remap",
-      "offset": 95744768,
+      "offset": 95757360,
       "size": 44,
       "md5": "7fde6bc01e4c2a15217e5c461e8cd50c",
       "flags": 0
@@ -2166,7 +2166,7 @@
     {
       "path": "scripts/bow_arrow.gdc",
       "source": "scripts/bow_arrow.gdc",
-      "offset": 95401248,
+      "offset": 95401760,
       "size": 546,
       "md5": "fa200deaf8bf2ed5ba8d0a5ee0dfeec8",
       "flags": 0
@@ -2174,7 +2174,7 @@
     {
       "path": "scripts/bow_boss.gd.remap",
       "source": "scripts/bow_boss.gd.remap",
-      "offset": 95744816,
+      "offset": 95757408,
       "size": 43,
       "md5": "39527f292f7c478cc6e530ff05c96c88",
       "flags": 0
@@ -2182,7 +2182,7 @@
     {
       "path": "scripts/bow_boss.gdc",
       "source": "scripts/bow_boss.gdc",
-      "offset": 95401808,
+      "offset": 95402320,
       "size": 126,
       "md5": "91a769591fefbf02937ba1d071564718",
       "flags": 0
@@ -2190,7 +2190,7 @@
     {
       "path": "scripts/cave_layout.gd.remap",
       "source": "scripts/cave_layout.gd.remap",
-      "offset": 95744864,
+      "offset": 95757456,
       "size": 46,
       "md5": "be0d391a3e17c5ad43e84bda9d1412ed",
       "flags": 0
@@ -2198,7 +2198,7 @@
     {
       "path": "scripts/cave_layout.gdc",
       "source": "scripts/cave_layout.gdc",
-      "offset": 95401936,
+      "offset": 95402448,
       "size": 2630,
       "md5": "1d2c12900aeb87158c446b3f3f1961ff",
       "flags": 0
@@ -2206,7 +2206,7 @@
     {
       "path": "scripts/cave_scenery.gd.remap",
       "source": "scripts/cave_scenery.gd.remap",
-      "offset": 95744912,
+      "offset": 95757504,
       "size": 47,
       "md5": "20472c07d6fdc210aef12da272b76e02",
       "flags": 0
@@ -2214,7 +2214,7 @@
     {
       "path": "scripts/cave_scenery.gdc",
       "source": "scripts/cave_scenery.gdc",
-      "offset": 95404576,
+      "offset": 95405088,
       "size": 3897,
       "md5": "9070a8410ddd176139d9e3448eabe71a",
       "flags": 0
@@ -2222,7 +2222,7 @@
     {
       "path": "scripts/combat_boss.gd.remap",
       "source": "scripts/combat_boss.gd.remap",
-      "offset": 95744960,
+      "offset": 95757552,
       "size": 46,
       "md5": "b4518c9983d8faae519dd8e789aa3c0f",
       "flags": 0
@@ -2230,15 +2230,15 @@
     {
       "path": "scripts/combat_boss.gdc",
       "source": "scripts/combat_boss.gdc",
-      "offset": 95408480,
-      "size": 7036,
-      "md5": "984e3d00dd9bdf3fa6851ba81418e055",
+      "offset": 95408992,
+      "size": 7066,
+      "md5": "88d8ce476349f7ddf94a719182589858",
       "flags": 0
     },
     {
       "path": "scripts/combat_projectile.gd.remap",
       "source": "scripts/combat_projectile.gd.remap",
-      "offset": 95745008,
+      "offset": 95757600,
       "size": 52,
       "md5": "a4085a53197175d148588bb2d38a823d",
       "flags": 0
@@ -2246,7 +2246,7 @@
     {
       "path": "scripts/combat_projectile.gdc",
       "source": "scripts/combat_projectile.gdc",
-      "offset": 95415520,
+      "offset": 95416064,
       "size": 7397,
       "md5": "4482337450ce51e34a5cce3ac99441e9",
       "flags": 0
@@ -2254,7 +2254,7 @@
     {
       "path": "scripts/enemies/reference_enemy.gd.remap",
       "source": "scripts/enemies/reference_enemy.gd.remap",
-      "offset": 95745072,
+      "offset": 95757664,
       "size": 58,
       "md5": "5412f23dfec958fdbf74f4c4087fd0dd",
       "flags": 0
@@ -2262,7 +2262,7 @@
     {
       "path": "scripts/enemies/reference_enemy.gdc",
       "source": "scripts/enemies/reference_enemy.gdc",
-      "offset": 95422928,
+      "offset": 95423472,
       "size": 15161,
       "md5": "69718d7d6f723a613b20663ed2a937ed",
       "flags": 0
@@ -2270,7 +2270,7 @@
     {
       "path": "scripts/forest_arrival.gd.remap",
       "source": "scripts/forest_arrival.gd.remap",
-      "offset": 95745136,
+      "offset": 95757728,
       "size": 49,
       "md5": "12c4cd272e99348e82be6eaf40a901f7",
       "flags": 0
@@ -2278,7 +2278,7 @@
     {
       "path": "scripts/forest_arrival.gdc",
       "source": "scripts/forest_arrival.gdc",
-      "offset": 95438096,
+      "offset": 95438640,
       "size": 4843,
       "md5": "73250bdc87cd750f5f18b74acf12ada5",
       "flags": 0
@@ -2286,7 +2286,7 @@
     {
       "path": "scripts/forest_arrival_layout.gd.remap",
       "source": "scripts/forest_arrival_layout.gd.remap",
-      "offset": 95745200,
+      "offset": 95757792,
       "size": 56,
       "md5": "0461a4c61602f30d48279ea38b0bc5b4",
       "flags": 0
@@ -2294,7 +2294,7 @@
     {
       "path": "scripts/forest_arrival_layout.gdc",
       "source": "scripts/forest_arrival_layout.gdc",
-      "offset": 95442944,
+      "offset": 95443488,
       "size": 4181,
       "md5": "40935db5b1b24237b564c10b6d9047d2",
       "flags": 0
@@ -2302,7 +2302,7 @@
     {
       "path": "scripts/forest_chamber.gd.remap",
       "source": "scripts/forest_chamber.gd.remap",
-      "offset": 95745264,
+      "offset": 95757856,
       "size": 49,
       "md5": "20e87159e76636eb97a383b5f2c00265",
       "flags": 0
@@ -2310,7 +2310,7 @@
     {
       "path": "scripts/forest_chamber.gdc",
       "source": "scripts/forest_chamber.gdc",
-      "offset": 95447136,
+      "offset": 95447680,
       "size": 1530,
       "md5": "1b82a58654df168ca71727da5cefa24b",
       "flags": 0
@@ -2318,7 +2318,7 @@
     {
       "path": "scripts/forest_dash_galleries.gd.remap",
       "source": "scripts/forest_dash_galleries.gd.remap",
-      "offset": 95745328,
+      "offset": 95757920,
       "size": 56,
       "md5": "86593610bbc551b24cc01afdcb16a5ef",
       "flags": 0
@@ -2326,7 +2326,7 @@
     {
       "path": "scripts/forest_dash_galleries.gdc",
       "source": "scripts/forest_dash_galleries.gdc",
-      "offset": 95448672,
+      "offset": 95449216,
       "size": 2661,
       "md5": "34e2463d1bf83953bb455f61f1ccfb72",
       "flags": 0
@@ -2334,7 +2334,7 @@
     {
       "path": "scripts/forest_dash_galleries_layout.gd.remap",
       "source": "scripts/forest_dash_galleries_layout.gd.remap",
-      "offset": 95745392,
+      "offset": 95757984,
       "size": 63,
       "md5": "74d08d708384ac947df8e235bfb9f07a",
       "flags": 0
@@ -2342,7 +2342,7 @@
     {
       "path": "scripts/forest_dash_galleries_layout.gdc",
       "source": "scripts/forest_dash_galleries_layout.gdc",
-      "offset": 95451344,
+      "offset": 95451888,
       "size": 1453,
       "md5": "fbb9d42cde2cc22da84b360d437d715c",
       "flags": 0
@@ -2350,7 +2350,7 @@
     {
       "path": "scripts/forest_elevated_gallery.gd.remap",
       "source": "scripts/forest_elevated_gallery.gd.remap",
-      "offset": 95745456,
+      "offset": 95758048,
       "size": 58,
       "md5": "5f3e3b83704fdf322f6286ba87765d4a",
       "flags": 0
@@ -2358,7 +2358,7 @@
     {
       "path": "scripts/forest_elevated_gallery.gdc",
       "source": "scripts/forest_elevated_gallery.gdc",
-      "offset": 95452800,
+      "offset": 95453344,
       "size": 1965,
       "md5": "6a31d7bd7788fb71203de65dc2a1b156",
       "flags": 0
@@ -2366,7 +2366,7 @@
     {
       "path": "scripts/forest_elevated_gallery_layout.gd.remap",
       "source": "scripts/forest_elevated_gallery_layout.gd.remap",
-      "offset": 95745520,
+      "offset": 95758112,
       "size": 65,
       "md5": "3cd0d1df714ead3116f17214fc299040",
       "flags": 0
@@ -2374,7 +2374,7 @@
     {
       "path": "scripts/forest_elevated_gallery_layout.gdc",
       "source": "scripts/forest_elevated_gallery_layout.gdc",
-      "offset": 95454768,
+      "offset": 95455312,
       "size": 1548,
       "md5": "f26fbbda539b8f775f2ee9eae3ecbe56",
       "flags": 0
@@ -2382,7 +2382,7 @@
     {
       "path": "scripts/forest_encounters.gd.remap",
       "source": "scripts/forest_encounters.gd.remap",
-      "offset": 95745600,
+      "offset": 95758192,
       "size": 52,
       "md5": "70a3f826bda4235c3ab87b1e1b78aa19",
       "flags": 0
@@ -2390,7 +2390,7 @@
     {
       "path": "scripts/forest_encounters.gdc",
       "source": "scripts/forest_encounters.gdc",
-      "offset": 95456320,
+      "offset": 95456864,
       "size": 6786,
       "md5": "4f3628e5921b4abd89e16454953ccc4e",
       "flags": 0
@@ -2398,7 +2398,7 @@
     {
       "path": "scripts/forest_entry.gd.remap",
       "source": "scripts/forest_entry.gd.remap",
-      "offset": 95745664,
+      "offset": 95758256,
       "size": 47,
       "md5": "791d2b5462bb3011df41c4e969c90330",
       "flags": 0
@@ -2406,15 +2406,15 @@
     {
       "path": "scripts/forest_entry.gdc",
       "source": "scripts/forest_entry.gdc",
-      "offset": 95463120,
-      "size": 27233,
-      "md5": "4e7725268f1eb552fa2ed029b0cd0984",
+      "offset": 95463664,
+      "size": 36696,
+      "md5": "628ce9fda1d53415a2e1cd196d2df772",
       "flags": 0
     },
     {
       "path": "scripts/forest_final_stair.gd.remap",
       "source": "scripts/forest_final_stair.gd.remap",
-      "offset": 95745712,
+      "offset": 95758304,
       "size": 53,
       "md5": "7d42559e2084ee52eac87291f87bd7f6",
       "flags": 0
@@ -2422,7 +2422,7 @@
     {
       "path": "scripts/forest_final_stair.gdc",
       "source": "scripts/forest_final_stair.gdc",
-      "offset": 95490368,
+      "offset": 95500368,
       "size": 1720,
       "md5": "75bdbd9986c581f7d9795ecf0d4f7dd6",
       "flags": 0
@@ -2430,7 +2430,7 @@
     {
       "path": "scripts/forest_final_stair_layout.gd.remap",
       "source": "scripts/forest_final_stair_layout.gd.remap",
-      "offset": 95745776,
+      "offset": 95758368,
       "size": 60,
       "md5": "fbca20baa5b77f71992f1dfe2fa45c8a",
       "flags": 0
@@ -2438,7 +2438,7 @@
     {
       "path": "scripts/forest_final_stair_layout.gdc",
       "source": "scripts/forest_final_stair_layout.gdc",
-      "offset": 95492096,
+      "offset": 95502096,
       "size": 1209,
       "md5": "e1b77a1c77fcdaff82d292d85013558c",
       "flags": 0
@@ -2446,7 +2446,7 @@
     {
       "path": "scripts/forest_foreground.gdshader",
       "source": "scripts/forest_foreground.gdshader",
-      "offset": 95493312,
+      "offset": 95503312,
       "size": 214,
       "md5": "af3beef5f462afc331a43f7c28fbd300",
       "flags": 0
@@ -2454,7 +2454,7 @@
     {
       "path": "scripts/forest_gallery.gd.remap",
       "source": "scripts/forest_gallery.gd.remap",
-      "offset": 95745840,
+      "offset": 95758432,
       "size": 49,
       "md5": "55d2eca7a09b4072a58bb3989bcfc36a",
       "flags": 0
@@ -2462,7 +2462,7 @@
     {
       "path": "scripts/forest_gallery.gdc",
       "source": "scripts/forest_gallery.gdc",
-      "offset": 95493536,
+      "offset": 95503536,
       "size": 1653,
       "md5": "ad7069f21137662a06f8756237675e53",
       "flags": 0
@@ -2470,7 +2470,7 @@
     {
       "path": "scripts/forest_gallery_layout.gd.remap",
       "source": "scripts/forest_gallery_layout.gd.remap",
-      "offset": 95745904,
+      "offset": 95758496,
       "size": 56,
       "md5": "b53dc14b43011769b8057c42e0330215",
       "flags": 0
@@ -2478,7 +2478,7 @@
     {
       "path": "scripts/forest_gallery_layout.gdc",
       "source": "scripts/forest_gallery_layout.gdc",
-      "offset": 95495200,
+      "offset": 95505200,
       "size": 1997,
       "md5": "c545be5223dd097f81bbd657c734573a",
       "flags": 0
@@ -2486,7 +2486,7 @@
     {
       "path": "scripts/forest_guardian_fx.gd.remap",
       "source": "scripts/forest_guardian_fx.gd.remap",
-      "offset": 95745968,
+      "offset": 95758560,
       "size": 53,
       "md5": "08d7a52c91ca1cb39da7f0a96d2cecee",
       "flags": 0
@@ -2494,7 +2494,7 @@
     {
       "path": "scripts/forest_guardian_fx.gdc",
       "source": "scripts/forest_guardian_fx.gdc",
-      "offset": 95497200,
+      "offset": 95507200,
       "size": 2196,
       "md5": "50cb09a8e7745b740e5bc8cefe9946f9",
       "flags": 0
@@ -2502,7 +2502,7 @@
     {
       "path": "scripts/forest_guardian_impact.gd.remap",
       "source": "scripts/forest_guardian_impact.gd.remap",
-      "offset": 95746032,
+      "offset": 95758624,
       "size": 57,
       "md5": "fabe0aca7c2796a65c42ee108c711e44",
       "flags": 0
@@ -2510,7 +2510,7 @@
     {
       "path": "scripts/forest_guardian_impact.gdc",
       "source": "scripts/forest_guardian_impact.gdc",
-      "offset": 95499408,
+      "offset": 95509408,
       "size": 933,
       "md5": "b03b682d3cc369387c9d41442b4f3015",
       "flags": 0
@@ -2518,7 +2518,7 @@
     {
       "path": "scripts/forest_guardian_spirit.gd.remap",
       "source": "scripts/forest_guardian_spirit.gd.remap",
-      "offset": 95746096,
+      "offset": 95758688,
       "size": 57,
       "md5": "39501ac0ccb5a34135b62852d8b93a22",
       "flags": 0
@@ -2526,7 +2526,7 @@
     {
       "path": "scripts/forest_guardian_spirit.gdc",
       "source": "scripts/forest_guardian_spirit.gdc",
-      "offset": 95500352,
+      "offset": 95510352,
       "size": 3440,
       "md5": "989a3046a7cf049d6a3ed6cc466bd4f2",
       "flags": 0
@@ -2534,7 +2534,7 @@
     {
       "path": "scripts/forest_hunter_combat.gd.remap",
       "source": "scripts/forest_hunter_combat.gd.remap",
-      "offset": 95746160,
+      "offset": 95758752,
       "size": 55,
       "md5": "91f1d6d60294b0293c58f9ea6d6f0339",
       "flags": 0
@@ -2542,7 +2542,7 @@
     {
       "path": "scripts/forest_hunter_combat.gdc",
       "source": "scripts/forest_hunter_combat.gdc",
-      "offset": 95503792,
+      "offset": 95513792,
       "size": 7692,
       "md5": "56ff8f42dbab7a9cb35fa41949080e7e",
       "flags": 0
@@ -2550,7 +2550,7 @@
     {
       "path": "scripts/forest_return_gallery.gd.remap",
       "source": "scripts/forest_return_gallery.gd.remap",
-      "offset": 95746224,
+      "offset": 95758816,
       "size": 56,
       "md5": "1b346a6b2f008f53380737dc014663bd",
       "flags": 0
@@ -2558,7 +2558,7 @@
     {
       "path": "scripts/forest_return_gallery.gdc",
       "source": "scripts/forest_return_gallery.gdc",
-      "offset": 95511488,
+      "offset": 95521488,
       "size": 2000,
       "md5": "4e1463bea2b268c26171be870fb07ee5",
       "flags": 0
@@ -2566,7 +2566,7 @@
     {
       "path": "scripts/forest_return_gallery_layout.gd.remap",
       "source": "scripts/forest_return_gallery_layout.gd.remap",
-      "offset": 95746288,
+      "offset": 95758880,
       "size": 63,
       "md5": "76e73170bb7e93f67ce195a3c468dfbf",
       "flags": 0
@@ -2574,7 +2574,7 @@
     {
       "path": "scripts/forest_return_gallery_layout.gdc",
       "source": "scripts/forest_return_gallery_layout.gdc",
-      "offset": 95513488,
+      "offset": 95523488,
       "size": 1716,
       "md5": "d4bfd65504ccbcfb577a59c7c359cc6a",
       "flags": 0
@@ -2582,7 +2582,7 @@
     {
       "path": "scripts/forest_room_plate.gdshader",
       "source": "scripts/forest_room_plate.gdshader",
-      "offset": 95515216,
+      "offset": 95525216,
       "size": 667,
       "md5": "b3293306b994fafb1a938e1b4bea3591",
       "flags": 0
@@ -2590,7 +2590,7 @@
     {
       "path": "scripts/forest_smash_corridor.gd.remap",
       "source": "scripts/forest_smash_corridor.gd.remap",
-      "offset": 95746352,
+      "offset": 95758944,
       "size": 56,
       "md5": "2b5252fb5ae26a569bb3a69f0d12120c",
       "flags": 0
@@ -2598,7 +2598,7 @@
     {
       "path": "scripts/forest_smash_corridor.gdc",
       "source": "scripts/forest_smash_corridor.gdc",
-      "offset": 95515888,
+      "offset": 95525888,
       "size": 2556,
       "md5": "4e8162505327bdb525e621b68b893c3b",
       "flags": 0
@@ -2606,7 +2606,7 @@
     {
       "path": "scripts/forest_smash_corridor_layout.gd.remap",
       "source": "scripts/forest_smash_corridor_layout.gd.remap",
-      "offset": 95746416,
+      "offset": 95759008,
       "size": 63,
       "md5": "bfb4d31db9b109f71b7bb35dfaffa4f0",
       "flags": 0
@@ -2614,7 +2614,7 @@
     {
       "path": "scripts/forest_smash_corridor_layout.gdc",
       "source": "scripts/forest_smash_corridor_layout.gdc",
-      "offset": 95518448,
+      "offset": 95528448,
       "size": 1683,
       "md5": "2a91c7d0c5bf3e8d057b99a71b32b7c7",
       "flags": 0
@@ -2622,7 +2622,7 @@
     {
       "path": "scripts/forest_split_hall.gd.remap",
       "source": "scripts/forest_split_hall.gd.remap",
-      "offset": 95746480,
+      "offset": 95759072,
       "size": 52,
       "md5": "a2ec233152322ebaa1bd0f15af6181b7",
       "flags": 0
@@ -2630,7 +2630,7 @@
     {
       "path": "scripts/forest_split_hall.gdc",
       "source": "scripts/forest_split_hall.gdc",
-      "offset": 95520144,
+      "offset": 95530144,
       "size": 4575,
       "md5": "1ea365291aa951319c1350a8caa6150c",
       "flags": 0
@@ -2638,7 +2638,7 @@
     {
       "path": "scripts/forest_split_hall_layout.gd.remap",
       "source": "scripts/forest_split_hall_layout.gd.remap",
-      "offset": 95746544,
+      "offset": 95759136,
       "size": 59,
       "md5": "2d802384f17cf4acad9c059ce53e5797",
       "flags": 0
@@ -2646,7 +2646,7 @@
     {
       "path": "scripts/forest_split_hall_layout.gdc",
       "source": "scripts/forest_split_hall_layout.gdc",
-      "offset": 95524720,
+      "offset": 95534720,
       "size": 1689,
       "md5": "9b7ecc8e6ee0d718bd0f0aca39371da3",
       "flags": 0
@@ -2654,7 +2654,7 @@
     {
       "path": "scripts/forest_stair.gd.remap",
       "source": "scripts/forest_stair.gd.remap",
-      "offset": 95746608,
+      "offset": 95759200,
       "size": 47,
       "md5": "2bad14757fa41bdb5955908455944528",
       "flags": 0
@@ -2662,7 +2662,7 @@
     {
       "path": "scripts/forest_stair.gdc",
       "source": "scripts/forest_stair.gdc",
-      "offset": 95526416,
+      "offset": 95536416,
       "size": 1587,
       "md5": "814c5dc81b4c10540260adb15b06a386",
       "flags": 0
@@ -2670,7 +2670,7 @@
     {
       "path": "scripts/forest_stair_layout.gd.remap",
       "source": "scripts/forest_stair_layout.gd.remap",
-      "offset": 95746656,
+      "offset": 95759248,
       "size": 54,
       "md5": "b3ddfad96db3d612df6c5081285274ac",
       "flags": 0
@@ -2678,7 +2678,7 @@
     {
       "path": "scripts/forest_stair_layout.gdc",
       "source": "scripts/forest_stair_layout.gdc",
-      "offset": 95528016,
+      "offset": 95538016,
       "size": 1525,
       "md5": "e2b9006793e80275bbf9ab839bc027d7",
       "flags": 0
@@ -2686,7 +2686,7 @@
     {
       "path": "scripts/forest_stepped_gallery.gd.remap",
       "source": "scripts/forest_stepped_gallery.gd.remap",
-      "offset": 95746720,
+      "offset": 95759312,
       "size": 57,
       "md5": "69f7a0e68e8131abdf64787133c6c354",
       "flags": 0
@@ -2694,7 +2694,7 @@
     {
       "path": "scripts/forest_stepped_gallery.gdc",
       "source": "scripts/forest_stepped_gallery.gdc",
-      "offset": 95529552,
+      "offset": 95539552,
       "size": 1942,
       "md5": "9a9af06271a9cc0deb0c8873b026ffc9",
       "flags": 0
@@ -2702,7 +2702,7 @@
     {
       "path": "scripts/forest_stepped_gallery_layout.gd.remap",
       "source": "scripts/forest_stepped_gallery_layout.gd.remap",
-      "offset": 95746784,
+      "offset": 95759376,
       "size": 64,
       "md5": "d78bc196f112aa55eec6785ed6d522fb",
       "flags": 0
@@ -2710,7 +2710,7 @@
     {
       "path": "scripts/forest_stepped_gallery_layout.gdc",
       "source": "scripts/forest_stepped_gallery_layout.gdc",
-      "offset": 95531504,
+      "offset": 95541504,
       "size": 1529,
       "md5": "5a285c0c0983b739c689d63834c9b9cd",
       "flags": 0
@@ -2718,7 +2718,7 @@
     {
       "path": "scripts/forest_temple_guardian.gd.remap",
       "source": "scripts/forest_temple_guardian.gd.remap",
-      "offset": 95746848,
+      "offset": 95759440,
       "size": 57,
       "md5": "df5cac55a7a4480dac15f307a4535ced",
       "flags": 0
@@ -2726,7 +2726,7 @@
     {
       "path": "scripts/forest_temple_guardian.gdc",
       "source": "scripts/forest_temple_guardian.gdc",
-      "offset": 95533040,
+      "offset": 95543040,
       "size": 4677,
       "md5": "5b707118d4b16451a291e55de6e9ce60",
       "flags": 0
@@ -2734,7 +2734,7 @@
     {
       "path": "scripts/forest_temple_hand.gd.remap",
       "source": "scripts/forest_temple_hand.gd.remap",
-      "offset": 95746912,
+      "offset": 95759504,
       "size": 53,
       "md5": "72bc9c13edda8ae3040d876d1cd5e058",
       "flags": 0
@@ -2742,7 +2742,7 @@
     {
       "path": "scripts/forest_temple_hand.gdc",
       "source": "scripts/forest_temple_hand.gdc",
-      "offset": 95537728,
+      "offset": 95547728,
       "size": 863,
       "md5": "d842518b425152d8557dca0da1a173af",
       "flags": 0
@@ -2750,7 +2750,7 @@
     {
       "path": "scripts/forest_upper_gallery.gd.remap",
       "source": "scripts/forest_upper_gallery.gd.remap",
-      "offset": 95746976,
+      "offset": 95759568,
       "size": 55,
       "md5": "007c7db236b5bc383e935252d2df3592",
       "flags": 0
@@ -2758,7 +2758,7 @@
     {
       "path": "scripts/forest_upper_gallery.gdc",
       "source": "scripts/forest_upper_gallery.gdc",
-      "offset": 95538592,
+      "offset": 95548592,
       "size": 1987,
       "md5": "c9b7beaecca150b1cf07a6c75d25744e",
       "flags": 0
@@ -2766,7 +2766,7 @@
     {
       "path": "scripts/forest_upper_gallery_layout.gd.remap",
       "source": "scripts/forest_upper_gallery_layout.gd.remap",
-      "offset": 95747040,
+      "offset": 95759632,
       "size": 62,
       "md5": "980c5e1a190c5303e5b672d6d342e869",
       "flags": 0
@@ -2774,7 +2774,7 @@
     {
       "path": "scripts/forest_upper_gallery_layout.gdc",
       "source": "scripts/forest_upper_gallery_layout.gdc",
-      "offset": 95540592,
+      "offset": 95550592,
       "size": 1434,
       "md5": "3a7e9c610c0c584528926769eb7d7d97",
       "flags": 0
@@ -2782,7 +2782,7 @@
     {
       "path": "scripts/forest_world_layout.gd.remap",
       "source": "scripts/forest_world_layout.gd.remap",
-      "offset": 95747104,
+      "offset": 95759696,
       "size": 54,
       "md5": "1f260be08f241b672ba7f4a1ca84e96b",
       "flags": 0
@@ -2790,15 +2790,15 @@
     {
       "path": "scripts/forest_world_layout.gdc",
       "source": "scripts/forest_world_layout.gdc",
-      "offset": 95542032,
-      "size": 416,
-      "md5": "9cb9777d6c253c130955173f056a106a",
+      "offset": 95552032,
+      "size": 526,
+      "md5": "f24b1c99b078cd6fef2127e277af782d",
       "flags": 0
     },
     {
       "path": "scripts/gallery_art.gd.remap",
       "source": "scripts/gallery_art.gd.remap",
-      "offset": 95747168,
+      "offset": 95759760,
       "size": 46,
       "md5": "975a790dbeb4364295b4484bd7f3e193",
       "flags": 0
@@ -2806,7 +2806,7 @@
     {
       "path": "scripts/gallery_art.gdc",
       "source": "scripts/gallery_art.gdc",
-      "offset": 95542448,
+      "offset": 95552560,
       "size": 6837,
       "md5": "02951ea819ba369960b5f67b5e6ddc68",
       "flags": 0
@@ -2814,7 +2814,7 @@
     {
       "path": "scripts/gallery_encounters.gd.remap",
       "source": "scripts/gallery_encounters.gd.remap",
-      "offset": 95747216,
+      "offset": 95759808,
       "size": 53,
       "md5": "abe862f3c3579de7b05c9846a4b5ca58",
       "flags": 0
@@ -2822,15 +2822,15 @@
     {
       "path": "scripts/gallery_encounters.gdc",
       "source": "scripts/gallery_encounters.gdc",
-      "offset": 95549296,
-      "size": 3768,
-      "md5": "9e1e5875ec014348a3b0d688d707eb1d",
+      "offset": 95559408,
+      "size": 3763,
+      "md5": "ac74ab2cfc0f061f50820057848fcea0",
       "flags": 0
     },
     {
       "path": "scripts/game_audio.gd.remap",
       "source": "scripts/game_audio.gd.remap",
-      "offset": 95747280,
+      "offset": 95759872,
       "size": 45,
       "md5": "bc53d4e2976e24d364c7b899b5ac90a7",
       "flags": 0
@@ -2838,7 +2838,7 @@
     {
       "path": "scripts/game_audio.gdc",
       "source": "scripts/game_audio.gdc",
-      "offset": 95553072,
+      "offset": 95563184,
       "size": 2857,
       "md5": "99763b4e3c26d053154e8442def9e802",
       "flags": 0
@@ -2846,7 +2846,7 @@
     {
       "path": "scripts/game_menu.gd.remap",
       "source": "scripts/game_menu.gd.remap",
-      "offset": 95747328,
+      "offset": 95759920,
       "size": 44,
       "md5": "f5de316f52415dc5c0b9b5f6f8f8cab9",
       "flags": 0
@@ -2854,7 +2854,7 @@
     {
       "path": "scripts/game_menu.gdc",
       "source": "scripts/game_menu.gdc",
-      "offset": 95555936,
+      "offset": 95566048,
       "size": 13171,
       "md5": "da230f7dcefa96c45a158a8e6d054fde",
       "flags": 0
@@ -2862,7 +2862,7 @@
     {
       "path": "scripts/goblin_boss.gd.remap",
       "source": "scripts/goblin_boss.gd.remap",
-      "offset": 95747376,
+      "offset": 95759968,
       "size": 46,
       "md5": "6a84c5c91acdee72d43b94ea7d5e3417",
       "flags": 0
@@ -2870,7 +2870,7 @@
     {
       "path": "scripts/goblin_boss.gdc",
       "source": "scripts/goblin_boss.gdc",
-      "offset": 95569120,
+      "offset": 95579232,
       "size": 6867,
       "md5": "8ef014e2d6a854cb86534658d4cd1a6c",
       "flags": 0
@@ -2878,7 +2878,7 @@
     {
       "path": "scripts/goblin_combat_fx.gd.remap",
       "source": "scripts/goblin_combat_fx.gd.remap",
-      "offset": 95747424,
+      "offset": 95760016,
       "size": 51,
       "md5": "98af8d6f4d22bb8d9b6e3c5305501b2a",
       "flags": 0
@@ -2886,7 +2886,7 @@
     {
       "path": "scripts/goblin_combat_fx.gdc",
       "source": "scripts/goblin_combat_fx.gdc",
-      "offset": 95576000,
+      "offset": 95586112,
       "size": 5727,
       "md5": "85f8d873b81324f213b63008be150a30",
       "flags": 0
@@ -2894,7 +2894,7 @@
     {
       "path": "scripts/hand_menu.gd.remap",
       "source": "scripts/hand_menu.gd.remap",
-      "offset": 95747488,
+      "offset": 95760080,
       "size": 44,
       "md5": "b3b99f3d2b85835b3bc2ea948df0ef34",
       "flags": 0
@@ -2902,7 +2902,7 @@
     {
       "path": "scripts/hand_menu.gdc",
       "source": "scripts/hand_menu.gdc",
-      "offset": 95581728,
+      "offset": 95591840,
       "size": 3785,
       "md5": "a477be94809ef052aa68cc599952c42e",
       "flags": 0
@@ -2910,7 +2910,7 @@
     {
       "path": "scripts/hud.gd.remap",
       "source": "scripts/hud.gd.remap",
-      "offset": 95747536,
+      "offset": 95760128,
       "size": 38,
       "md5": "8e02593165028c666aea3ccaa63ef591",
       "flags": 0
@@ -2918,15 +2918,15 @@
     {
       "path": "scripts/hud.gdc",
       "source": "scripts/hud.gdc",
-      "offset": 95585520,
-      "size": 6772,
-      "md5": "ecc348890b79a3dcfff4853a6e6e4623",
+      "offset": 95595632,
+      "size": 6807,
+      "md5": "a54338213443822396bc6afb5869eca5",
       "flags": 0
     },
     {
       "path": "scripts/ironback_boss_test.gd.remap",
       "source": "scripts/ironback_boss_test.gd.remap",
-      "offset": 95747584,
+      "offset": 95760176,
       "size": 53,
       "md5": "235c660f71c28199c78be3d4b32660e9",
       "flags": 0
@@ -2934,7 +2934,7 @@
     {
       "path": "scripts/ironback_boss_test.gdc",
       "source": "scripts/ironback_boss_test.gdc",
-      "offset": 95592304,
+      "offset": 95602448,
       "size": 4263,
       "md5": "e5e780b847701cc40489ad55b11f49fc",
       "flags": 0
@@ -2942,7 +2942,7 @@
     {
       "path": "scripts/ironback_full_boss.gd.remap",
       "source": "scripts/ironback_full_boss.gd.remap",
-      "offset": 95747648,
+      "offset": 95760240,
       "size": 53,
       "md5": "49da24272427c40d3341fe815e10932e",
       "flags": 0
@@ -2950,15 +2950,15 @@
     {
       "path": "scripts/ironback_full_boss.gdc",
       "source": "scripts/ironback_full_boss.gdc",
-      "offset": 95596576,
-      "size": 13549,
-      "md5": "71f6528753f335cecffdb49fb5bbbda1",
+      "offset": 95606720,
+      "size": 13978,
+      "md5": "2c4a68ee76fe61756ad8c3ab2a9e8818",
       "flags": 0
     },
     {
       "path": "scripts/ironback_v2_fx.gd.remap",
       "source": "scripts/ironback_v2_fx.gd.remap",
-      "offset": 95747712,
+      "offset": 95760304,
       "size": 49,
       "md5": "84bf9d384f3d7070469bf80d37565dd0",
       "flags": 0
@@ -2966,7 +2966,7 @@
     {
       "path": "scripts/ironback_v2_fx.gdc",
       "source": "scripts/ironback_v2_fx.gdc",
-      "offset": 95610128,
+      "offset": 95620704,
       "size": 2379,
       "md5": "afd555ce9a0508e3fbd02ff8033beb33",
       "flags": 0
@@ -2974,7 +2974,7 @@
     {
       "path": "scripts/ironback_v2_shockwave.gd.remap",
       "source": "scripts/ironback_v2_shockwave.gd.remap",
-      "offset": 95747776,
+      "offset": 95760368,
       "size": 56,
       "md5": "c5c6b0d7e48bb2072ae65f38167868ad",
       "flags": 0
@@ -2982,7 +2982,7 @@
     {
       "path": "scripts/ironback_v2_shockwave.gdc",
       "source": "scripts/ironback_v2_shockwave.gdc",
-      "offset": 95612512,
+      "offset": 95623088,
       "size": 1637,
       "md5": "7422cddf668515dfa1071ddd52fae231",
       "flags": 0
@@ -2990,7 +2990,7 @@
     {
       "path": "scripts/ledge_sentinel.gd.remap",
       "source": "scripts/ledge_sentinel.gd.remap",
-      "offset": 95747840,
+      "offset": 95760432,
       "size": 49,
       "md5": "5da05033295be603ceaa05c696217370",
       "flags": 0
@@ -2998,15 +2998,15 @@
     {
       "path": "scripts/ledge_sentinel.gdc",
       "source": "scripts/ledge_sentinel.gdc",
-      "offset": 95614160,
-      "size": 6439,
-      "md5": "72dd868660a0d71bc6f75691aa4ec9b5",
+      "offset": 95624736,
+      "size": 6631,
+      "md5": "58034dfa283f0efd94cdc50c7ca35a6c",
       "flags": 0
     },
     {
       "path": "scripts/loading_overlay.gd.remap",
       "source": "scripts/loading_overlay.gd.remap",
-      "offset": 95747904,
+      "offset": 95760496,
       "size": 50,
       "md5": "c0475838e3c9bc128e4ee22d755d47e2",
       "flags": 0
@@ -3014,7 +3014,7 @@
     {
       "path": "scripts/loading_overlay.gdc",
       "source": "scripts/loading_overlay.gdc",
-      "offset": 95620608,
+      "offset": 95631376,
       "size": 842,
       "md5": "3e9f24c121feed136d0122d9ac0ec894",
       "flags": 0
@@ -3022,7 +3022,7 @@
     {
       "path": "scripts/main_menu.gd.remap",
       "source": "scripts/main_menu.gd.remap",
-      "offset": 95747968,
+      "offset": 95760560,
       "size": 44,
       "md5": "56a3d546e40ee217f36c7b900afa2bd1",
       "flags": 0
@@ -3030,7 +3030,7 @@
     {
       "path": "scripts/main_menu.gdc",
       "source": "scripts/main_menu.gdc",
-      "offset": 95621456,
+      "offset": 95632224,
       "size": 12168,
       "md5": "e0509f6929bf4894871ff451e5c5ff41",
       "flags": 0
@@ -3038,7 +3038,7 @@
     {
       "path": "scripts/map_art.gd.remap",
       "source": "scripts/map_art.gd.remap",
-      "offset": 95748016,
+      "offset": 95760608,
       "size": 42,
       "md5": "857dba68590e2671801ca660e2704c8c",
       "flags": 0
@@ -3046,7 +3046,7 @@
     {
       "path": "scripts/map_art.gdc",
       "source": "scripts/map_art.gdc",
-      "offset": 95633632,
+      "offset": 95644400,
       "size": 11030,
       "md5": "029fe089bbde74efe77e9d3546e69bd3",
       "flags": 0
@@ -3054,7 +3054,7 @@
     {
       "path": "scripts/nav_system.gd.remap",
       "source": "scripts/nav_system.gd.remap",
-      "offset": 95748064,
+      "offset": 95760656,
       "size": 45,
       "md5": "72115e25b344e4dfef4ff609877594d9",
       "flags": 0
@@ -3062,7 +3062,7 @@
     {
       "path": "scripts/nav_system.gdc",
       "source": "scripts/nav_system.gdc",
-      "offset": 95644672,
+      "offset": 95655440,
       "size": 1257,
       "md5": "ff795ee8313cbbaab8480994be444248",
       "flags": 0
@@ -3070,7 +3070,7 @@
     {
       "path": "scripts/offering_item.gd.remap",
       "source": "scripts/offering_item.gd.remap",
-      "offset": 95748112,
+      "offset": 95760704,
       "size": 48,
       "md5": "7f156b023aff7090d18aa5cbf355d254",
       "flags": 0
@@ -3078,7 +3078,7 @@
     {
       "path": "scripts/offering_item.gdc",
       "source": "scripts/offering_item.gdc",
-      "offset": 95645936,
+      "offset": 95656704,
       "size": 1387,
       "md5": "ed9efbe39d3d26ddb1c0c863f1a71ec3",
       "flags": 0
@@ -3086,7 +3086,7 @@
     {
       "path": "scripts/pause_menu.gd.remap",
       "source": "scripts/pause_menu.gd.remap",
-      "offset": 95748160,
+      "offset": 95760752,
       "size": 45,
       "md5": "7bb3898fdce37cb2e36bd7be5d24153b",
       "flags": 0
@@ -3094,7 +3094,7 @@
     {
       "path": "scripts/pause_menu.gdc",
       "source": "scripts/pause_menu.gdc",
-      "offset": 95647328,
+      "offset": 95658096,
       "size": 5368,
       "md5": "c6c74dc61407503adf19f6fbaa2e2d16",
       "flags": 0
@@ -3102,7 +3102,7 @@
     {
       "path": "scripts/player.gd.remap",
       "source": "scripts/player.gd.remap",
-      "offset": 95748208,
+      "offset": 95760800,
       "size": 41,
       "md5": "f81b27b98ee7907504a70d34a65358fd",
       "flags": 0
@@ -3110,15 +3110,15 @@
     {
       "path": "scripts/player.gdc",
       "source": "scripts/player.gdc",
-      "offset": 95652704,
-      "size": 27362,
-      "md5": "8ac07b4cff7f2ac89d394a0534d0b602",
+      "offset": 95663472,
+      "size": 28684,
+      "md5": "743e9e95aaccf7fa80ec89b830af4411",
       "flags": 0
     },
     {
       "path": "scripts/player_charge_flash.gdshader",
       "source": "scripts/player_charge_flash.gdshader",
-      "offset": 95680080,
+      "offset": 95692160,
       "size": 318,
       "md5": "ac569741cf7d2fac7c54a2071f09a272",
       "flags": 0
@@ -3126,7 +3126,7 @@
     {
       "path": "scripts/player_presentation.gd.remap",
       "source": "scripts/player_presentation.gd.remap",
-      "offset": 95748256,
+      "offset": 95760848,
       "size": 54,
       "md5": "24c128c271eede17178fc3d1e7a541c3",
       "flags": 0
@@ -3134,7 +3134,7 @@
     {
       "path": "scripts/player_presentation.gdc",
       "source": "scripts/player_presentation.gdc",
-      "offset": 95680400,
+      "offset": 95692480,
       "size": 6520,
       "md5": "30e58ee24ceb1c7b31395c808554bdb7",
       "flags": 0
@@ -3142,7 +3142,7 @@
     {
       "path": "scripts/rabbit_boss.gd.remap",
       "source": "scripts/rabbit_boss.gd.remap",
-      "offset": 95748320,
+      "offset": 95760912,
       "size": 46,
       "md5": "ec19721e98d613e1e5002c8264292360",
       "flags": 0
@@ -3150,15 +3150,15 @@
     {
       "path": "scripts/rabbit_boss.gdc",
       "source": "scripts/rabbit_boss.gdc",
-      "offset": 95686928,
-      "size": 11090,
-      "md5": "8fd42ef53468c6f8fac6c1fce6b29d82",
+      "offset": 95699008,
+      "size": 11257,
+      "md5": "c56dca09da0e3e853dc444a70bd9ab52",
       "flags": 0
     },
     {
       "path": "scripts/rabbit_boss_test.gd.remap",
       "source": "scripts/rabbit_boss_test.gd.remap",
-      "offset": 95748368,
+      "offset": 95760960,
       "size": 51,
       "md5": "74fd3a717c45c53844bd3b15b723f3ed",
       "flags": 0
@@ -3166,7 +3166,7 @@
     {
       "path": "scripts/rabbit_boss_test.gdc",
       "source": "scripts/rabbit_boss_test.gdc",
-      "offset": 95698032,
+      "offset": 95710272,
       "size": 2915,
       "md5": "7cfcd7bcfa019e717e8d717611b59f02",
       "flags": 0
@@ -3174,7 +3174,7 @@
     {
       "path": "scripts/save_slots.gd.remap",
       "source": "scripts/save_slots.gd.remap",
-      "offset": 95748432,
+      "offset": 95761024,
       "size": 45,
       "md5": "31573288c2337fd4f271eb047000b28b",
       "flags": 0
@@ -3182,15 +3182,15 @@
     {
       "path": "scripts/save_slots.gdc",
       "source": "scripts/save_slots.gdc",
-      "offset": 95700960,
-      "size": 4810,
-      "md5": "4b67f2a27e98fa4f03db15cdd30afe12",
+      "offset": 95713200,
+      "size": 4993,
+      "md5": "6c65bda3c999f9db23f75c336cbfb3a4",
       "flags": 0
     },
     {
       "path": "scripts/scout.gd.remap",
       "source": "scripts/scout.gd.remap",
-      "offset": 95748480,
+      "offset": 95761072,
       "size": 40,
       "md5": "b10c01c02b66f114f7bcce3b73aca0f4",
       "flags": 0
@@ -3198,7 +3198,7 @@
     {
       "path": "scripts/scout.gdc",
       "source": "scripts/scout.gdc",
-      "offset": 95705776,
+      "offset": 95718208,
       "size": 5952,
       "md5": "ba29162560e4c828799d76df070169bb",
       "flags": 0
@@ -3206,7 +3206,7 @@
     {
       "path": "scripts/split_gallery.gd.remap",
       "source": "scripts/split_gallery.gd.remap",
-      "offset": 95748528,
+      "offset": 95761120,
       "size": 48,
       "md5": "23a520f4deea98c5717c29f3d14d8a58",
       "flags": 0
@@ -3214,7 +3214,7 @@
     {
       "path": "scripts/split_gallery.gdc",
       "source": "scripts/split_gallery.gdc",
-      "offset": 95711728,
+      "offset": 95724160,
       "size": 9056,
       "md5": "a1d08a91c39b990599743d45a170d6de",
       "flags": 0
@@ -3222,7 +3222,7 @@
     {
       "path": "scripts/split_gallery_layout.gd.remap",
       "source": "scripts/split_gallery_layout.gd.remap",
-      "offset": 95748576,
+      "offset": 95761168,
       "size": 55,
       "md5": "8af917f1d642be011795c02e178cad28",
       "flags": 0
@@ -3230,15 +3230,15 @@
     {
       "path": "scripts/split_gallery_layout.gdc",
       "source": "scripts/split_gallery_layout.gdc",
-      "offset": 95720784,
-      "size": 13251,
-      "md5": "b17d7fc71bca7ce227072eecfe119f30",
+      "offset": 95733216,
+      "size": 13413,
+      "md5": "1871d6ce0dcae6efe1eeedfc03c23296",
       "flags": 0
     },
     {
       "path": "scripts/temple_guardian_glow.gdshader",
       "source": "scripts/temple_guardian_glow.gdshader",
-      "offset": 95734048,
+      "offset": 95746640,
       "size": 456,
       "md5": "77ed0d1b66ed101ec5033d9fdd2955af",
       "flags": 0
@@ -3246,7 +3246,7 @@
     {
       "path": "scripts/temple_guardian_projectile.gd.remap",
       "source": "scripts/temple_guardian_projectile.gd.remap",
-      "offset": 95748640,
+      "offset": 95761232,
       "size": 61,
       "md5": "95a6f1959a9b0ace2ddf1776ff18c426",
       "flags": 0
@@ -3254,7 +3254,7 @@
     {
       "path": "scripts/temple_guardian_projectile.gdc",
       "source": "scripts/temple_guardian_projectile.gdc",
-      "offset": 95734512,
+      "offset": 95747104,
       "size": 1050,
       "md5": "25fecb47548bd36341b1fe0145f827f6",
       "flags": 0
@@ -3262,7 +3262,7 @@
     {
       "path": "scripts/tutorial_world.gd.remap",
       "source": "scripts/tutorial_world.gd.remap",
-      "offset": 95744608,
+      "offset": 95757200,
       "size": 49,
       "md5": "f4a64573b208a41591294fb48197ed87",
       "flags": 0
@@ -3271,14 +3271,14 @@
       "path": "scripts/tutorial_world.gdc",
       "source": "scripts/tutorial_world.gdc",
       "offset": 95362384,
-      "size": 37140,
-      "md5": "f0bd8225dff2b497df5631388edc5664",
+      "size": 37663,
+      "md5": "0337848674070843c60e7b251206c923",
       "flags": 0
     },
     {
       "path": "scripts/will_orb.gd.remap",
       "source": "scripts/will_orb.gd.remap",
-      "offset": 95748704,
+      "offset": 95761296,
       "size": 43,
       "md5": "40ad4d420034096b4b24c6d89fe9ecca",
       "flags": 0
@@ -3286,7 +3286,7 @@
     {
       "path": "scripts/will_orb.gdc",
       "source": "scripts/will_orb.gdc",
-      "offset": 95735568,
+      "offset": 95748160,
       "size": 1304,
       "md5": "816550f0db4b0d13388e3900b939e32c",
       "flags": 0
@@ -3294,7 +3294,7 @@
     {
       "path": "scripts/world_map.gd.remap",
       "source": "scripts/world_map.gd.remap",
-      "offset": 95748752,
+      "offset": 95761344,
       "size": 44,
       "md5": "aad1cd8f668b5974714a4edb01294b5f",
       "flags": 0
@@ -3302,7 +3302,7 @@
     {
       "path": "scripts/world_map.gdc",
       "source": "scripts/world_map.gdc",
-      "offset": 95736880,
+      "offset": 95749472,
       "size": 5677,
       "md5": "f40ac15b2d6b0e3fcf76ff954c0a23df",
       "flags": 0
