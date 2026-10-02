@@ -1,6 +1,7 @@
 extends Node2D
 
 const PLAYER = preload("res://scripts/player.gd")
+const INHERITANCE_STATE = preload("res://scripts/inheritance_state.gd")
 const HUD = preload("res://scripts/hud.gd")
 const SLOTS = preload("res://scripts/save_slots.gd")
 const OVERLAY = preload("res://scripts/loading_overlay.gd")
@@ -47,6 +48,7 @@ const RABBIT_BOSS = preload("res://scripts/rabbit_boss.gd")
 const IRONBACK_BOSS = preload("res://scripts/ironback_full_boss.gd")
 
 var player: CharacterBody2D
+var inheritance = INHERITANCE_STATE.new()
 var hud: Control
 var pause_menu: CanvasLayer
 var loading_overlay: CanvasLayer
@@ -193,6 +195,7 @@ func _ready() -> void:
 		chamber.close_right=int(config[0])==10
 		add_child(chamber)
 	player = PLAYER.new()
+	player.inheritance = inheritance
 	player.position = Vector2(HAND_X, 570) if current_room == 8 else ARRIVAL_LAYOUT.entry() if current_room == 5 else Vector2(BOUNDS[current_room - 5].x + 90, 535.0) if current_room in [11, 12] else Vector2(BOUNDS[current_room - 5].x + 90, 570)
 	if current_room==9: player.position=DASH_LAYOUT.HAND
 	player.has_dash = bool(saved_data.get("has_dash", true))
@@ -790,6 +793,7 @@ func _on_bow(origin: Vector2, direction: Vector2) -> void:
 	arrow.setup(origin, direction, target, player.damage_multiplier())
 
 func _on_hunter_defeated() -> void:
+	inheritance.on_boss_defeated("forest_hunter")
 	bow_boss_defeated = true
 	_disable_defeated_boss(bow_boss)
 	for summon in get_tree().get_nodes_in_group("forest_boss_summons"):

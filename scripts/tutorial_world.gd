@@ -243,6 +243,7 @@ func _ready() -> void:
 	add_child(gallery)
 	drop_platform_body = gallery.drop_body
 	player = PLAYER_SCRIPT.new()
+	player.inheritance = inheritance
 	player.name = "Player"
 	player.z_index = 3
 	player.position = spawn_position
