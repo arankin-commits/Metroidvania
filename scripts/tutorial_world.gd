@@ -751,7 +751,7 @@ func _on_player_heavy_attacked(hitbox: Rect2) -> void:
 		scout.take_hit(1.5*player.damage_multiplier(), p_dmg)
 	if current_room == 4 and boss.active and not boss_defeated and hitbox.intersects(boss.combat_bounds()):
 		boss.take_hit(1.5*player.damage_multiplier(), p_dmg)
-	if current_room == 4 and boss_defeated and not wall_broken and hitbox.intersects(CAVE_LAYOUT.EXIT_WALL):
+	if current_room == 4 and boss_defeated and not wall_broken and navigation_system.can_break_cave_exit(artificer_rescued, player.has_heavy) and hitbox.intersects(CAVE_LAYOUT.EXIT_WALL):
 		wall_broken = true
 		exit_barrier.queue_free()
 		_show_toast("The cracked wall shatters. The forest lies ahead.", 3.5)
