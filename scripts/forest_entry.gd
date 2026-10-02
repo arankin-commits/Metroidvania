@@ -100,6 +100,7 @@ func _ready() -> void:
 	if get_tree().has_meta("active_save_slot"):
 		active_save_slot = int(get_tree().get_meta("active_save_slot"))
 		save_root = str(get_tree().get_meta("save_root", "user://"))
+	if active_save_slot > 0:
 		saved_data = SLOTS.load_slot(active_save_slot, save_root)
 		elapsed_seconds = float(saved_data.get("seconds", 0.0))
 		will_amount = int(saved_data.get("will", 0))
@@ -110,13 +111,24 @@ func _ready() -> void:
 		forest_hand_activated = bool(saved_data.get("forest_hand_activated", false))
 		temple_hand_activated = bool(saved_data.get("temple_hand_activated", false))
 		temple_guardian_defeated=bool(saved_data.get("temple_guardian_defeated",false))
-		last_hand_room = int(saved_data.get("last_hand_room", 8 if forest_hand_activated else 3 if bool(saved_data.get("hand_activated", false)) else 2))
+		last_hand_room = int(saved_data.get("last_hand_room", 8 if forest_hand_activated else 3 if bool(saved_data.get("hand_activated", false)) else 1))
 		forest_defeated.assign(saved_data.get("forest_defeated", []))
-		if str(saved_data.get("area", "")) == "The Twisted Forest":
-			current_room = clampi(int(saved_data.get("room", 5)), 5, 10)
-	if get_tree().has_meta("forest_entry_room"):
-		current_room = clampi(int(get_tree().get_meta("forest_entry_room")), 5, 10)
-		get_tree().remove_meta("forest_entry_room")
+		if get_tree().has_meta("forest_entry_room"):
+			current_room = clampi(int(get_tree().get_meta("forest_entry_room")), 5, 10)
+			get_tree().remove_meta("forest_entry_room")
+		elif get_tree().has_meta("arriving_room_transition"):
+			current_room = 5
+		else:
+			if last_hand_room == 9 and temple_hand_activated:
+				current_room = 9
+			elif last_hand_room == 8 and forest_hand_activated:
+				current_room = 8
+			elif temple_hand_activated:
+				current_room = 9
+			elif forest_hand_activated:
+				current_room = 8
+			else:
+				current_room = clampi(int(saved_data.get("room", 5)), 5, 10)
 	_mark_room_visited(current_room)
 	arrival=ARRIVAL.new()
 	add_child(arrival)
@@ -164,7 +176,8 @@ func _ready() -> void:
 	player.bow_ammo = int(saved_data.get("bow_ammo", 3)) if player.has_bow else 0
 	player.load_combat_progress(saved_data)
 	player.has_air_dash = bool(saved_data.get("has_air_dash", bow_boss_defeated))
-	player.healing_charges = int(saved_data.get("healing_charges", 3))
+	var loaded_charges := int(saved_data.get("healing_charges", 3))
+	player.healing_charges = player.max_healing_charges if loaded_charges <= 0 else loaded_charges
 	player.z_index = 3
 	add_child(player)
 	player.drop_platform=forest_split_hall.drop_platform
@@ -245,7 +258,7 @@ func _process(delta: float) -> void:
 	if current_room==10 and not temple_guardian_defeated and not temple_guardian.active and not transitioning:
 		temple_guardian.active=true
 		temple_guardian.state_time=0.85
-		game_audio.play_boss()
+		game_audio.play_temple_boss()
 		_show_toast("TEMPLE GUARDIAN",3)
 	if current_room!=10: temple_guardian.active=false
 	if current_room == 7 and not bow_boss_defeated and not bow_boss.active and not transitioning:
@@ -253,7 +266,7 @@ func _process(delta: float) -> void:
 		bow_boss.state_time = 0.65
 		arena_entrance = _solid(Rect2(BOUNDS[2].x, -60, 32, 660))
 		arena_exit = _solid(Rect2(BOUNDS[2].y, -60, 32, 660))
-		game_audio.play_boss()
+		game_audio.play_forest_boss()
 		_show_toast("FOREST GUARDIAN  ·  Close the distance between volleys", 3.5)
 	if current_room == 8 and player.has_bow and not bow_tutorial_practiced and not bow_hint_shown:
 		bow_hint_shown = true
@@ -435,27 +448,29 @@ func _leave_temple_hand() -> void:
 	player.controls_enabled=true
 
 func _on_attack(hitbox: Rect2) -> void:
+	var p_dmg: float = player.current_posture_damage(false)
 	if is_instance_valid(forest_encounters):
-		forest_encounters.strike(hitbox, 1.0 * player.damage_multiplier())
+		forest_encounters.strike(hitbox, 1.0 * player.damage_multiplier(), p_dmg)
 	for enemy in get_tree().get_nodes_in_group("forest_boss_summons"):
-		if is_instance_valid(enemy) and not enemy.is_queued_for_deletion() and hitbox.intersects(enemy.combat_bounds()): enemy.take_hit(player.damage_multiplier())
+		if is_instance_valid(enemy) and not enemy.is_queued_for_deletion() and hitbox.intersects(enemy.combat_bounds()): enemy.take_hit(player.damage_multiplier(), p_dmg)
 	game_audio.play_effect("attack")
 	if bow_boss.active and not bow_boss_defeated and hitbox.intersects(bow_boss.combat_bounds()):
-		bow_boss.take_hit(1.0*player.damage_multiplier())
-	if current_room==10 and temple_guardian.active and hitbox.intersects(temple_guardian.combat_bounds()): temple_guardian.take_hit(1.0*player.damage_multiplier())
+		bow_boss.take_hit(1.0*player.damage_multiplier(), p_dmg)
+	if current_room==10 and temple_guardian.active and hitbox.intersects(temple_guardian.combat_bounds()): temple_guardian.take_hit(1.0*player.damage_multiplier(), p_dmg)
 	for scout in training_scouts:
 		if is_instance_valid(scout) and not scout.is_queued_for_deletion() and hitbox.intersects(Rect2(scout.global_position - Vector2(17, 20), Vector2(34, 40))):
-			scout.take_hit(1.0*player.damage_multiplier())
+			scout.take_hit(1.0*player.damage_multiplier(), p_dmg)
 
 func _on_heavy(hitbox: Rect2) -> void:
+	var p_dmg: float = player.current_posture_damage(true)
 	if is_instance_valid(forest_encounters):
-		forest_encounters.strike(hitbox, 1.5 * player.damage_multiplier())
+		forest_encounters.strike(hitbox, 1.5 * player.damage_multiplier(), p_dmg)
 	for enemy in get_tree().get_nodes_in_group("forest_boss_summons"):
-		if is_instance_valid(enemy) and not enemy.is_queued_for_deletion() and hitbox.intersects(enemy.combat_bounds()): enemy.take_hit(1.5*player.damage_multiplier())
-	if current_room==10 and temple_guardian.active and hitbox.intersects(temple_guardian.combat_bounds()): temple_guardian.take_hit(1.5*player.damage_multiplier())
+		if is_instance_valid(enemy) and not enemy.is_queued_for_deletion() and hitbox.intersects(enemy.combat_bounds()): enemy.take_hit(1.5*player.damage_multiplier(), p_dmg)
+	if current_room==10 and temple_guardian.active and hitbox.intersects(temple_guardian.combat_bounds()): temple_guardian.take_hit(1.5*player.damage_multiplier(), p_dmg)
 	game_audio.play_effect("heavy_attack")
 	if bow_boss.active and not bow_boss_defeated and hitbox.intersects(bow_boss.combat_bounds()):
-		bow_boss.take_hit(1.5*player.damage_multiplier())
+		bow_boss.take_hit(1.5*player.damage_multiplier(), p_dmg)
 
 func _on_bow(origin: Vector2, direction: Vector2) -> void:
 	game_audio.play_effect("attack")
@@ -495,6 +510,8 @@ func _on_death() -> void:
 	transitioning = true
 	player.controls_enabled = false
 	player.start_death_animation()
+	player.healing_charges = player.max_healing_charges
+	player.health = player.max_health
 	await get_tree().create_timer(1.0).timeout
 	_unlock_arena()
 	if not temple_guardian_defeated:
@@ -504,6 +521,8 @@ func _on_death() -> void:
 		temple_guardian.state_time=0.85
 		temple_guardian.attack_count=0
 		temple_guardian.position=Vector2(23390,553)
+	player.healing_charges = player.max_healing_charges
+	player.health = player.max_health
 	if not ((last_hand_room==8 and forest_hand_activated) or (last_hand_room==9 and temple_hand_activated)):
 		_save_progress()
 		get_tree().set_meta("cave_entry_x", float(saved_data.get("checkpoint_x", 120.0)) if last_hand_room == 3 and bool(saved_data.get("hand_activated", false)) else 120.0)
@@ -547,6 +566,8 @@ func activate_hand() -> void:
 	player.healing_charges = player.max_healing_charges
 	if player.has_bow:
 		player.bow_ammo = player.BOW_AMMO_MAX
+	if player.has_gauntlet:
+		player.gauntlet_charges = player.GAUNTLET_CHARGES_MAX
 	if is_instance_valid(forest_encounters):
 		forest_encounters.reset_at_hand()
 		forest_encounters.set_active(current_room == 6)
@@ -679,13 +700,18 @@ func _update_hud() -> void:
 	hud.has_heavy = player.has_heavy
 	hud.has_bow = player.has_bow
 	hud.bow_ammo = player.bow_ammo
+	hud.gauntlet_charges = player.gauntlet_charges
 	hud.area = "THE TWISTED FOREST"
 	hud.boss_health = bow_boss.health if bow_boss.active and not bow_boss_defeated else 0
 	hud.boss_max_health = int(bow_boss.max_health)
+	hud.boss_posture = bow_boss.posture if bow_boss.active and not bow_boss_defeated else 0.0
+	hud.boss_max_posture = bow_boss.max_posture
 	hud.boss_title = "FOREST GUARDIAN"
 	if current_room==10 and temple_guardian.active and not temple_guardian_defeated:
 		hud.boss_health=temple_guardian.health
 		hud.boss_max_health=int(temple_guardian.max_health)
+		hud.boss_posture=temple_guardian.posture
+		hud.boss_max_posture=temple_guardian.max_posture
 		hud.boss_title="TEMPLE GUARDIAN"
 	hud.notice = interaction_prompt() if not interaction_prompt().is_empty() else toast if toast_time > 0.0 else ""
 	hud.queue_redraw()

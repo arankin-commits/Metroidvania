@@ -4,8 +4,14 @@ signal defeated
 signal attack_cued(cue: String)
 const PROJECTILE=preload("res://scripts/combat_projectile.gd")
 var player: CharacterBody2D
-var health:=40.0
+var health:=40.0:
+	set(value):
+		if value > health:
+			posture = maxf(posture, value)
+		health = value
 var max_health:=40.0
+var posture:=40.0
+var max_posture:=40.0
 var active:=false
 var state:="idle"
 var state_time:=0.6
@@ -29,6 +35,8 @@ var attacks_used: Dictionary={}
 func _ready() -> void:
 	add_to_group("mcp_watch")
 	add_to_group("combat_targets")
+	add_to_group("bosses")
+	add_to_group("enemies")
 	home_y=position.y
 
 func combat_bounds() -> Rect2:
@@ -58,7 +66,7 @@ func _next_phase() -> void:
 	if phases.is_empty():
 		phase={}
 		state="idle"
-		state_time=.65
+		state_time=.325 if attack_name=="one_hit_combo" else .65
 		return
 	phase=phases.pop_front()
 	state=str(phase.get("state","recover"))
@@ -83,6 +91,10 @@ func _physics_process(delta: float) -> void:
 	state_time-=delta
 	if state=="idle":
 		if state_time<=0: begin_attack(choose_attack())
+	elif state=="stagger":
+		if state_time<=0:
+			state="idle"
+			state_time=.5
 	else:
 		var t:=clampf(1-state_time/phase_length,0,1)
 		var previous_position:=global_position
@@ -101,9 +113,12 @@ func _physics_process(delta: float) -> void:
 			# player between physics ticks. Anticipation/recovery remain harmless.
 			if phase.has("move"): box=box.merge(Rect2(box.position+previous_position-global_position,box.size))
 			if box.intersects(Rect2(player.global_position-Vector2(14,23),Vector2(28,46))):
-				var before: float=player.health
-				player.take_damage(float(phase.get("damage",1)),global_position.x,true)
-				struck=player.health<before
+				if player.get("dash_time") != null and player.dash_time > 0.0:
+					pass
+				else:
+					var before: float=player.health
+					player.take_damage(float(phase.get("damage",1)),global_position.x,true)
+					struck=player.health<before
 		if state_time<=0:
 			if phase.has("move") or phase.get("target_jump",false) or phase.get("over_player",false) or phase.get("retreat",false): position=motion_end
 			_next_phase()
@@ -142,9 +157,11 @@ func fire(kind: String,damage_amount: float,down:=false) -> Node2D:
 	get_parent().add_child(shot)
 	return shot
 
-func take_hit(amount: float=1.0) -> void:
+func take_hit(amount: float=1.0, posture_damage: float = -1.0) -> void:
 	if health<=0 or not active or invulnerability>0 or phase.get("invulnerable",false): return
+	var p_dmg := amount if posture_damage < 0.0 else posture_damage
 	health=maxf(0,health-amount)
+	posture=maxf(0,posture-p_dmg)
 	hurt_flash=.16
 	invulnerability=.12
 	if health<=0:
@@ -152,10 +169,21 @@ func take_hit(amount: float=1.0) -> void:
 		phase={}
 		phases.clear()
 		defeated.emit()
+	elif posture<=0:
+		stagger()
 	queue_redraw()
+
+func stagger(duration: float = 1.75) -> void:
+	state="stagger"
+	state_time=duration
+	phase={}
+	phases.clear()
+	struck=false
+	posture=max_posture
 
 func reset_encounter() -> void:
 	health=max_health
+	posture=max_posture
 	phase={}
 	phases.clear()
 	state="idle"
@@ -181,4 +209,4 @@ func draw_attack() -> void:
 		draw_rect(Rect2(-52,-59,104,110),Color("b4edec"),false,3)
 
 func _mcp_state() -> Dictionary:
-	return {"health":health,"active":active,"state":state,"attack":attack_name,"phase_invulnerable":phase.get("invulnerable",false)}
+	return {"health":health,"posture":posture,"max_health":max_health,"max_posture":max_posture,"active":active,"state":state,"attack":attack_name,"phase_invulnerable":phase.get("invulnerable",false)}

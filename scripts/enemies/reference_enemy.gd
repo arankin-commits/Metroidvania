@@ -63,8 +63,15 @@ var hold_pose := false
 var cooldown := 0.0
 var attack_index := 0
 var jump_pending := false
-var health := 2.0
+var active_summon: Node = null
+var health := 2.0:
+	set(value):
+		if value > health:
+			posture = maxf(posture, value)
+		health = value
 var max_health := 2.0
+var posture := 2.0
+var max_posture := 2.0
 var patrol_bounds := Vector2(-INF, INF)
 var awareness_height := 450.0
 var hit_cooldown := 0.0
@@ -73,7 +80,7 @@ const RUN_SPEED := 115.0
 const WALK_SPEED := 57.5 # Exactly 50% slower than running
 
 const RUN_SPEEDS = {
-	"goblin_dog": 135.0,
+	"goblin_dog": 382.5, # 50% faster than player running speed (255.0 * 1.5)
 	"goblin": 115.0,
 	"goblin_sentinel": 95.0,
 	"goblin_elite": 95.0,
@@ -115,7 +122,10 @@ func _ready() -> void:
 	if HEALTHS.has(enemy_kind):
 		max_health = HEALTHS[enemy_kind]
 		health = max_health
+	max_posture = max_health
+	posture = max_posture
 	add_to_group("combat_targets")
+	add_to_group("enemies")
 	visual=get_node_or_null("Visual")
 	if visual==null:
 		visual=Node2D.new()
@@ -252,18 +262,34 @@ func play_sequence(sequence: StringName, move := false, hold := false) -> void:
 	velocity.x=0
 	jump_pending=sequence==&"jump_attack" and is_on_floor()
 
-func take_hit(damage := 1.0) -> void:
+func take_hit(damage := 1.0, posture_damage := -1.0) -> void:
+	var p_dmg := damage if posture_damage < 0.0 else posture_damage
 	health -= damage
-	play_sequence("posture_break")
-	cooldown=1.2
-	if is_physics_processing():
-		velocity.x = -facing * 120.0
-	queue_redraw()
+	posture -= p_dmg
 	if health <= 0:
+		if is_instance_valid(active_summon):
+			active_summon.queue_free()
+			active_summon = null
 		defeated.emit()
 		queue_free()
+		return
+	if posture <= 0:
+		posture = max_posture
+		play_sequence("posture_break")
+		cooldown = 1.8
+		if is_physics_processing():
+			velocity.x = -facing * 120.0
+	queue_redraw()
+
+func _exit_tree() -> void:
+	if is_instance_valid(active_summon):
+		active_summon.queue_free()
+		active_summon = null
 
 func _spawn_forest_summon() -> void:
+	if is_instance_valid(active_summon) and not active_summon.is_queued_for_deletion():
+		if active_summon.get("health") != null and active_summon.health > 0:
+			return
 	var summon_script = load("res://scripts/forest_guardian_spirit.gd")
 	if summon_script == null:
 		return
@@ -281,9 +307,11 @@ func _spawn_forest_summon() -> void:
 	summon.spawn_grace = 0.5
 	summon.add_to_group("combat_targets")
 	summon.add_to_group("forest_boss_summons")
+	summon.add_to_group("enemies")
 	var parent := get_parent()
 	if parent != null:
 		parent.add_child(summon)
+	active_summon = summon
 
 func _shoot_arrow(origin: Vector2) -> void:
 	var shot: Node2D = PROJECTILE.acquire()
@@ -322,8 +350,22 @@ func tick_animation(delta: float) -> void:
 	var sequence:=sprite.animation
 	var frames:=sprite.sprite_frames.get_frame_count(sequence)
 	var fps:=sprite.sprite_frames.get_animation_speed(sequence)
+	var is_in_startup := false
+	if CUES.has(String(sequence)):
+		var cues_list: Array = CUES[String(sequence)]
+		if not cues_list.is_empty():
+			var first_cue: int = cues_list[0]
+			if not emitted_frames.has(first_cue):
+				is_in_startup = true
+	var is_combo_pause := false
+	if enemy_kind == "kobold_clubber" and sequence == &"combo":
+		var cues_list: Array = CUES["combo"]
+		if cues_list.size() >= 2:
+			if emitted_frames.has(cues_list[0]) and not emitted_frames.has(cues_list[1]):
+				is_combo_pause = true
+	var anim_delta := delta / 3.0 if is_in_startup else (delta / 2.0 if is_combo_pause else delta)
 	var old_frame:=int(sequence_time*fps)
-	sequence_time+=delta
+	sequence_time+=anim_delta
 	var elapsed_frame:=int(sequence_time*fps)
 	if CUES.has(String(sequence)):
 		for cue in CUES[String(sequence)]:
@@ -341,10 +383,13 @@ func tick_animation(delta: float) -> void:
 					var attack_box := Rect2(global_position + Vector2(10 if facing > 0 else -60, -SIZES[enemy_kind].y), Vector2(50, SIZES[enemy_kind].y))
 					var target_body := Rect2(target.global_position - Vector2(14, 23), Vector2(28, 46))
 					if attack_box.intersects(target_body):
-						var health_before: float = target.get("health") if target.get("health") != null else 0.0
-						target.take_damage(1.0, global_position.x, true) # attack damage: removes i-frames
-						if target.get("health") != null and target.health < health_before:
-							attack_landed.emit()
+						if target.get("dash_time") != null and target.dash_time > 0.0:
+							pass
+						else:
+							var health_before: float = target.get("health") if target.get("health") != null else 0.0
+							target.take_damage(1.0, global_position.x, true) # attack damage: removes i-frames
+							if target.get("health") != null and target.health < health_before:
+								attack_landed.emit()
 	if sprite.sprite_frames.get_animation_loop(sequence): sprite.frame=elapsed_frame%frames
 	else:
 		sprite.frame=mini(elapsed_frame,frames-1)
@@ -352,22 +397,8 @@ func tick_animation(delta: float) -> void:
 			sequence_finished.emit(sequence)
 			play_sequence("idle")
 
-func _apply_enemy_separation(delta: float) -> void:
-	var my_foot := global_position.y + (0.0 if ground_origin else 17.0)
-	var targets := get_tree().get_nodes_in_group("combat_targets")
-	for member in targets:
-		if member == self or not is_instance_valid(member) or not (member is CharacterBody2D):
-			continue
-		var dx: float = global_position.x - member.global_position.x
-		if absf(dx) > 60.0:
-			continue
-		var other_foot: float = member.global_position.y + (0.0 if member.get("ground_origin") == true else 17.0)
-		if absf(my_foot - other_foot) > 50.0:
-			continue
-		var min_dist := 55.0
-		var push_dir: float = 1.0 if dx > 0 else (-1.0 if dx < 0 else (1.0 if get_instance_id() > member.get_instance_id() else -1.0))
-		var force: float = (min_dist - absf(dx)) / min_dist
-		velocity.x += push_dir * force * 140.0 * delta * 60.0
+func _apply_enemy_separation(_delta: float) -> void:
+	pass
 
 func _physics_process(delta: float) -> void:
 	cooldown=maxf(0,cooldown-delta)
@@ -410,10 +441,16 @@ func _physics_process(delta: float) -> void:
 					else:
 						if sprite.animation!=&"run": play_sequence("run",true)
 				elif cooldown<=0:
-					var attacks: Array=ATTACKS[enemy_kind]
-					play_sequence(attacks[attack_index%attacks.size()])
-					attack_index+=1
-					cooldown=1.6 if ranged else 1.4
+					if enemy_kind == "kobold_summoner" and is_instance_valid(active_summon) and not active_summon.is_queued_for_deletion() and active_summon.get("health") != null and active_summon.health > 0:
+						if sprite.animation != &"idle": play_sequence("idle")
+					else:
+						var attacks: Array=ATTACKS[enemy_kind]
+						play_sequence(attacks[attack_index%attacks.size()])
+						attack_index+=1
+						var attack_cd := 1.6 if ranged else 1.4
+						if enemy_kind == "kobold_clubber":
+							attack_cd *= 2.0
+						cooldown = attack_cd
 				elif sprite.animation!=&"idle": play_sequence("idle")
 		else:
 			# Patrol mode: turn around before exceeding patrol bounds or at walls/edges
@@ -451,11 +488,14 @@ func _physics_process(delta: float) -> void:
 		var my_bounds := combat_bounds()
 		var player_bounds := Rect2(target.global_position - Vector2(14, 23), Vector2(28, 46))
 		if my_bounds.intersects(player_bounds):
-			var health_before: float = target.get("health") if target.get("health") != null else 0.0
-			target.take_damage(1.0, global_position.x, false) # contact damage keeps i-frames
-			if target.get("health") != null and target.health < health_before:
-				attack_landed.emit()
-			hit_cooldown = 0.8
+			if target.get("dash_time") != null and target.dash_time > 0.0:
+				pass
+			else:
+				var health_before: float = target.get("health") if target.get("health") != null else 0.0
+				target.take_damage(1.0, global_position.x, false) # contact damage keeps i-frames
+				if target.get("health") != null and target.health < health_before:
+					attack_landed.emit()
+				hit_cooldown = 0.8
 
 	tick_animation(delta)
 	if not is_off_screen:
@@ -465,6 +505,8 @@ func _draw() -> void:
 	if health > 0 and ai_enabled:
 		var size: Vector2 = SIZES[enemy_kind]
 		var top_y: float = (0.0 if ground_origin else 17.0) - size.y
-		draw_rect(Rect2(-17, top_y - 12, 34, 5), Color(0.04, 0.10, 0.14))
-		draw_rect(Rect2(-16, top_y - 11, 32, 3), Color(0.25, 0.32, 0.36))
-		draw_rect(Rect2(-16, top_y - 11, 32.0 * float(health) / float(max_health), 3), Color(0.91, 0.44, 0.47))
+		draw_rect(Rect2(-17, top_y - 14, 34, 7), Color(0.04, 0.10, 0.14))
+		draw_rect(Rect2(-16, top_y - 13, 32, 3), Color(0.25, 0.32, 0.36))
+		draw_rect(Rect2(-16, top_y - 13, 32.0 * clampf(float(health) / float(max_health), 0.0, 1.0), 3), Color(0.91, 0.44, 0.47))
+		draw_rect(Rect2(-16, top_y - 9, 32, 1), Color(0.18, 0.22, 0.25))
+		draw_rect(Rect2(-16, top_y - 9, 32.0 * clampf(float(posture) / float(max_posture), 0.0, 1.0), 1), Color.WHITE)

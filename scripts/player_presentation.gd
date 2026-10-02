@@ -13,12 +13,14 @@ const SEQUENCES := {
 	"sheathed_walk": [5, 6, 7, 8, 9],
 	"sheathed_run": [10, 11, 12, 13, 14],
 	"sheathed_dash": [15, 16, 17, 18],
+	"sheathed_crouch": [0, 1, 2, 3, 4],
 	"sheathed_jump": [19, 20, 21, 22],
 	"sheathed_fall": [23, 24, 25, 26, 27],
 	"unsheathed_idle": [28, 29, 30, 31, 32],
 	"unsheathed_walk": [33, 34, 35, 36, 37],
 	"unsheathed_run": [38, 39, 40, 41, 42],
 	"unsheathed_dash": [43, 44, 45, 46],
+	"unsheathed_crouch": [0, 1, 2, 3, 4],
 	"unsheathed_jump": [47, 48, 49, 50],
 	"unsheathed_fall": [51, 52, 53, 54, 55],
 	"slash_horizontal": [56, 57, 58],
@@ -26,6 +28,8 @@ const SEQUENCES := {
 	"slash_downward": [63, 64, 65, 66],
 }
 
+const CROUCH = preload("res://assets/characters/hooded_player_crouch.png")
+const INJURED_CROUCH = preload("res://assets/characters/hooded_player_crouch_injured.png")
 const COMPLETE = preload("res://assets/characters/hooded_player_complete.png")
 const INJURED_COMPLETE = preload("res://assets/characters/hooded_player_complete_injured.png")
 const COMPLETE_CELL := 224
@@ -81,6 +85,7 @@ static func sequence(player: CharacterBody2D) -> String:
 	if player.attack_time > 0.0 and player.attack_style == "swing":
 		return ["slash_horizontal", "slash_upward", "slash_downward"][maxi(0, player.sword_combo_step)]
 	if player.dash_time > 0.0: return prefix + "dash"
+	if player.is_crouching: return prefix + "crouch"
 	if not player.is_on_floor(): return prefix + ("jump" if player.velocity.y < -30 else "fall")
 	if absf(player.velocity.x) > 180 and not player.is_injured: return prefix + "run"
 	if absf(player.velocity.x) > 10: return prefix + "walk"
@@ -126,6 +131,13 @@ static func draw(player: CharacterBody2D, alpha: float, override_pose := -1) -> 
 	var special_texture: Texture2D = INJURED_ATLAS if player.is_injured else ATLAS
 	var heavy_texture: Texture2D = INJURED_HEAVY if player.is_injured else HEAVY
 	player.draw_set_transform(Vector2.ZERO, 0.0, Vector2(player.facing, 1))
+	if index < 0 and player.is_crouching:
+		var crouch_texture: Texture2D = INJURED_CROUCH if player.is_injured else CROUCH
+		var frame_idx := clampi(int(player.crouch_time * 15.0), 0, 4)
+		var source := Rect2(Vector2(frame_idx * COMPLETE_CELL, 0), Vector2(COMPLETE_CELL, COMPLETE_CELL))
+		player.draw_texture_rect_region(crouch_texture, COMPLETE_RECT, source, Color(1, 1, 1, alpha))
+		player.draw_set_transform(Vector2.ZERO)
+		return
 	if index < 0 and (player.heavy_charge > 0.0 or player.heavy_attack_time > 0.0):
 		index = heavy_frame(player)
 		if player.heavy_attack_time <= 0.0 and player.is_on_floor() and absf(player.velocity.x) > 10.0:

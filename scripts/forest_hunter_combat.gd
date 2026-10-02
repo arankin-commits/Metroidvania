@@ -11,6 +11,7 @@ var summon_marks: Array[Vector2]=[]
 var summons: Array[Node]=[]
 var mobility_cooldown:=0.0
 var summon_cooldown:=0.0
+var attack_cycles_since_summon:=0
 
 func combat_bounds() -> Rect2:
 	return Rect2(global_position-Vector2(31,52),Vector2(62,99))
@@ -20,6 +21,8 @@ func _ready() -> void:
 	arena_bounds=Vector2(19490,20910)
 	health=50.0
 	max_health=50.0
+	max_posture=50.0
+	posture=max_posture
 	add_to_group("bow_targets")
 
 func _physics_process(delta: float) -> void:
@@ -29,7 +32,10 @@ func _physics_process(delta: float) -> void:
 		if is_instance_valid(player):
 			if state in ["idle","recover"]: facing=1 if player.global_position.x>global_position.x else -1
 			if combat_bounds().intersects(Rect2(player.global_position-Vector2(14,23),Vector2(28,46))):
-				player.take_damage(1,global_position.x)
+				if player.get("dash_time") != null and player.dash_time > 0.0:
+					pass
+				else:
+					player.take_damage(1,global_position.x)
 	else: combat_fx.clear()
 	mobility_cooldown=maxf(0,mobility_cooldown-delta)
 	summon_cooldown=maxf(0,summon_cooldown-delta)
@@ -41,10 +47,16 @@ func clear_summons() -> void:
 		if is_instance_valid(enemy): enemy.queue_free()
 	summons.clear()
 
-func has_living_summons() -> bool:
+func get_living_summons() -> Array[Node]:
+	var living: Array[Node] = []
 	for enemy in summons:
-		if is_instance_valid(enemy) and not enemy.is_queued_for_deletion() and enemy.health>0: return true
-	return false
+		if is_instance_valid(enemy) and not enemy.is_queued_for_deletion() and enemy.get("health") != null and enemy.health > 0:
+			living.append(enemy)
+	summons = living
+	return living
+
+func has_living_summons() -> bool:
+	return not get_living_summons().is_empty()
 
 func reset_encounter() -> void:
 	combat_fx.clear()
@@ -52,9 +64,11 @@ func reset_encounter() -> void:
 	clear_summons()
 	mobility_cooldown=0
 	summon_cooldown=0
+	attack_cycles_since_summon=0
 	super.reset_encounter()
 
 func choose_attack() -> String:
+	var living := get_living_summons()
 	var distance:=absf(player.global_position.x-global_position.x)
 	if health<max_health*.5 and mobility_cooldown<=0 and distance<450:
 		mobility_cooldown=5
@@ -64,14 +78,19 @@ func choose_attack() -> String:
 			mobility_cooldown=4
 			return "retreat_dash"
 		return "knife_combo"
-	if summon_cooldown<=0 and attack_count%3==0 and not has_living_summons():
-		summon_cooldown=9
+	if attack_cycles_since_summon >= 3 and living.size() < 3:
 		return "summon"
 	return "rapid_fire" if attack_count%2==0 else "charged_arrow"
 
 func begin_attack(name: String) -> void:
-	if name=="summon" and has_living_summons(): name="rapid_fire"
-	if name=="summon": summon_marks=_summon_positions()
+	if name=="summon":
+		if get_living_summons().size() >= 3:
+			name = "rapid_fire"
+		else:
+			attack_cycles_since_summon = 0
+			summon_marks = [_next_summon_position()]
+	else:
+		attack_cycles_since_summon += 1
 	super.begin_attack(name)
 
 func _next_phase() -> void:
@@ -98,6 +117,14 @@ func limit_ground_motion(destination: Vector2) -> Vector2:
 	query.transform=Transform2D(0,global_position+Vector2(0,-3.5))
 	query.motion=destination-position
 	query.collision_mask=1
+	var exclude: Array[RID] = []
+	for node in get_tree().get_nodes_in_group("combat_targets"):
+		if node is CollisionObject2D:
+			exclude.append(node.get_rid())
+	for node in get_tree().get_nodes_in_group("forest_boss_summons"):
+		if node is CollisionObject2D:
+			exclude.append(node.get_rid())
+	query.exclude = exclude
 	var result:=get_world_2d().direct_space_state.cast_motion(query)
 	return position+query.motion*result[0] if result.size()==2 else destination
 
@@ -128,26 +155,61 @@ func _summon_positions() -> Array[Vector2]:
 		points.append(Vector2(x,home_y+47-SCOUT.HEIGHT/2))
 	return points
 
+func _next_summon_position() -> Vector2:
+	var positions := _summon_positions()
+	var living := get_living_summons()
+	if living.is_empty():
+		return positions[0]
+	var best_pos := positions[0]
+	var max_min_dist := -1.0
+	for candidate in positions:
+		var min_dist := INF
+		for s in living:
+			var d: float = candidate.distance_to(s.global_position)
+			if d < min_dist:
+				min_dist = d
+		if min_dist > max_min_dist:
+			max_min_dist = min_dist
+			best_pos = candidate
+	return best_pos
+
 func summon_enemies() -> void:
-	# At most one living wave of three; never spawn into the player's body.
-	if has_living_summons(): return
-	clear_summons()
-	if summon_marks.is_empty(): summon_marks=_summon_positions()
-	for index in 3:
-		var enemy:=SCOUT.new()
-		enemy.variant=index
-		enemy.player=player
-		enemy.position=summon_marks[index]
-		enemy.collision_layer=2
-		enemy.collision_mask=1
-		enemy.patrol_bounds=arena_bounds
-		enemy.spawn_grace=.8
-		get_parent().add_child(enemy)
-		enemy.add_to_group("combat_targets")
-		enemy.add_to_group("forest_boss_summons")
-		summons.append(enemy)
+	var living := get_living_summons()
+	if living.size() >= 3:
+		return
+	var field_types: Array[int] = []
+	for enemy in living:
+		if not field_types.has(enemy.variant):
+			field_types.append(enemy.variant)
+	var chosen_variant: int = 0
+	if field_types.is_empty():
+		chosen_variant = randi() % 3
+	else:
+		var available_types: Array[int] = []
+		for t in [0, 1, 2]:
+			if not field_types.has(t):
+				available_types.append(t)
+		if available_types.is_empty():
+			return
+		chosen_variant = available_types[randi() % available_types.size()]
+
+	var spawn_pos: Vector2 = summon_marks[0] if not summon_marks.is_empty() else _next_summon_position()
+	var enemy := SCOUT.new()
+	enemy.variant = chosen_variant
+	enemy.player = player
+	enemy.position = spawn_pos
+	enemy.collision_layer = 2
+	enemy.collision_mask = 5
+	enemy.patrol_bounds = arena_bounds
+	enemy.spawn_grace = 0.8
+	get_parent().add_child(enemy)
+	enemy.add_to_group("combat_targets")
+	enemy.add_to_group("forest_boss_summons")
+	enemy.add_to_group("enemies")
+	summons.append(enemy)
 
 func sprite_pose() -> int:
+	if state=="stagger": return 3
 	if state=="flipping_volley":
 		var progress:=1.0-state_time/phase_length
 		return 17 if progress<.6 else 18

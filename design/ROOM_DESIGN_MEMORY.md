@@ -62,7 +62,7 @@ The user's X marks are an explicit initial enemy spawn key:
 | Yellow X | Goblin Dog |
 | Purple X | Kobold Clubber |
 | White X | Kobold Summoner |
-| Red X | Goblin Elite |
+| Red X | Goblin Sentinel |
 
 The position of the X is where the initial spawn point is, ensuring actors touch the ground.
 Enemies can travel anywhere the player can walk/run (including up/down slopes and across platforms),
@@ -1426,4 +1426,41 @@ Established 2026-09-30. Applies to world streaming, combat systems, AI actors, e
 
 Use isolated test save roots. Do not mutate the player's real save slots to set up a
 review. Do not treat a headless visibility flag as proof that something renders well.
+
+### 6. Player Death, Healing Restoration, and Dash Traversal
+- **Death Healing Restoration**: Player death must always restore full healing charges (`player.max_healing_charges = 3`) and full health across both cave and forest rooms, prior to scene transitions and disk persistence saves (`_save_progress()`). Full heal (`heal_full()`) restores `max_healing_charges` unconditionally.
+- **Dash Phasing & Zero Physical Collision**: Dashing makes the player fully immune to contact damage, melee swings, and boss attacks (`take_damage` checks `dash_time > 0.0` or `is_dashing`), preventing knockback and interruption. While dashing (`dash_time > 0.0` or `is_dashing`), the player's `collision_layer` is set to 0 and bidirectional collision exceptions are registered with all `combat_targets`, `enemies`, and `bosses`, ensuring zero physical collision, pushing, snagging, dragging, or blocking with enemies, summons, or bosses. Ground dash clamps `dash_time` to remain active until `velocity.x` completely settles to 0, ensuring pushing enemies with dash is impossible. When dash ends, `collision_layer` is restored to 1 and collision exceptions are cleared.
+- **Summons As Enemies**: All summons (including those summoned by `kobold_summoner` and `forest_guardian_spirit.gd`) must join the `"enemies"` and `"combat_targets"` groups. Summons receive player damage from sword slashes, thrusts, aerials, charged heavy strikes, and bow arrows, take knockback, drop will on defeat, and trigger collision exceptions during dash.
+- **Player Contact Damage**: Running into, bumping, or touching enemies, summons, or bosses triggers contact damage (`1.0` damage) to the player and grants standard invulnerability frames unless the player already has active i-frames (`invulnerability > 0.0`) or is actively dashing (`is_dashing` / `dash_time > 0.0`).
+- **Save Loading Spawn Locations**: Loading a saved game must spawn the player at the last activated hand statue checkpoint (`last_hand_room`):
+  - Cave Room 3 Hand: `Vector2(2610.0, 570.0)` in Cave Room 3.
+  - Forest Room 8 Hand: `Vector2(FOREST_LAYOUT.HAND_X, 570.0)` in Forest Room 8.
+  - Temple Room 9 Hand: `DASH_LAYOUT.HAND` in Forest Room 9.
+  If no hand statue has been activated in the save file, the player spawns at the beginning of Cave Room 1 (`CAVE_LAYOUT.START = Vector2(-640.0, 577.0)`). Entering a room must never overwrite the last activated hand checkpoint.
+- **Crouch Mechanics & Presentation**: Pressing or holding `S` or `Down` while grounded (`is_on_floor()`) and not moving triggers the crouch state:
+  - Uninjured state: draws from `res://assets/characters/hooded_player_crouch.png` (5 frames across top row of `Crouch and Lever Pull Sprite Sheet.png`, standing height 58px, floor alignment registered at y=159 in 224x224 cells).
+  - Injured state: draws from `res://assets/characters/hooded_player_crouch_injured.png` (5 frames across top row of `Injured state crouch and levr.png`).
+  - Hitbox: While crouching, the player's combat hurtbox height contracts to 20px (from standing 56px), ducking under high projectiles and attacks.
+  - State priority: `player.is_crouching` is evaluated cleanly in presentation and physics to prevent mid-air crouch triggers while ensuring grounded crouch animation priority over fall/idle.
+- **Music Overhaul**:
+  - Cave Biome Theme: `res://assets/audio/cave_theme.mp3` (`play_cave()`, source `goblin_cave_pixelated.mp3`).
+  - Cave Boss Theme (Goblin Warden): `res://assets/audio/goblin_boss_theme.mp3` (`play_goblin_boss()`, track ID `"warden"`, source `goblin_boss_dark_gothic_150bpm_pixel_2min.mp3`).
+  - Forest Biome Theme: `res://assets/audio/forest_theme.mp3` (`play_forest()`, source `forest_no_chiptune_melodies_2min.mp3`).
+  - Forest Boss Theme (Forest Guardian): `res://assets/audio/forest_boss_theme.mp3` (`play_forest_boss()`, source `forest_guardian_pixel_boss_theme.mp3`).
+  - Temple Boss Theme (Temple Guardian): `res://assets/audio/temple_boss_theme.mp3` (`play_temple_boss()`, source `temple_guardian_pixel_boss_theme.mp3`).
+  - Pack Audit: All music streams and crouch atlases are packaged within the web build and verified to keep `docs/index.pck` strictly below 100 MB.
+- **Tap & Hold Movement Controls**:
+  - Jump time-to-max is 0.25s (`MAX_JUMP_HOLD_TIME = 0.25s`). Dash hold time to reach maximum dash distance is 0.5s (`MAX_DASH_HOLD_TIME = 0.5s`, `MAX_HOLD_TIME = 0.5s`, where hold time $z \le 0.5$s).
+  - Jump height: `TAP_JUMP_SPEED = -353.55`, `JUMP_HOLD_ACCEL = 763.5`. Minimum tap jump height is ~47.1 px, maximum hold jump height is ~94.1 px, achieving an exact 2.00x ratio (maximum jump height is double the minimum).
+  - Dash distance: Clicking Shift records distance moved in `recorded_dash_distance`. Dash mirrors the exact hold and tap logic structure as jump: base deceleration `DASH_DECEL = 2625.0 px/s²` acts continuously (analogous to gravity), initial speed `TAP_DASH_SPEED = 670.0 px/s`, and while holding dash up to `MAX_DASH_HOLD_TIME = 0.5s`, hold acceleration `DASH_HOLD_ACCEL = 552075.0 / 406.0 px/s²` (~1359.79 px/s²) is applied. Tapping dash yields an exact displacement of **80.0 px**, and holding dash yields an exact displacement of **160.0 px**. Releasing early scales distance smoothly and monotonically between 80.0 px and 160.0 px. On dash completion, velocity resets to zero, preventing residual coasting.
+- **Combat & Enemy Tuning**:
+  - **Kobold Summoner**: Can only have 1 active summon alive at any time. Further summons are suppressed until the existing summon is defeated.
+  - **Kobold Clubber**: Delay between the first and second attack of the combo sequence is doubled (half-rate animation between cues). Cooldown between different attacks is doubled from 1.4s to 2.8s.
+  - **Goblin Dog**: Movement speed is 50% faster than the player's run speed (382.5 px/s vs player 255.0 px/s).
+  - **Cave Room 2 Goblin Sentinels**: Cave Room 2 red X positions spawn `goblin_sentinel` (8 HP, thrust/combo animations, ground origin false, awareness height 450.0).
+  - **Enemy Immovability & Wall Physics**: Enemies, summons, and bosses act as immovable barriers against player movement. The player cannot displace or push enemies by walking or running into them. Hitting or contacting an enemy deals contact damage back to the player with knockback unless the player is invulnerable or dashing. Dashing phases freely through enemies without collision or damage.
+  - **Stone Gauntlet Charges & Turn Lock**: While charging the Stone Gauntlet (`ability_charge > 0.0`), the player cannot turn (`facing` remains locked). The rapid-fire beam ability (hold U) is limited to 12 charges (`gauntlet_charges`), reset at hand chairs. Tap U beam and basic punches remain unmetered.
+  - **Forest Boss Summon Cadence & Distinct Variants**: The Forest Boss casts summon between every 3 attack cycles when fewer than 3 summons are on the field. If no summons are present, a random variant is chosen; if summons are present, a different unrepresented variant is summoned, ensuring distinct types up to the 3-summon cap.
+
+
 

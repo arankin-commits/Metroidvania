@@ -48,21 +48,27 @@ func run() -> void:
 	assert(boss.choose_attack()=="flipping_volley")
 	boss.summon_marks=boss._summon_positions()
 	boss.summon_enemies()
-	assert(boss.summons.size()==3)
+	assert(boss.summons.size()==1, "First summon should spawn 1 random summon")
+	boss.summon_enemies()
+	assert(boss.summons.size()==2, "Second summon should spawn 1 different type")
+	assert(boss.summons[0].variant!=boss.summons[1].variant, "Second summon must be a different type")
+	boss.summon_enemies()
+	assert(boss.summons.size()==3, "Third summon should spawn 1 different type")
+	var summoned_variants: Array = [boss.summons[0].variant, boss.summons[1].variant, boss.summons[2].variant]
+	summoned_variants.sort()
+	assert(summoned_variants == [0, 1, 2], "All 3 summons must be of distinct types")
 	for i in 3:
-		assert(boss.summons[i].variant==i)
 		assert(is_equal_approx(boss.summons[i].position.y+BOSS.SCOUT.HEIGHT/2,600),"Summon feet miss floor")
 	boss.summon_enemies()
-	assert(boss.summons.size()==3,"Summon cap exceeded")
+	assert(boss.summons.size()==3,"Summon cap exceeded when 3 are on field")
 	boss.health=boss.max_health * 0.6
-	boss.attack_count=3
-	boss.summon_cooldown=0
-	assert(boss.choose_attack()!="summon","Boss chose summon with living wave")
+	boss.attack_cycles_since_summon=3
+	assert(boss.choose_attack()!="summon","Boss chose summon with 3 living summons on field")
 	boss.begin_attack("summon")
 	assert(boss.attack_name!="summon","Blocked summon still played its animation")
 	for enemy in boss.summons: enemy.health=0
-	boss.attack_count=3
-	assert(boss.choose_attack()=="summon","Defeated wave prevents resummoning")
+	boss.attack_cycles_since_summon=3
+	assert(boss.choose_attack()=="summon","Defeated wave prevents resummoning after 3 attack cycles")
 	boss.state="air_dash"
 	boss.phase={"sprite_pose":15}
 	boss.combat_fx.tick(boss,.016)

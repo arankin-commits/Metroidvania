@@ -51,14 +51,26 @@ func _spawn() -> void:
 		else:
 			if world.gallery_defeated.has(placement.id):
 				continue
-			var enemy: Node2D = SCOUT.new() if placement.kind == "scout" else SENTINEL.new()
+			var enemy: Node2D
+			if placement.kind == "sentinel":
+				var ref = REFERENCE_ENEMY.new()
+				ref.enemy_kind = "goblin_sentinel"
+				ref.ground_origin = false
+				ref.ai_enabled = true
+				ref.awareness_height = 450.0
+				ref.patrol_bounds = placement.get("patrol", Vector2(-INF, INF))
+				enemy = ref
+			elif placement.kind == "scout":
+				var sc = SCOUT.new()
+				sc.patrol_bounds = placement.patrol
+				sc.awareness_height = 450.0
+				enemy = sc
+			else:
+				enemy = SENTINEL.new()
 			enemy.name = placement.id
 			enemy.position = placement.position
 			enemy.set_meta("spawn_pos", enemy.position)
 			enemy.player = world.player
-			if placement.kind == "scout":
-				enemy.patrol_bounds = placement.patrol
-				enemy.awareness_height = 450.0
 			add_child(enemy)
 			enemies.append(enemy)
 			enemy.defeated.connect(func() -> void:
@@ -100,7 +112,7 @@ func targets() -> Array[Node2D]:
 			result.append(enemy)
 	return result
 
-func strike(hitbox: Rect2, amount: float) -> void:
+func strike(hitbox: Rect2, amount: float, posture_amount: float = -1.0) -> void:
 	for enemy in targets():
 		if not is_instance_valid(enemy) or enemy.is_queued_for_deletion():
 			continue
@@ -111,4 +123,4 @@ func strike(hitbox: Rect2, amount: float) -> void:
 			var half := Vector2(17,20) if enemy is CharacterBody2D else Vector2(20,27)
 			box = Rect2(enemy.global_position-half,half*2)
 		if hitbox.intersects(box) or (enemy is CharacterBody2D and hitbox.intersects(Rect2(enemy.global_position - Vector2(17, 20), Vector2(34, 40)))):
-			enemy.take_hit(amount)
+			enemy.take_hit(amount, posture_amount)

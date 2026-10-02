@@ -7,8 +7,14 @@ const GRAVITY := 1250.0
 const RUN_SPEED := 100.0
 const WALK_SPEED := 50.0
 
-var health := 2.0
+var health := 2.0:
+	set(value):
+		if value > health:
+			posture = maxf(posture, value)
+		health = value
 var max_health := 2.0
+var posture := 2.0
+var max_posture := 2.0
 var origin_x := 0.0
 var player: CharacterBody2D
 var navigation: Node
@@ -30,8 +36,11 @@ func _init() -> void:
 	floor_snap_length = 20.0
 
 func _ready() -> void:
+	max_posture = max_health
+	posture = max_posture
 	add_to_group("mcp_watch")
 	add_to_group("combat_targets")
+	add_to_group("enemies")
 	origin_x = global_position.x
 	var shape := RectangleShape2D.new()
 	shape.size = body_size()
@@ -152,20 +161,29 @@ func _physics_process(delta: float) -> void:
 	var enemy_bounds := Rect2(global_position-body_size()/2,body_size())
 	var player_bounds := Rect2(player.global_position - Vector2(14, 23), Vector2(28, 46)) if player != null else Rect2()
 	if player != null and hit_cooldown <= 0.0 and enemy_bounds.grow(4.0).intersects(player_bounds):
-		var health_before: float = player.health
-		if spawn_grace<=0: player.take_damage(1, global_position.x, false)
-		if player.health < health_before:
-			attack_landed.emit()
-		hit_cooldown = 0.8
+		if player.get("dash_time") != null and player.dash_time > 0.0:
+			pass
+		else:
+			var health_before: float = player.health
+			if spawn_grace<=0: player.take_damage(1, global_position.x, false)
+			if player.health < health_before:
+				attack_landed.emit()
+			hit_cooldown = 0.8
 	queue_redraw()
 
-func take_hit(amount: float = 1.0) -> void:
+func take_hit(amount: float = 1.0, posture_damage: float = -1.0) -> void:
+	var p_dmg := amount if posture_damage < 0.0 else posture_damage
 	health -= amount
+	posture -= p_dmg
 	if health <= 0:
 		defeated.emit()
 		queue_free()
-	else:
+	elif posture <= 0:
+		posture = max_posture
+		hit_cooldown = 1.8
 		velocity.x = -facing * 180.0
+		queue_redraw()
+	else:
 		queue_redraw()
 
 func _draw() -> void:
@@ -175,6 +193,8 @@ func _draw() -> void:
 	draw_circle(Vector2(facing * 6, -5), 3, Color(1.0, 0.86, 0.55))
 	draw_line(Vector2(-10, 15), Vector2(-15, 22), Color(0.18, 0.13, 0.26), 5)
 	draw_line(Vector2(10, 15), Vector2(15, 22), Color(0.18, 0.13, 0.26), 5)
-	draw_rect(Rect2(-19, -34, 38, 7), Color(0.04, 0.10, 0.14))
-	draw_rect(Rect2(-17, -32, 34, 3), Color(0.25, 0.32, 0.36))
-	draw_rect(Rect2(-17, -32, 34.0 * float(health) / float(max_health), 3), Color(0.91, 0.44, 0.47))
+	draw_rect(Rect2(-19, -36, 38, 9), Color(0.04, 0.10, 0.14))
+	draw_rect(Rect2(-17, -34, 34, 3), Color(0.25, 0.32, 0.36))
+	draw_rect(Rect2(-17, -34, 34.0 * clampf(float(health) / float(max_health), 0.0, 1.0), 3), Color(0.91, 0.44, 0.47))
+	draw_rect(Rect2(-17, -30, 34, 1), Color(0.18, 0.22, 0.25))
+	draw_rect(Rect2(-17, -30, 34.0 * clampf(float(posture) / float(max_posture), 0.0, 1.0), 1), Color.WHITE)

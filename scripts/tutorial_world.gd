@@ -132,13 +132,32 @@ func _ready() -> void:
 	if get_tree().has_meta("active_save_slot"):
 		active_save_slot = int(get_tree().get_meta("active_save_slot"))
 		save_root = str(get_tree().get_meta("save_root", "user://"))
+	if active_save_slot > 0:
 		var data: Dictionary = SAVE_SLOTS.load_slot(active_save_slot, save_root)
 		if not data.is_empty():
 			opening_seen=bool(data.get("opening_seen",true))
-			current_room = clampi(int(data.get("room", 2)), 1, 4)
 			hand_activated = bool(data.get("hand_activated", false))
-			last_hand_room = int(data.get("last_hand_room", 3 if hand_activated else 2))
-			checkpoint = Vector2(float(data.get("checkpoint_x", 2610.0)),float(data.get("checkpoint_y",570.0))) if hand_activated else CAVE_LAYOUT.START
+			forest_hand_activated = bool(data.get("forest_hand_activated", false))
+			temple_hand_activated = bool(data.get("temple_hand_activated", false))
+			var any_hand := hand_activated or forest_hand_activated or temple_hand_activated
+			last_hand_room = int(data.get("last_hand_room", 3 if hand_activated else 1))
+
+			if not get_tree().has_meta("cave_entry_x"):
+				if not any_hand:
+					current_room = 1
+					checkpoint = CAVE_LAYOUT.START
+				elif hand_activated and last_hand_room == 3:
+					current_room = 3
+					checkpoint = Vector2(2610.0, 570.0)
+				elif hand_activated:
+					current_room = 3
+					checkpoint = Vector2(2610.0, 570.0)
+				else:
+					current_room = 1
+					checkpoint = CAVE_LAYOUT.START
+			else:
+				current_room = clampi(int(data.get("room", 2)), 1, 4)
+				checkpoint = Vector2(float(data.get("checkpoint_x", 2610.0)), float(data.get("checkpoint_y", 570.0))) if hand_activated else CAVE_LAYOUT.START
 			elapsed_seconds = float(data.get("seconds", 0.0))
 			will_amount = int(data.get("will", 0))
 			player_level = int(data.get("level", 1))
@@ -228,7 +247,7 @@ func _ready() -> void:
 	player.has_bow = saved_has_bow
 	player.bow_ammo = saved_bow_ammo if saved_has_bow else 0
 	player.load_combat_progress({"bow_boss_defeated":saved_bow_boss_defeated,"boss_defeated":saved_boss_defeated,"temple_guardian_defeated":temple_guardian_defeated,"equipped_weapon":str(data_equipped_weapon),"has_dash":player.has_dash,"has_air_dash":saved_has_air_dash})
-	player.healing_charges = 1 if player.is_injured else saved_healing_charges
+	player.healing_charges = player.max_healing_charges if saved_healing_charges <= 0 else saved_healing_charges
 	player.drop_platform = drop_platform_body
 	player.drop_region = Rect2(GALLERY_LAYOUT.DROP.position - Vector2(0, 8), Vector2(GALLERY_LAYOUT.DROP.size.x, 26))
 	add_child(player)
@@ -654,10 +673,11 @@ func _close_note() -> void:
 
 func _on_player_attacked(hitbox: Rect2) -> void:
 	game_audio.play_effect("attack")
+	var p_dmg: float = player.current_posture_damage(false)
 	if current_room == 2 and is_instance_valid(ledge_sentinel) and not ledge_sentinel.is_queued_for_deletion() and hitbox.intersects(Rect2(ledge_sentinel.global_position - Vector2(20, 27), Vector2(40, 54))):
-		ledge_sentinel.take_hit(1.0*player.damage_multiplier())
+		ledge_sentinel.take_hit(1.0*player.damage_multiplier(), p_dmg)
 	if current_room == 2 and is_instance_valid(scout) and hitbox.intersects(Rect2(scout.global_position - Vector2(17, 20), Vector2(34, 40))):
-		scout.take_hit(1.0*player.damage_multiplier())
+		scout.take_hit(1.0*player.damage_multiplier(), p_dmg)
 	if current_room == 2 and seal_health > 0 and hitbox.intersects(GALLERY_LAYOUT.SEAL):
 		seal_health -= 1
 		if seal_health <= 0:
@@ -665,9 +685,9 @@ func _on_player_attacked(hitbox: Rect2) -> void:
 			_show_toast("The seal breaks. Press onward.", 2.7)
 			_save_progress()
 	if current_room == 4 and boss.active and not boss_defeated and hitbox.intersects(boss.combat_bounds()):
-		boss.take_hit(1.0*player.damage_multiplier())
+		boss.take_hit(1.0*player.damage_multiplier(), p_dmg)
 	if current_room == 2:
-		gallery_encounters.strike(hitbox, 1.0*player.damage_multiplier())
+		gallery_encounters.strike(hitbox, 1.0*player.damage_multiplier(), p_dmg)
 	queue_redraw()
 
 func _on_player_bow_fired(origin: Vector2, direction: Vector2) -> void:
@@ -724,19 +744,20 @@ func _on_player_platform_dropped() -> void:
 
 func _on_player_heavy_attacked(hitbox: Rect2) -> void:
 	game_audio.play_effect("heavy_attack")
+	var p_dmg: float = player.current_posture_damage(true)
 	if current_room == 2 and is_instance_valid(ledge_sentinel) and not ledge_sentinel.is_queued_for_deletion() and hitbox.intersects(Rect2(ledge_sentinel.global_position - Vector2(20, 27), Vector2(40, 54))):
-		ledge_sentinel.take_hit(1.5*player.damage_multiplier())
+		ledge_sentinel.take_hit(1.5*player.damage_multiplier(), p_dmg)
 	if current_room == 2 and is_instance_valid(scout) and hitbox.intersects(Rect2(scout.global_position - Vector2(17, 20), Vector2(34, 40))):
-		scout.take_hit(1.5*player.damage_multiplier())
+		scout.take_hit(1.5*player.damage_multiplier(), p_dmg)
 	if current_room == 4 and boss.active and not boss_defeated and hitbox.intersects(boss.combat_bounds()):
-		boss.take_hit(1.5*player.damage_multiplier())
+		boss.take_hit(1.5*player.damage_multiplier(), p_dmg)
 	if current_room == 4 and boss_defeated and not wall_broken and hitbox.intersects(CAVE_LAYOUT.EXIT_WALL):
 		wall_broken = true
 		exit_barrier.queue_free()
 		_show_toast("The cracked wall shatters. The forest lies ahead.", 3.5)
 		_save_progress()
 	if current_room == 2:
-		gallery_encounters.strike(hitbox, 1.5*player.damage_multiplier())
+		gallery_encounters.strike(hitbox, 1.5*player.damage_multiplier(), p_dmg)
 		if player.has_heavy and gallery.try_break_heavy_wall(hitbox):
 			_show_toast("The charged attack opens the gallery passage.",3.0)
 			_save_progress()
@@ -800,16 +821,22 @@ func activate_hand() -> void:
 	player.healing_charges = player.max_healing_charges
 	if player.has_bow:
 		player.bow_ammo = player.BOW_AMMO_MAX
+	if player.has_gauntlet:
+		player.gauntlet_charges = player.GAUNTLET_CHARGES_MAX
 
 func save_at_hand() -> void:
 	if not hand_activated:
 		activate_hand()
+	else:
+		_respawn_regular_enemies()
 	player.set_injured(false)
 	player.has_dash = true
 	player.heal_full()
 	player.healing_charges = player.max_healing_charges
 	if player.has_bow:
 		player.bow_ammo = player.BOW_AMMO_MAX
+	if player.has_gauntlet:
+		player.gauntlet_charges = player.GAUNTLET_CHARGES_MAX
 	_save_progress()
 
 func end_hand_meditation() -> void:
@@ -854,6 +881,7 @@ func _respawn_regular_enemies() -> void:
 	sentinel_defeated = false
 	if is_instance_valid(scout) and not scout.is_queued_for_deletion():
 		scout.health = scout.max_health
+		scout.posture = scout.max_posture
 		scout.global_position = GALLERY_LAYOUT.SCOUT
 		scout.velocity = Vector2.ZERO
 		scout.hit_cooldown = 0.0
@@ -869,6 +897,8 @@ func _respawn_regular_enemies() -> void:
 		scout.attack_landed.connect(func() -> void: game_audio.play_effect("enemy_attack"))
 	if is_instance_valid(ledge_sentinel) and not ledge_sentinel.is_queued_for_deletion():
 		ledge_sentinel.health = ledge_sentinel.max_health
+		ledge_sentinel.posture = ledge_sentinel.max_posture
+		ledge_sentinel.position = GALLERY_LAYOUT.SENTINEL
 		ledge_sentinel.hit_cooldown = 0.0
 		ledge_sentinel.is_asleep = true
 		ledge_sentinel.time_since_last_seen = 0.0
@@ -957,6 +987,8 @@ func _on_player_died() -> void:
 func _respawn() -> void:
 	_unlock_arena()
 	game_audio.play_cave()
+	player.healing_charges = player.max_healing_charges
+	player.health = player.max_health
 	if (last_hand_room==8 and forest_hand_activated) or (last_hand_room==9 and temple_hand_activated):
 		_save_progress()
 		get_tree().set_meta("forest_entry_room", last_hand_room)
@@ -970,7 +1002,7 @@ func _respawn() -> void:
 	if not hand_activated:
 		player.set_injured(true)
 		player.health = player.injured_max_health
-		player.healing_charges = 1
+		player.healing_charges = player.max_healing_charges
 		player.has_dash = false
 	else:
 		player.set_injured(false)
@@ -1016,8 +1048,11 @@ func _update_hud() -> void:
 	hud.has_heavy = player.has_heavy
 	hud.has_bow = player.has_bow
 	hud.bow_ammo = player.bow_ammo
+	hud.gauntlet_charges = player.gauntlet_charges
 	hud.boss_health = boss.health if boss.active and not boss_defeated else 0
 	hud.boss_max_health = int(boss.max_health)
+	hud.boss_posture = boss.posture if boss.active and not boss_defeated else 0.0
+	hud.boss_max_posture = boss.max_posture
 	hud.boss_title = "GOBLIN SCIMITAR LORD"
 	hud.finished = complete
 	hud.prompt = _cave_prompt() if not note_open and not respawning and not transitioning_room else ""

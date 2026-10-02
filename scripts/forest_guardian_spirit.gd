@@ -33,6 +33,8 @@ const ART_SCALE := HEIGHT / 38.0
 func _ready() -> void:
 	max_health = 6.0
 	health = 6.0
+	max_posture = 6.0
+	posture = 6.0
 	super._ready()
 
 func body_size() -> Vector2:
@@ -41,11 +43,11 @@ func body_size() -> Vector2:
 func combat_bounds() -> Rect2:
 	return Rect2(global_position - body_size() / 2.0, body_size())
 
-func take_hit(amount: float = 1.0) -> void:
+func take_hit(amount: float = 1.0, posture_damage: float = -1.0) -> void:
 	hurt_time = 0.45
 	anim_time = 0.0
 	anim_state = "hurt"
-	super.take_hit(amount)
+	super.take_hit(amount, posture_damage)
 
 func _physics_process(delta: float) -> void:
 	visual_time += delta
@@ -119,5 +121,7 @@ func _draw() -> void:
 	draw_texture_rect_region(TEXTURES[v], dest_rect, src_rect, Color(1, 1, 1, emergence))
 	draw_set_transform(Vector2.ZERO)
 
-	draw_rect(Rect2(-30, -HEIGHT / 2.0 - 12.0, 60, 5), Color("092027"))
-	draw_rect(Rect2(-28, -HEIGHT / 2.0 - 11.0, 56.0 * maxf(0.0, health) / max_health, 3), Color("71e6c5"))
+	draw_rect(Rect2(-30, -HEIGHT / 2.0 - 14.0, 60, 7), Color("092027"))
+	draw_rect(Rect2(-28, -HEIGHT / 2.0 - 13.0, 56.0 * clampf(health / max_health, 0.0, 1.0), 3), Color("71e6c5"))
+	draw_rect(Rect2(-28, -HEIGHT / 2.0 - 9.0, 56, 1), Color(0.18, 0.22, 0.25))
+	draw_rect(Rect2(-28, -HEIGHT / 2.0 - 9.0, 56.0 * clampf(posture / max_posture, 0.0, 1.0), 1), Color.WHITE)

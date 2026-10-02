@@ -164,7 +164,7 @@ func targets() -> Array[Node2D]:
 			result.append(enemy)
 	return result
 
-func strike(hitbox: Rect2, amount: float) -> void:
+func strike(hitbox: Rect2, amount: float, posture_amount: float = -1.0) -> void:
 	for enemy in targets():
 		if not is_instance_valid(enemy) or enemy.is_queued_for_deletion():
 			continue
@@ -175,4 +175,4 @@ func strike(hitbox: Rect2, amount: float) -> void:
 			var half := Vector2(17, 20) if enemy is CharacterBody2D else Vector2(20, 27)
 			box = Rect2(enemy.global_position - half, half * 2)
 		if hitbox.intersects(box) or (enemy is CharacterBody2D and hitbox.intersects(Rect2(enemy.global_position - Vector2(17, 20), Vector2(34, 40)))):
-			enemy.take_hit(amount)
+			enemy.take_hit(amount, posture_amount)
