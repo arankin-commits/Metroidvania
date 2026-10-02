@@ -1,0 +1,852 @@
+{
+  "status": "registered key poses, not complete frame-by-frame animations",
+  "source_dimensions": [
+    1536,
+    1024
+  ],
+  "body_canvas": [
+    384,
+    448
+  ],
+  "body_pivot": [
+    192,
+    340
+  ],
+  "frames": [
+    {
+      "name": "idle_01",
+      "path": "idle_01.png",
+      "group": "idle_walk",
+      "source_rect": [
+        0,
+        0,
+        266,
+        218
+      ],
+      "canvas": [
+        384,
+        448
+      ],
+      "pivot": [
+        192,
+        340
+      ],
+      "opaque_bounds": [
+        73,
+        203,
+        312,
+        340
+      ],
+      "registration": "estimated bottom-center of strong-alpha silhouette; verify root/foot placement in game"
+    },
+    {
+      "name": "idle_02",
+      "path": "idle_02.png",
+      "group": "idle_walk",
+      "source_rect": [
+        270,
+        0,
+        251,
+        218
+      ],
+      "canvas": [
+        384,
+        448
+      ],
+      "pivot": [
+        192,
+        340
+      ],
+      "opaque_bounds": [
+        76,
+        190,
+        309,
+        340
+      ],
+      "registration": "estimated bottom-center of strong-alpha silhouette; verify root/foot placement in game"
+    },
+    {
+      "name": "walk_01",
+      "path": "walk_01.png",
+      "group": "idle_walk",
+      "source_rect": [
+        524,
+        0,
+        253,
+        218
+      ],
+      "canvas": [
+        384,
+        448
+      ],
+      "pivot": [
+        192,
+        340
+      ],
+      "opaque_bounds": [
+        72,
+        189,
+        313,
+        340
+      ],
+      "registration": "estimated bottom-center of strong-alpha silhouette; verify root/foot placement in game"
+    },
+    {
+      "name": "walk_02",
+      "path": "walk_02.png",
+      "group": "idle_walk",
+      "source_rect": [
+        780,
+        0,
+        247,
+        218
+      ],
+      "canvas": [
+        384,
+        448
+      ],
+      "pivot": [
+        192,
+        340
+      ],
+      "opaque_bounds": [
+        74,
+        194,
+        310,
+        340
+      ],
+      "registration": "estimated bottom-center of strong-alpha silhouette; verify root/foot placement in game"
+    },
+    {
+      "name": "walk_03",
+      "path": "walk_03.png",
+      "group": "idle_walk",
+      "source_rect": [
+        1030,
+        0,
+        253,
+        218
+      ],
+      "canvas": [
+        384,
+        448
+      ],
+      "pivot": [
+        192,
+        340
+      ],
+      "opaque_bounds": [
+        77,
+        191,
+        308,
+        340
+      ],
+      "registration": "estimated bottom-center of strong-alpha silhouette; verify root/foot placement in game"
+    },
+    {
+      "name": "walk_04",
+      "path": "walk_04.png",
+      "group": "idle_walk",
+      "source_rect": [
+        1286,
+        0,
+        250,
+        218
+      ],
+      "canvas": [
+        384,
+        448
+      ],
+      "pivot": [
+        192,
+        340
+      ],
+      "opaque_bounds": [
+        78,
+        202,
+        306,
+        340
+      ],
+      "registration": "estimated bottom-center of strong-alpha silhouette; verify root/foot placement in game"
+    },
+    {
+      "name": "smash_crouch",
+      "path": "smash_crouch.png",
+      "group": "smash",
+      "source_rect": [
+        0,
+        219,
+        267,
+        214
+      ],
+      "canvas": [
+        384,
+        448
+      ],
+      "pivot": [
+        192,
+        340
+      ],
+      "opaque_bounds": [
+        72,
+        211,
+        313,
+        340
+      ],
+      "registration": "estimated bottom-center of strong-alpha silhouette; verify root/foot placement in game"
+    },
+    {
+      "name": "smash_rise",
+      "path": "smash_rise.png",
+      "group": "smash",
+      "source_rect": [
+        271,
+        219,
+        243,
+        214
+      ],
+      "canvas": [
+        384,
+        448
+      ],
+      "pivot": [
+        192,
+        340
+      ],
+      "opaque_bounds": [
+        98,
+        188,
+        287,
+        340
+      ],
+      "registration": "estimated bottom-center of strong-alpha silhouette; verify root/foot placement in game"
+    },
+    {
+      "name": "smash_overhead",
+      "path": "smash_overhead.png",
+      "group": "smash",
+      "source_rect": [
+        540,
+        219,
+        226,
+        214
+      ],
+      "canvas": [
+        384,
+        448
+      ],
+      "pivot": [
+        192,
+        340
+      ],
+      "opaque_bounds": [
+        116,
+        144,
+        269,
+        340
+      ],
+      "registration": "estimated bottom-center of strong-alpha silhouette; verify root/foot placement in game"
+    },
+    {
+      "name": "smash_downstroke",
+      "path": "smash_downstroke.png",
+      "group": "smash",
+      "source_rect": [
+        788,
+        219,
+        218,
+        214
+      ],
+      "canvas": [
+        384,
+        448
+      ],
+      "pivot": [
+        192,
+        340
+      ],
+      "opaque_bounds": [
+        111,
+        169,
+        274,
+        340
+      ],
+      "registration": "estimated bottom-center of strong-alpha silhouette; verify root/foot placement in game"
+    },
+    {
+      "name": "smash_impact",
+      "path": "smash_impact.png",
+      "group": "smash",
+      "source_rect": [
+        1031,
+        219,
+        248,
+        214
+      ],
+      "canvas": [
+        384,
+        448
+      ],
+      "pivot": [
+        192,
+        340
+      ],
+      "opaque_bounds": [
+        99,
+        202,
+        285,
+        340
+      ],
+      "registration": "estimated bottom-center of strong-alpha silhouette; verify root/foot placement in game"
+    },
+    {
+      "name": "smash_recovery",
+      "path": "smash_recovery.png",
+      "group": "smash",
+      "source_rect": [
+        1287,
+        219,
+        249,
+        214
+      ],
+      "canvas": [
+        384,
+        448
+      ],
+      "pivot": [
+        192,
+        340
+      ],
+      "opaque_bounds": [
+        83,
+        204,
+        302,
+        340
+      ],
+      "registration": "estimated bottom-center of strong-alpha silhouette; verify root/foot placement in game"
+    },
+    {
+      "name": "leap_crouch",
+      "path": "leap_crouch.png",
+      "group": "leap",
+      "source_rect": [
+        0,
+        434,
+        265,
+        203
+      ],
+      "canvas": [
+        384,
+        448
+      ],
+      "pivot": [
+        192,
+        340
+      ],
+      "opaque_bounds": [
+        81,
+        206,
+        304,
+        340
+      ],
+      "registration": "estimated bottom-center of strong-alpha silhouette; verify root/foot placement in game"
+    },
+    {
+      "name": "leap_takeoff",
+      "path": "leap_takeoff.png",
+      "group": "leap",
+      "source_rect": [
+        272,
+        434,
+        265,
+        203
+      ],
+      "canvas": [
+        384,
+        448
+      ],
+      "pivot": [
+        192,
+        340
+      ],
+      "opaque_bounds": [
+        64,
+        183,
+        321,
+        340
+      ],
+      "registration": "estimated bottom-center of strong-alpha silhouette; verify root/foot placement in game"
+    },
+    {
+      "name": "leap_airborne",
+      "path": "leap_airborne.png",
+      "group": "leap",
+      "source_rect": [
+        539,
+        434,
+        281,
+        203
+      ],
+      "canvas": [
+        384,
+        448
+      ],
+      "pivot": [
+        192,
+        340
+      ],
+      "opaque_bounds": [
+        54,
+        251,
+        330,
+        340
+      ],
+      "registration": "estimated bottom-center of strong-alpha silhouette; verify root/foot placement in game"
+    },
+    {
+      "name": "leap_descend",
+      "path": "leap_descend.png",
+      "group": "leap",
+      "source_rect": [
+        824,
+        434,
+        203,
+        203
+      ],
+      "canvas": [
+        384,
+        448
+      ],
+      "pivot": [
+        192,
+        340
+      ],
+      "opaque_bounds": [
+        94,
+        180,
+        291,
+        340
+      ],
+      "registration": "estimated bottom-center of strong-alpha silhouette; verify root/foot placement in game"
+    },
+    {
+      "name": "leap_impact",
+      "path": "leap_impact.png",
+      "group": "leap",
+      "source_rect": [
+        1040,
+        434,
+        237,
+        203
+      ],
+      "canvas": [
+        384,
+        448
+      ],
+      "pivot": [
+        192,
+        340
+      ],
+      "opaque_bounds": [
+        100,
+        201,
+        284,
+        340
+      ],
+      "registration": "estimated bottom-center of strong-alpha silhouette; verify root/foot placement in game"
+    },
+    {
+      "name": "leap_recovery",
+      "path": "leap_recovery.png",
+      "group": "leap",
+      "source_rect": [
+        1287,
+        434,
+        249,
+        203
+      ],
+      "canvas": [
+        384,
+        448
+      ],
+      "pivot": [
+        192,
+        340
+      ],
+      "opaque_bounds": [
+        91,
+        175,
+        294,
+        340
+      ],
+      "registration": "estimated bottom-center of strong-alpha silhouette; verify root/foot placement in game"
+    },
+    {
+      "name": "backhand_tell",
+      "path": "backhand_tell.png",
+      "group": "backhand_rush",
+      "source_rect": [
+        0,
+        638,
+        262,
+        172
+      ],
+      "canvas": [
+        384,
+        448
+      ],
+      "pivot": [
+        192,
+        340
+      ],
+      "opaque_bounds": [
+        92,
+        184,
+        293,
+        340
+      ],
+      "registration": "estimated bottom-center of strong-alpha silhouette; verify root/foot placement in game"
+    },
+    {
+      "name": "backhand_active",
+      "path": "backhand_active.png",
+      "group": "backhand_rush",
+      "source_rect": [
+        280,
+        638,
+        301,
+        172
+      ],
+      "canvas": [
+        384,
+        448
+      ],
+      "pivot": [
+        192,
+        340
+      ],
+      "opaque_bounds": [
+        50,
+        194,
+        335,
+        340
+      ],
+      "registration": "estimated bottom-center of strong-alpha silhouette; verify root/foot placement in game"
+    },
+    {
+      "name": "backhand_recovery",
+      "path": "backhand_recovery.png",
+      "group": "backhand_rush",
+      "source_rect": [
+        583,
+        638,
+        198,
+        172
+      ],
+      "canvas": [
+        384,
+        448
+      ],
+      "pivot": [
+        192,
+        340
+      ],
+      "opaque_bounds": [
+        103,
+        191,
+        282,
+        340
+      ],
+      "registration": "estimated bottom-center of strong-alpha silhouette; verify root/foot placement in game"
+    },
+    {
+      "name": "rush_tell",
+      "path": "rush_tell.png",
+      "group": "backhand_rush",
+      "source_rect": [
+        785,
+        638,
+        241,
+        172
+      ],
+      "canvas": [
+        384,
+        448
+      ],
+      "pivot": [
+        192,
+        340
+      ],
+      "opaque_bounds": [
+        76,
+        203,
+        309,
+        340
+      ],
+      "registration": "estimated bottom-center of strong-alpha silhouette; verify root/foot placement in game"
+    },
+    {
+      "name": "rush_active",
+      "path": "rush_active.png",
+      "group": "backhand_rush",
+      "source_rect": [
+        1029,
+        638,
+        252,
+        172
+      ],
+      "canvas": [
+        384,
+        448
+      ],
+      "pivot": [
+        192,
+        340
+      ],
+      "opaque_bounds": [
+        67,
+        204,
+        318,
+        340
+      ],
+      "registration": "estimated bottom-center of strong-alpha silhouette; verify root/foot placement in game"
+    },
+    {
+      "name": "rush_brake",
+      "path": "rush_brake.png",
+      "group": "backhand_rush",
+      "source_rect": [
+        1288,
+        638,
+        248,
+        172
+      ],
+      "canvas": [
+        384,
+        448
+      ],
+      "pivot": [
+        192,
+        340
+      ],
+      "opaque_bounds": [
+        79,
+        208,
+        306,
+        340
+      ],
+      "registration": "estimated bottom-center of strong-alpha silhouette; verify root/foot placement in game"
+    },
+    {
+      "name": "hurt",
+      "path": "hurt.png",
+      "group": "misc",
+      "source_rect": [
+        0,
+        811,
+        266,
+        213
+      ],
+      "canvas": [
+        384,
+        448
+      ],
+      "pivot": [
+        192,
+        340
+      ],
+      "opaque_bounds": [
+        86,
+        179,
+        299,
+        340
+      ],
+      "registration": "estimated bottom-center of strong-alpha silhouette; verify root/foot placement in game"
+    },
+    {
+      "name": "phase_change",
+      "path": "phase_change.png",
+      "group": "misc",
+      "source_rect": [
+        275,
+        811,
+        246,
+        213
+      ],
+      "canvas": [
+        384,
+        448
+      ],
+      "pivot": [
+        192,
+        340
+      ],
+      "opaque_bounds": [
+        80,
+        195,
+        305,
+        340
+      ],
+      "registration": "estimated bottom-center of strong-alpha silhouette; verify root/foot placement in game"
+    },
+    {
+      "name": "defeat_kneel",
+      "path": "defeat_kneel.png",
+      "group": "misc",
+      "source_rect": [
+        530,
+        811,
+        205,
+        213
+      ],
+      "canvas": [
+        384,
+        448
+      ],
+      "pivot": [
+        192,
+        340
+      ],
+      "opaque_bounds": [
+        93,
+        199,
+        291,
+        340
+      ],
+      "registration": "estimated bottom-center of strong-alpha silhouette; verify root/foot placement in game"
+    },
+    {
+      "name": "defeat_final",
+      "path": "defeat_final.png",
+      "group": "misc",
+      "source_rect": [
+        742,
+        811,
+        286,
+        213
+      ],
+      "canvas": [
+        384,
+        448
+      ],
+      "pivot": [
+        192,
+        340
+      ],
+      "opaque_bounds": [
+        61,
+        244,
+        324,
+        340
+      ],
+      "registration": "estimated bottom-center of strong-alpha silhouette; verify root/foot placement in game"
+    },
+    {
+      "name": "impact_fx",
+      "path": "impact_fx.png",
+      "group": "misc",
+      "source_rect": [
+        1030,
+        811,
+        245,
+        213
+      ],
+      "canvas": [
+        384,
+        448
+      ],
+      "pivot": [
+        192,
+        340
+      ],
+      "opaque_bounds": [
+        70,
+        185,
+        315,
+        340
+      ],
+      "registration": "estimated bottom-center of strong-alpha silhouette; verify root/foot placement in game"
+    },
+    {
+      "name": "shockwave_fx",
+      "path": "shockwave_fx.png",
+      "group": "misc",
+      "source_rect": [
+        1280,
+        811,
+        256,
+        213
+      ],
+      "canvas": [
+        384,
+        448
+      ],
+      "pivot": [
+        192,
+        340
+      ],
+      "opaque_bounds": [
+        75,
+        238,
+        310,
+        340
+      ],
+      "registration": "estimated bottom-center of strong-alpha silhouette; verify root/foot placement in game"
+    }
+  ],
+  "clips": {
+    "idle": [
+      "idle_01",
+      "idle_02"
+    ],
+    "knuckle_walk": [
+      "walk_01",
+      "walk_02",
+      "walk_03",
+      "walk_04"
+    ],
+    "seismic_smash": [
+      "smash_crouch",
+      "smash_rise",
+      "smash_overhead",
+      "smash_downstroke",
+      "smash_impact",
+      "smash_recovery"
+    ],
+    "faultline_barrage": "reuse seismic_smash keys with 3 guarded impact events",
+    "bounding_impact": [
+      "leap_crouch",
+      "leap_takeoff",
+      "leap_airborne",
+      "leap_descend",
+      "leap_impact",
+      "leap_recovery"
+    ],
+    "hydraulic_backhand": [
+      "backhand_tell",
+      "backhand_active",
+      "backhand_recovery"
+    ],
+    "piston_rush": [
+      "rush_tell",
+      "rush_active",
+      "rush_brake"
+    ],
+    "hurt": [
+      "hurt"
+    ],
+    "phase_change": [
+      "phase_change"
+    ],
+    "defeat": [
+      "defeat_kneel",
+      "defeat_final"
+    ],
+    "impact_core": [
+      "impact_fx"
+    ],
+    "shockwave_travel": [
+      "shockwave_fx"
+    ]
+  }
+}
