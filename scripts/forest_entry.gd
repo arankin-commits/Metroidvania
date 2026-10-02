@@ -917,7 +917,7 @@ func _setup_forest_offerings() -> void:
 		sec9_offering = preload("res://scripts/offering_item.gd").new()
 		sec9_offering.name = "Section9Offering"
 		sec9_offering.item_id = "forest_sec9"
-		sec9_offering.position = Vector2(14810.0, DASH_LAYOUT.HIGH)
+		sec9_offering.position = Vector2(15200.0, DASH_LAYOUT.HIGH)
 		sec9_offering.collected.connect(func(): _collect_offering(9))
 		add_child(sec9_offering)
 

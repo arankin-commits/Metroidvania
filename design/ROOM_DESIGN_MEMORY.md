@@ -1489,7 +1489,7 @@ review. Do not treat a headless visibility flag as proof that something renders 
   - In Room 11, the 260 px climbable tree/wall (`rabbit_climb_wall`, group `"climbable_surface"`) acts as the arena surface for the Rabbit Boss to climb and pounce from, while blocking access to the right-side exit.
   - When the Rabbit Boss is defeated (`_on_rabbit_defeated()`), this climbable tree/wall immediately disappears (`queue_free()`), opening the path to the right exit to Room 12 (Ironback Boss).
   - If Rabbit Boss was already defeated, the tree/wall is never spawned. If the player dies before defeating Rabbit Boss, the tree/wall persists/respawns for the encounter.
-
-
-
-
+- **Forest Room 2 Offering Items**:
+  - Section 4 Cavity Offering: Positioned inside the cavity directly beneath the cracked platform at `Vector2(7943.0, 212.0)`. Accessible only after shattering the floor with Heavy Smash.
+  - Section 9.2 / 10.2 High Ledge Offering: Positioned across the 320 px air-dash gap on the upper right ledge (`CAPS[1]` / Section 10.2) at `Vector2(15200.0, DASH_LAYOUT.HIGH)`. Reaching it requires air dashing from the left ledge (`CAPS[0]` / Section 9.2).
+  - Each offering grants +25 Will, advancing the player's level, and persists via `forest_sec4_cache_found` and `forest_sec9_cache_found`.

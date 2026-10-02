@@ -119,11 +119,11 @@ func _run_test() -> void:
 	print("3. Testing Section 9.2 Item at Red Circle...")
 	assert(world.forest_sec9_cache_found == false, "Section 9 cache should initially not be found")
 	assert(is_instance_valid(world.sec9_offering), "Section 9 offering node should exist")
-	assert(absf(world.sec9_offering.position.x - 14810.0) < 5.0, "Section 9 offering should be at x = 14810 (actual: %f)" % world.sec9_offering.position.x)
+	assert(absf(world.sec9_offering.position.x - 15200.0) < 5.0, "Section 9 offering should be across gap at x = 15200 (actual: %f)" % world.sec9_offering.position.x)
 	assert(absf(world.sec9_offering.position.y - DASH_LAYOUT.HIGH) < 5.0, "Section 9 offering should be on upper platform y = %f (actual: %f)" % [DASH_LAYOUT.HIGH, world.sec9_offering.position.y])
 
-	# Move player to Section 9.2 upper platform at red circle
-	world.player.position = Vector2(14810.0, DASH_LAYOUT.HIGH - 23.0)
+	# Move player to Section 9.2 upper platform across gap at red circle
+	world.player.position = Vector2(15200.0, DASH_LAYOUT.HIGH - 23.0)
 	world.player.velocity = Vector2.ZERO
 	for i in 10:
 		await physics_frame
