@@ -1,0 +1,237 @@
+[
+  {
+    "path": "ai/ironback_ai.py",
+    "bytes": 4565,
+    "sha256": "44391e45e9ead6abcd14c5204431b414b3c18453c6235707b1f78d6b2a123933"
+  },
+  {
+    "path": "ai/test_policy.py",
+    "bytes": 2473,
+    "sha256": "370eebffe24b832e1970002f5381228749d4c635e29d953960b9e48442b149ec"
+  },
+  {
+    "path": "ai/TUNING_NOTES.md",
+    "bytes": 1144,
+    "sha256": "a2470cf971be844e73059c758d1312372c4aec077e03362ebce4297f46de0f0b"
+  },
+  {
+    "path": "AI_AND_TEST_SCENE.md",
+    "bytes": 9538,
+    "sha256": "8b749096e424c0b089e790c649ec9826562dc3f0f9bc853d86a0ffbd43951c11"
+  },
+  {
+    "path": "IMPLEMENTATION_CORRECTIONS.md",
+    "bytes": 11575,
+    "sha256": "e4802bc2cc9a36b1e7b939d03faa62d954a5585cb8f006f6ca6f641acbf0591c"
+  },
+  {
+    "path": "INTEGRATION_PROMPT.md",
+    "bytes": 5441,
+    "sha256": "e4e659d5b28f5f54a1bda975cfd5d8c2b1793c80eb20b311a8af5680f13adbaa"
+  },
+  {
+    "path": "README.md",
+    "bytes": 2396,
+    "sha256": "f00b49095a0db6e5e0b9db8603a27f4f778cb354a0a0f751d3f250721b098731"
+  },
+  {
+    "path": "reference/ironback-generation-prompt.txt",
+    "bytes": 3166,
+    "sha256": "cf755e9bf374f00ec456ec4d0cc978f168cfc11c9d533356279f02401fd6e905"
+  },
+  {
+    "path": "reference/ironback-sprite-animation-design.png",
+    "bytes": 2355165,
+    "sha256": "8ffde09aac748e879b62b67f5d3cbf459db905d70cda61749f2361326a33d7b0"
+  },
+  {
+    "path": "reference/IRONBACK_ANIMATION_DESIGN.md",
+    "bytes": 7262,
+    "sha256": "83c10cfe83a37f08ece4196a61fc9283aa85838e1ed1906db6e29564396278a3"
+  },
+  {
+    "path": "reference/separation-provenance.py",
+    "bytes": 3752,
+    "sha256": "6c5ebd6df3b5a5370594051de690d39b8913fd852bb16aa618ccdf02d90d625a"
+  },
+  {
+    "path": "reference/transparent-atlas-generation-prompt.txt",
+    "bytes": 2081,
+    "sha256": "d6cf79be249708a8d29b67934b822458881c43e3ac27056776d21654958a46dd"
+  },
+  {
+    "path": "sprites/backhand_active.png",
+    "bytes": 80430,
+    "sha256": "bf8ffcfa751d878ee64be7876872977447d72aab3c31f719586aaf3a0e69de5a"
+  },
+  {
+    "path": "sprites/backhand_recovery.png",
+    "bytes": 67561,
+    "sha256": "6f94e0036223f00b77b01ac793bdeab2b36cf11537f1311a5c9b544eb197ff68"
+  },
+  {
+    "path": "sprites/backhand_tell.png",
+    "bytes": 70502,
+    "sha256": "32127c32eb6da92688f47a1cf9c8a54feb1cad1121ab1ff46366709708105ab1"
+  },
+  {
+    "path": "sprites/defeat_final.png",
+    "bytes": 62566,
+    "sha256": "1de2e70829aa41847fb9558a779f655feb8a18041ea20a90b96ece44d6acfa79"
+  },
+  {
+    "path": "sprites/defeat_kneel.png",
+    "bytes": 66525,
+    "sha256": "b41d7e99b4133c4691bd12ec2a4255ee47a73cc09f2dc571f282335b3d7b98f0"
+  },
+  {
+    "path": "sprites/hurt.png",
+    "bytes": 66991,
+    "sha256": "c5a18b2dd4301295443030b1a34fece5c0a1953db4abed1154ffc387898f2a6c"
+  },
+  {
+    "path": "sprites/idle_01.png",
+    "bytes": 81214,
+    "sha256": "61f9a83024b5fa0b628faebf89106dc0d9c166e699b12eea764cd60da02857ec"
+  },
+  {
+    "path": "sprites/idle_02.png",
+    "bytes": 81563,
+    "sha256": "07516d8f71a09892db5e888294cb34d842fbda20e5ea2abfa09318db6ea1f1a2"
+  },
+  {
+    "path": "sprites/impact_fx.png",
+    "bytes": 66119,
+    "sha256": "5cffcf1964d0db1a20486f93cddb4d0dc1700c390043864fd0d304092b4b8499"
+  },
+  {
+    "path": "sprites/ironback-keypose-atlas.png",
+    "bytes": 2722309,
+    "sha256": "8e7fa174b86a34f36031f71d03ccc2a7d70a49cf8f07761f0a01df5505757b9e"
+  },
+  {
+    "path": "sprites/leap_airborne.png",
+    "bytes": 58234,
+    "sha256": "44b995d139e25734b1e544addb8519ed82313ec4843dd102a0714a66a6d7e112"
+  },
+  {
+    "path": "sprites/leap_crouch.png",
+    "bytes": 76936,
+    "sha256": "c2d27e4e1e9c6ce656c4303afa6275f220695720a5c0101a1b1157b3f2944225"
+  },
+  {
+    "path": "sprites/leap_descend.png",
+    "bytes": 67959,
+    "sha256": "48b3145bf20760d59f9dd9e909bf3dcfc73a59cc2ac0a833e1e543193febfbad"
+  },
+  {
+    "path": "sprites/leap_impact.png",
+    "bytes": 66212,
+    "sha256": "1ac87efa9ffb96240976f07c15c74c5ef613b9ee471c06e42f8fb814b0b9cddc"
+  },
+  {
+    "path": "sprites/leap_recovery.png",
+    "bytes": 70536,
+    "sha256": "f1f3b5eaca8248d67d02c58b24cab25029b6437b779ba7f3f9a9ed6d92f5faa6"
+  },
+  {
+    "path": "sprites/leap_takeoff.png",
+    "bytes": 66865,
+    "sha256": "85b45a67aa7cfa35ff9d1748c55e109dc1adde88c927d800acea6c5b8fb57456"
+  },
+  {
+    "path": "sprites/manifest.json",
+    "bytes": 16550,
+    "sha256": "d20d4bfbbb33380a96341746b2f4e6a61530cc9d5c22affaab2855b3a31765a5"
+  },
+  {
+    "path": "sprites/phase_change.png",
+    "bytes": 83059,
+    "sha256": "93740b7bf0e0ca4e3c312274d47fa92ad88a0b472c36d4f05f404c600fe67296"
+  },
+  {
+    "path": "sprites/preview-checkerboard.jpg",
+    "bytes": 337504,
+    "sha256": "edf3e89b5ebe52e485f35f75bacb9e4b117bbbb5b4d34168dd0b287f9514293f"
+  },
+  {
+    "path": "sprites/PREVIEW_NOTE.txt",
+    "bytes": 340,
+    "sha256": "c87ca6b550759decdcf453031ae0ccd31905df559c2bd6e866434659eb51e60d"
+  },
+  {
+    "path": "sprites/rush_active.png",
+    "bytes": 74111,
+    "sha256": "a0be48b884f6d89fbafc1e4cde8318289410d9d58caae741a68b9165d24a3e74"
+  },
+  {
+    "path": "sprites/rush_brake.png",
+    "bytes": 76418,
+    "sha256": "9ca14bc58636f507e07c68a7df79a306f905b45dc583c5ec1d347ddcc58b77ff"
+  },
+  {
+    "path": "sprites/rush_tell.png",
+    "bytes": 77219,
+    "sha256": "83d3d9378289a25bbc39de6037a392df466a8d7afc49dcfa7f1fe1927f43de97"
+  },
+  {
+    "path": "sprites/shockwave_fx.png",
+    "bytes": 48172,
+    "sha256": "49dfac5e545911f154bc1070657707f046fec91c7247fcf602137eeb20220873"
+  },
+  {
+    "path": "sprites/smash_crouch.png",
+    "bytes": 80609,
+    "sha256": "92dc73ac13c88362167791101b5ef7a2241f65f96d50aeabc232567d6e0c18e5"
+  },
+  {
+    "path": "sprites/smash_downstroke.png",
+    "bytes": 66450,
+    "sha256": "5f6868ea7fe56bf274f36495c0e89e267476f62d5785be77a3cf5e176e9b421d"
+  },
+  {
+    "path": "sprites/smash_impact.png",
+    "bytes": 68468,
+    "sha256": "399b925d52fcfd119788a0233b204e8fabfe014631086d7048b45f2bcd684427"
+  },
+  {
+    "path": "sprites/smash_overhead.png",
+    "bytes": 74933,
+    "sha256": "2b082c85b5953a9d3c583ff51d18808f830191ea3ff43f2170ac3c88ee4b5afc"
+  },
+  {
+    "path": "sprites/smash_recovery.png",
+    "bytes": 74170,
+    "sha256": "98fad0390fc57f33f8555816b8d33af897f2a434bc3b5147f24122a4a6e24bdc"
+  },
+  {
+    "path": "sprites/smash_rise.png",
+    "bytes": 70294,
+    "sha256": "7773b2e4ce8e986a6a05372c7fc7ae03800aadeda776c6ffad8f7292fecc3f43"
+  },
+  {
+    "path": "sprites/SPRITE_STATUS.md",
+    "bytes": 2561,
+    "sha256": "f337b3cd95fc1f5e54dbb242ec1f222c86de17bd91bc35b866fa1546487ce8b5"
+  },
+  {
+    "path": "sprites/walk_01.png",
+    "bytes": 82980,
+    "sha256": "aced88cb7da91cd869f957aefe64f7350e92a99971663a966164c631350f44c6"
+  },
+  {
+    "path": "sprites/walk_02.png",
+    "bytes": 81055,
+    "sha256": "9bc081d0577a5705fafdc679bd251047584229ceb825478e82d33f39891ae3f1"
+  },
+  {
+    "path": "sprites/walk_03.png",
+    "bytes": 83486,
+    "sha256": "2c6b45b282eddfbd20dd0b52c5837f0e0862dfc234ea9862e66faece5629d7b3"
+  },
+  {
+    "path": "sprites/walk_04.png",
+    "bytes": 77481,
+    "sha256": "6a89d9303f411e7d362ba72add0c0060e327b42629422df34c8397d897db56a1"
+  }
+]
