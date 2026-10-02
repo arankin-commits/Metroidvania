@@ -48,9 +48,9 @@ func run() -> void:
 		p.position.x = boss.position.x + direction * 90
 		choices.clear()
 		for i in 100: choices[boss.choose_attack()] = true
-		assert(choices.has("punch_combo") and choices.has("slam") and choices.size()==2)
+		assert(choices.has("punch_combo") and choices.has("slam") and choices.has("one_hit_combo") and choices.size()==3)
 		var poses := {0:true}
-		for name in ["rocket_punch","fire","punch_combo","slam"]:
+		for name in ["rocket_punch","fire","punch_combo","slam","one_hit_combo"]:
 			boss.begin_attack(name)
 			var hits := 0
 			var previous_phase: Dictionary = {}
@@ -62,7 +62,7 @@ func run() -> void:
 				boss._physics_process(1.0/60.0)
 				if boss.state == "idle": break
 			assert(boss.state == "idle", "Attack failed to recover")
-			assert(hits == (3 if name=="punch_combo" else 1 if name=="slam" else 0), "Incorrect melee strike count")
+			assert(hits == (3 if name=="punch_combo" else 1 if (name=="slam" or name=="one_hit_combo") else 0), "Incorrect melee strike count")
 		assert(poses.size()==13, "Supplied pose unreachable in runtime attacks")
 		for shot in get_nodes_in_group("combat_projectiles"):
 			assert(shot.get_script() == GUARDIAN.TEMPLE_PROJECTILE, "Placeholder projectile used")

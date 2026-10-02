@@ -1,8 +1,11 @@
 extends Node
 
-const CAVE_MUSIC = preload("res://assets/cave_music.wav")
-const FOREST_MUSIC = preload("res://assets/forest_music.wav")
-const WARDEN_MUSIC = preload("res://assets/warden_music.wav")
+const CAVE_MUSIC = preload("res://assets/audio/cave_theme.mp3")
+const FOREST_MUSIC = preload("res://assets/audio/forest_theme.mp3")
+const GOBLIN_BOSS_MUSIC = preload("res://assets/audio/goblin_boss_theme.mp3")
+const FOREST_BOSS_MUSIC = preload("res://assets/audio/forest_boss_theme.mp3")
+const TEMPLE_BOSS_MUSIC = preload("res://assets/audio/temple_boss_theme.mp3")
+const WARDEN_MUSIC = GOBLIN_BOSS_MUSIC
 const EFFECTS := {
 	"attack": preload("res://assets/attack.wav"),
 	"heavy_attack": preload("res://assets/heavy_attack.wav"),
@@ -60,7 +63,16 @@ func play_forest() -> void:
 	_set_track("forest", FOREST_MUSIC)
 
 func play_boss() -> void:
-	_set_track("warden", WARDEN_MUSIC)
+	_set_track("warden", GOBLIN_BOSS_MUSIC)
+
+func play_goblin_boss() -> void:
+	_set_track("warden", GOBLIN_BOSS_MUSIC)
+
+func play_forest_boss() -> void:
+	_set_track("forest_boss", FOREST_BOSS_MUSIC)
+
+func play_temple_boss() -> void:
+	_set_track("temple_boss", TEMPLE_BOSS_MUSIC)
 
 func play_effect(cue: String) -> void:
 	if effects.has(cue):

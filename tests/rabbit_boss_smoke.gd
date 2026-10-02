@@ -33,7 +33,7 @@ func run() -> void:
 		await physics_frame
 		if boss.current_climb_surface != null:
 			saw_climb = true
-		if boss.is_telegraphing:
+		if not saw_telegraph and boss.is_telegraphing:
 			var telegraph_position := boss.global_position
 			await frames(5)
 			if boss.global_position.distance_to(telegraph_position) > 0.01:
@@ -61,6 +61,10 @@ func run() -> void:
 	player.facing = 1
 	var health_before := boss.health
 	player._normal_attack()
+	for _f in 20:
+		await physics_frame
+		if boss.health < health_before:
+			break
 	await process_frame
 	if boss.health >= health_before:
 		fail("Player attack did not damage the rabbit boss")

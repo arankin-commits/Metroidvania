@@ -15,7 +15,7 @@ const ABILITIES := [
 	{"name": "Healing", "icon": "heal", "detail": "Press F to restore 2 HP after a short meditation. Damage interrupts it.", "cooldown": "0.65 second cast", "uses": "Healing charges"},
 	{"name":"Goblin Scimitar","icon":"attack","detail":"Cave boss reward. Press 1 to equip; J swings, U thrusts.","cooldown":"0.75 seconds (thrust)","uses":"Unlimited","unlock":"has_scimitar"},
 	{"name":"Bow and arrow","icon":"bow","detail":"Forest boss reward. Press 2 to equip; J or L fires. U flips forward and fires three downward targeting arrows. Meditate to refill.","cooldown":"1.8 seconds (volley)","uses":"Arrows","unlock":"has_bow"},
-	{"name":"Stone Gauntlet","icon":"heavy","detail":"Temple guardian reward. Press 3 to equip; J punches. Tap U for a fireball beam; hold U and release for four stronger rapid-fire beams.","cooldown":"0.85 seconds (beam)","uses":"Unlimited","unlock":"has_gauntlet"},
+	{"name":"Stone Gauntlet","icon":"heavy","detail":"Temple guardian reward. Press 3 to equip; J punches. Tap U for a fireball beam; hold U and release for four stronger rapid-fire beams.","cooldown":"0.85 seconds (beam)","uses":"12 rapid-fire uses (resets at hand chair)","unlock":"has_gauntlet"},
 	{"name":"Charged wall breaking","icon":"heavy","detail":"Cave boss reward. Hold H and release at full charge to break amber-cracked walls. This passive unlock has no bottom-left slot.","cooldown":"0.65 seconds","uses":"Unlimited","unlock":"has_heavy"},
 ]
 const BOSS_WILLS := [

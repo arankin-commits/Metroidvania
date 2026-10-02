@@ -12,11 +12,14 @@ var has_dash := false
 var has_heavy := false
 var has_bow := false
 var bow_ammo := 0
+var gauntlet_charges := 12
 var prompt := ""
 var notice := ""
 var area := "THE FORGOTTEN PASSAGE"
 var boss_health := 0.0
 var boss_max_health := 40
+var boss_posture := 0.0
+var boss_max_posture := 40.0
 var boss_title := "THE HOLLOW WARDEN"
 var finished := false
 
@@ -67,8 +70,10 @@ func _draw() -> void:
 	if boss_health > 0:
 		var bar_width := minf(430.0, width * 0.5)
 		var x := (width - bar_width) * 0.5
-		draw_rect(Rect2(x, 38, bar_width, 19), Color(0.12, 0.16, 0.23))
-		draw_rect(Rect2(x + 3, 41, (bar_width - 6) * float(boss_health) / float(boss_max_health), 13), Color(0.93, 0.36, 0.43))
+		var inner_width := bar_width - 6.0
+		draw_rect(Rect2(x, 38, bar_width, 22), Color(0.12, 0.16, 0.23))
+		draw_rect(Rect2(x + 3, 41, inner_width * clampf(float(boss_health) / float(boss_max_health), 0.0, 1.0), 12), Color(0.93, 0.36, 0.43))
+		draw_rect(Rect2(x + 3, 54, inner_width * clampf(float(boss_posture) / float(boss_max_posture), 0.0, 1.0), 4), Color.WHITE)
 		draw_string(font, Vector2(x, 32), boss_title, HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color(1.0, 0.83, 0.68))
 	if not notice.is_empty():
 		var notice_width := minf(width * 0.64, 760.0)
@@ -101,7 +106,12 @@ func _draw_ability_strip() -> void:
 		{"kind": equipped_weapon if equipped_weapon!="starter" else "attack", "key": "J", "amount": "%d/3"%bow_ammo if equipped_weapon=="bow" else "∞"},
 	]
 	if equipped_weapon!="starter":
-		entries.append({"kind":equipped_weapon,"key":"U","amount":"%d/3"%bow_ammo if equipped_weapon=="bow" else "∞"})
+		var u_amount := "∞"
+		if equipped_weapon == "bow":
+			u_amount = "%d/3" % bow_ammo
+		elif equipped_weapon == "gauntlet":
+			u_amount = "%d/12" % gauntlet_charges
+		entries.append({"kind": equipped_weapon, "key": "U", "amount": u_amount})
 	var center_y := size.y - 58.0
 	for index in entries.size():
 		_draw_ability_circle(Vector2(52.0 + index * 79.0, center_y), entries[index])

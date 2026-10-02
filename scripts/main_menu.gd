@@ -308,10 +308,29 @@ func _start_slot(slot: int) -> void:
 	click_audio.play()
 	get_tree().set_meta("active_save_slot", slot)
 	get_tree().set_meta("save_root", save_root)
-	transition_label.text = "ENTERING THE TWISTED FOREST..." if data.get("area", "") in ["Forest Edge", "The Twisted Forest"] else "ENTERING THE CAVE..."
+	var hand_activated := bool(data.get("hand_activated", false))
+	var forest_hand_activated := bool(data.get("forest_hand_activated", false))
+	var temple_hand_activated := bool(data.get("temple_hand_activated", false))
+	var any_hand := hand_activated or forest_hand_activated or temple_hand_activated
+	var last_hand_room := int(data.get("last_hand_room", 1))
+
+	var is_forest := false
+	if any_hand:
+		if (last_hand_room == 8 and forest_hand_activated) or (last_hand_room == 9 and temple_hand_activated):
+			is_forest = true
+		elif last_hand_room == 3 and hand_activated:
+			is_forest = false
+		elif temple_hand_activated or forest_hand_activated:
+			is_forest = true
+		else:
+			is_forest = false
+	else:
+		is_forest = false
+
+	transition_label.text = "ENTERING THE TWISTED FOREST..." if is_forest else "ENTERING THE CAVE..."
 	_show_screen(transition_screen)
 	await get_tree().create_timer(0.5).timeout
-	var scene_path := "res://scenes/forest_entry.tscn" if data.get("area", "") in ["Forest Edge", "The Twisted Forest"] else "res://scenes/tutorial.tscn"
+	var scene_path := "res://scenes/forest_entry.tscn" if is_forest else "res://scenes/tutorial.tscn"
 	get_tree().change_scene_to_file(scene_path)
 
 func _delete_slot(slot: int) -> void:

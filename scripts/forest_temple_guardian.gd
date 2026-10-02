@@ -16,6 +16,8 @@ func _ready() -> void:
 	arena_bounds=Vector2(22900,23900)
 	max_health=30.0
 	health=max_health
+	max_posture=max_health
+	posture=max_posture
 	var glow := ShaderMaterial.new()
 	glow.shader = GLOW_SHADER
 	material = glow
@@ -27,6 +29,7 @@ func _physics_process(delta: float) -> void:
 	super._physics_process(delta)
 
 func frame_index() -> int:
+	if state == "stagger": return 7
 	return int(phase.get("pose",0))
 
 func phase_glow() -> float:
@@ -42,7 +45,7 @@ func choose_attack() -> String:
 		transition_pending=true
 		return "fire"
 	if absf(player.global_position.x-global_position.x)<175:
-		return "punch_combo" if randi()%2==0 else "slam"
+		return ["punch_combo","slam","one_hit_combo"][randi()%3]
 	if health<max_health*.5:
 		return "fire" if randi()%2==0 else "rocket_punch"
 	if health==max_health*.5: return "fire"
@@ -77,6 +80,11 @@ func attack_phases(name: String) -> Array[Dictionary]:
 			return [{"state":"tell_slam","time":.8,"pose":11,"preview":Rect2(-130,-20,260,67)},
 				{"state":"slam","time":.18,"pose":12,"hit":Rect2(-130,-20,260,67)},
 				{"state":"recover","time":.9,"pose":7}]
+		"one_hit_combo":
+			var strike := Rect2(20,-35,105,75)
+			return [{"state":"tell_punch","time":.55,"pose":0,"preview":strike},
+				{"state":"punch","time":.15,"pose":8,"hit":strike},
+				{"state":"recover","time":.45,"pose":7}]
 	var result: Array[Dictionary]=[]
 	for i in 3:
 		var strike := Rect2(20,-35,130 if i==2 else 105,75)

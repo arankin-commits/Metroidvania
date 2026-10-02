@@ -28,7 +28,11 @@ func _physics_process(delta: float) -> void:
 	if was_charge and not was_struck and struck: charge_hit_pause=.055
 	if active and health>0 and is_instance_valid(player):
 		var player_body:=Rect2(player.global_position-Vector2(14,23),Vector2(28,46))
-		if combat_bounds().intersects(player_body): player.take_damage(1.0,global_position.x)
+		if combat_bounds().intersects(player_body):
+			if player.get("dash_time") != null and player.dash_time > 0.0:
+				pass
+			else:
+				player.take_damage(1.0,global_position.x)
 	visual_clock+=delta
 	if phase.has("hit"): recovery_pose=int(phase.get("sprite_pose",0))
 	if health>0: queue_redraw()
@@ -58,6 +62,14 @@ func limit_ground_motion(destination: Vector2) -> Vector2:
 	query.transform=Transform2D(0,global_position+Vector2(0,-8))
 	query.motion=destination-position
 	query.collision_mask=1
+	var exclude: Array[RID] = []
+	for node in get_tree().get_nodes_in_group("combat_targets"):
+		if node is CollisionObject2D:
+			exclude.append(node.get_rid())
+	for node in get_tree().get_nodes_in_group("forest_boss_summons"):
+		if node is CollisionObject2D:
+			exclude.append(node.get_rid())
+	query.exclude = exclude
 	var result:=get_world_2d().direct_space_state.cast_motion(query)
 	if result.size()==2: return position+query.motion*result[0]
 	return destination
@@ -66,7 +78,7 @@ func choose_attack() -> String:
 	var distance:=absf(player.global_position.x-global_position.x)
 	if distance>290: return "jump_slam" if attack_count%2==0 else "charge_swing"
 	if distance>150: return "mid_combo" if attack_count%2==0 else "charge_swing"
-	return ["spin_combo","overhead_combo","charge_swing"][randi()%3]
+	return ["spin_combo","overhead_combo","charge_swing","one_hit_combo"][randi()%4]
 
 func strike(reach: float,windup: float,style: String,reverse:=false) -> Array[Dictionary]:
 	var box:=Rect2(20,-43,reach,86)
@@ -111,10 +123,15 @@ func attack_phases(name: String) -> Array[Dictionary]:
 		"mid_combo":
 			result.append_array(strike(190,.65,"thrust"))
 			result.append_array(strike(150,.3,"swing",true))
+		"one_hit_combo":
+			result.append_array(strike(120,.55,"swing"))
+			result.append({"state":"recover","time":.45})
+			return result
 	result.append({"state":"recover","time":.9})
 	return result
 
 func visual_pose() -> int:
+	if state=="stagger": return recovery_pose
 	if phase.has("sprite_pose"): return int(phase.sprite_pose)
 	if state=="combo_pause": return recovery_pose
 	if state=="recover" and attack_name=="charge_swing" and state_time>phase_length*.3: return 11

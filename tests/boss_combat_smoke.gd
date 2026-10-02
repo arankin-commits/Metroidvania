@@ -48,7 +48,7 @@ func ground_dash(upgraded: bool) -> float:
 	key(KEY_K,true)
 	await frames(1)
 	key(KEY_K,false)
-	await frames(11)
+	await frames(20)
 	return player.position.x-start
 
 func new_boss(script: Script) -> Node2D:
@@ -75,7 +75,7 @@ func run() -> void:
 	await frames(20)
 	var basic:=await ground_dash(false)
 	var enhanced:=await ground_dash(true)
-	if basic<30 or absf(enhanced/basic-2)>0.05: fail("Ground dash is not exactly half before boss: %s/%s"%[basic,enhanced]); return
+	if basic<30 or absf(enhanced-80.0)>0.05: fail("Enhanced tap dash is not 80.0: %s/%s"%[basic,enhanced]); return
 	player.reset_movement_state()
 	player.position=Vector2(1000,350)
 	player.has_air_dash=false

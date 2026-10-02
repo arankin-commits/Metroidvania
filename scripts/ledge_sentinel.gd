@@ -7,8 +7,14 @@ const GOBLIN_FRAMES = preload("res://assets/characters/enemies/goblin.tres")
 
 var sprite: AnimatedSprite2D
 var player: CharacterBody2D
-var health := 4.0
+var health := 4.0:
+	set(value):
+		if value > health:
+			posture = maxf(posture, value)
+		health = value
 var max_health := 4.0
+var posture := 4.0
+var max_posture := 4.0
 var hit_cooldown := 0.0
 var hurt_time := 0.0
 var facing := -1
@@ -23,7 +29,10 @@ const ATTACKS = ["horizontal_slash", "upward_slash", "downward_slam"]
 const RUN_SPEED := 115.0
 
 func _ready() -> void:
+	max_posture = max_health
+	posture = max_posture
 	add_to_group("combat_targets")
+	add_to_group("enemies")
 	sprite = AnimatedSprite2D.new()
 	sprite.sprite_frames = GOBLIN_FRAMES
 	sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
@@ -142,10 +151,13 @@ func _process(delta: float) -> void:
 					var attack_box := Rect2(global_position + Vector2(10 if facing > 0 else -60, -50), Vector2(50, 50))
 					var target_body := Rect2(player.global_position - Vector2(14, 23), Vector2(28, 46))
 					if attack_box.intersects(target_body):
-						var health_before: float = player.health
-						player.take_damage(1.0, global_position.x, true)
-						if player.health < health_before:
-							attack_landed.emit()
+						if player.get("dash_time") != null and player.dash_time > 0.0:
+							pass
+						else:
+							var health_before: float = player.health
+							player.take_damage(1.0, global_position.x, true)
+							if player.health < health_before:
+								attack_landed.emit()
 				if attack_time <= 0.0 and is_instance_valid(sprite):
 					sprite.play("idle")
 			else:
@@ -161,7 +173,7 @@ func _process(delta: float) -> void:
 					var attack_name: String = ATTACKS[attack_index % ATTACKS.size()]
 					attack_index += 1
 					attack_cooldown = 1.3
-					attack_time = 0.55
+					attack_time = 0.95
 					has_dealt_attack_damage = false
 					if is_instance_valid(sprite):
 						sprite.play(attack_name)
@@ -183,27 +195,37 @@ func _process(delta: float) -> void:
 		hit_cooldown = 0.8
 	queue_redraw()
 
-func take_hit(amount: float = 1.0) -> void:
+func take_hit(amount: float = 1.0, posture_damage: float = -1.0) -> void:
 	if health <= 0:
 		return
+	var p_dmg := amount if posture_damage < 0.0 else posture_damage
 	if is_asleep:
 		amount *= 2.0
+		p_dmg *= 2.0
 		is_asleep = false
 		time_since_last_seen = 0.0
 		wake_delay = 0.5
 	health -= amount
-	hurt_time = 0.35
-	attack_time = 0.0
-	if is_instance_valid(sprite) and sprite.sprite_frames.has_animation("posture_break"):
-		sprite.play("posture_break")
-	queue_redraw()
+	posture -= p_dmg
 	if health <= 0:
 		defeated.emit()
 		queue_free()
+		return
+	if posture <= 0:
+		posture = max_posture
+		hurt_time = 1.5
+		attack_time = 0.0
+		if is_instance_valid(sprite) and sprite.sprite_frames.has_animation("posture_break"):
+			sprite.play("posture_break")
+	else:
+		hurt_time = 0.15
+	queue_redraw()
 
 func _draw() -> void:
-	# Sleeping goblin health bar
+	# Sleeping goblin health & posture bar
 	if health > 0:
-		draw_rect(Rect2(-19, -37, 38, 7), Color(0.04, 0.10, 0.14))
-		draw_rect(Rect2(-17, -35, 34, 3), Color(0.25, 0.32, 0.36))
-		draw_rect(Rect2(-17, -35, 34.0 * float(health) / float(max_health), 3), Color(0.96, 0.59, 0.42))
+		draw_rect(Rect2(-19, -39, 38, 9), Color(0.04, 0.10, 0.14))
+		draw_rect(Rect2(-17, -37, 34, 3), Color(0.25, 0.32, 0.36))
+		draw_rect(Rect2(-17, -37, 34.0 * clampf(float(health) / float(max_health), 0.0, 1.0), 3), Color(0.96, 0.59, 0.42))
+		draw_rect(Rect2(-17, -33, 34, 1), Color(0.18, 0.22, 0.25))
+		draw_rect(Rect2(-17, -33, 34.0 * clampf(float(posture) / float(max_posture), 0.0, 1.0), 1), Color.WHITE)

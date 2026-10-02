@@ -29,9 +29,11 @@ def runtime_resources():
     seen = set()
     while pending:
         name = pending.pop()
-        if name in seen:
+        if name in seen or name.endswith("/"):
             continue
         path = ROOT / name
+        if path.is_dir():
+            continue
         if not path.is_file():
             raise RuntimeError(f"Missing runtime dependency: {name}")
         seen.add(name)
