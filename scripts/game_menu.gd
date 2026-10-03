@@ -8,7 +8,7 @@ const TABS := ["STATUS", "WILLS", "NOTES", "ABILITIES", "MAP"]
 const ABILITIES := [
 	{"name": "Jump", "icon": "jump", "detail": "Leap over gaps and reach higher ground.", "cooldown": "None", "uses": "Unlimited"},
 	{"name": "Ground dodge", "icon": "dodge", "detail": "Shift or K on the ground. Briefly avoids damage.", "cooldown": "0.75 seconds", "uses": "Unlimited"},
-	{"name": "Air / enhanced dash", "icon": "dash", "detail": "Forest boss reward. Shift or K unlocks air dash and doubles the basic ground dash distance. No bottom-left slot.", "cooldown": "0.65 seconds air; 0.75 seconds ground", "uses": "Unlimited","unlock":"has_dash"},
+	{"name": "Air dash", "icon": "dash", "detail": "Forest boss reward. Press Shift or K while airborne to dash. No bottom-left slot.", "cooldown": "0.65 seconds", "uses": "Unlimited", "inherited_ability": "air_dash"},
 	{"name": "Ledge climb", "icon": "climb", "detail": "Catch a clear edge at head height, then press Jump or move toward it.", "cooldown": "None", "uses": "Unlimited"},
 	{"name": "Drop through", "icon": "drop", "detail": "Hold S or Down and press Jump on a thin platform.", "cooldown": "None", "uses": "Unlimited"},
 	{"name": "Attack", "icon": "attack", "detail": "Press J or X to strike on the ground, in the air, or while hanging.", "cooldown": "0.30 seconds", "uses": "Unlimited"},
@@ -304,7 +304,7 @@ func _select_ability(index: int) -> void:
 	ability_icon.show_ability(str(data.icon))
 	ability_name.text = str(data.name).to_upper()
 	ability_detail.text = str(data.detail)
-	if data.has("unlock") and not bool(world.player.get(str(data.unlock))):
+	if (data.has("inherited_ability") and not world.player.inheritance.has_ability(str(data.inherited_ability))) or (data.has("unlock") and not bool(world.player.get(str(data.unlock)))):
 		ability_detail.text="LOCKED - "+ability_detail.text
 	var current := ""
 	match str(data.icon):
