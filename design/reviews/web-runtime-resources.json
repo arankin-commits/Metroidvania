@@ -183,6 +183,7 @@
   "scripts/goblin_combat_fx.gd",
   "scripts/hand_menu.gd",
   "scripts/hud.gd",
+  "scripts/inheritance_state.gd",
   "scripts/ironback_boss_test.gd",
   "scripts/ironback_full_boss.gd",
   "scripts/ironback_v2_fx.gd",

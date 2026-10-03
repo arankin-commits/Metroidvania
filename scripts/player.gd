@@ -1,5 +1,8 @@
 extends CharacterBody2D
 
+# Navigation reads this shared Inheritance-owned state; it never grants abilities.
+var inheritance = preload("res://scripts/inheritance_state.gd").new()
+
 signal attacked(hitbox: Rect2)
 signal heavy_attacked(hitbox: Rect2)
 signal heavy_smashed(hitbox: Rect2)
@@ -540,7 +543,7 @@ func _physics_process(delta: float) -> void:
 				dash_cooldown = 0.65
 				invulnerability = maxf(invulnerability, 0.35)
 				dodged.emit()
-		elif has_air_dash:
+		elif has_air_dash or inheritance.has_ability("air_dash"):
 			is_ground_dash = false
 			is_dash_holding = false
 			is_dashing = true
