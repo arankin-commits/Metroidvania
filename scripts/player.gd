@@ -543,7 +543,7 @@ func _physics_process(delta: float) -> void:
 				dash_cooldown = 0.65
 				invulnerability = maxf(invulnerability, 0.35)
 				dodged.emit()
-		elif inheritance.has_ability("air_dash"):
+		elif has_air_dash or inheritance.has_ability("air_dash"):
 			is_ground_dash = false
 			is_dash_holding = false
 			is_dashing = true

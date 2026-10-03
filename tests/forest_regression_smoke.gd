@@ -45,7 +45,7 @@ func _run() -> void:
 	await process_frame
 	await process_frame
 	forest = current_scene
-	forest.bow_boss.take_hit(10.0)
+	forest.bow_boss.take_hit(50.0)
 	await process_frame
 	forest.player.global_position = Vector2(forest.BOUNDS[2].x+15, 570.0)
 	forest._check_transition()

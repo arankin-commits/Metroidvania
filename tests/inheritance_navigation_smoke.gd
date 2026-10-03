@@ -18,6 +18,7 @@ func _run() -> void:
 	await process_frame
 	await process_frame
 	var world = current_scene
+	world.current_room = 4
 	var hitbox := Rect2(3840, 455, 60, 160)
 	world.boss_defeated = true
 	world._on_player_heavy_attacked(hitbox)
@@ -32,7 +33,7 @@ func _run() -> void:
 		return
 	world.boss_defeated = false
 	world._on_player_heavy_attacked(hitbox)
-	if not world.wall_broken or not world.player.has_dash:
+	if not world.wall_broken or world.player.has_dash:
 		_fail("Inherited heavy break did not open the wall or starting dash changed")
 		return
 	print("INHERITANCE_NAVIGATION_SMOKE_PASS")
