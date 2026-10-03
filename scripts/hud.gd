@@ -1,32 +1,158 @@
 extends Control
 
-var health := 5.0
-var max_health := 5.0
-var is_injured := false
-var equipped_weapon:="starter"
-var level := 1
-var will_amount := 0
-var healing_charges := 3
-var max_healing_charges := 3
-var has_dash := false
-var has_heavy := false
-var has_heavy_smash := false
-var has_bow := false
-var bow_ammo := 0
-var gauntlet_charges := 12
-var prompt := ""
-var notice := ""
-var area := "THE FORGOTTEN PASSAGE"
-var boss_health := 0.0
-var boss_max_health := 40
-var boss_posture := 0.0
-var boss_max_posture := 40.0
-var boss_title := "THE HOLLOW WARDEN"
-var finished := false
+var health := 5.0:
+	set(v):
+		if health != v:
+			health = v
+			queue_redraw()
+var max_health := 5.0:
+	set(v):
+		if max_health != v:
+			max_health = v
+			queue_redraw()
+var is_injured := false:
+	set(v):
+		if is_injured != v:
+			is_injured = v
+			queue_redraw()
+var equipped_weapon:="starter":
+	set(v):
+		if equipped_weapon != v:
+			equipped_weapon = v
+			queue_redraw()
+var level := 1:
+	set(v):
+		if level != v:
+			level = v
+			queue_redraw()
+var will_amount := 0:
+	set(v):
+		if will_amount != v:
+			will_amount = v
+			queue_redraw()
+var healing_charges := 3:
+	set(v):
+		if healing_charges != v:
+			healing_charges = v
+			queue_redraw()
+var max_healing_charges := 3:
+	set(v):
+		if max_healing_charges != v:
+			max_healing_charges = v
+			queue_redraw()
+var has_dash := false:
+	set(v):
+		if has_dash != v:
+			has_dash = v
+			queue_redraw()
+var has_heavy := false:
+	set(v):
+		if has_heavy != v:
+			has_heavy = v
+			queue_redraw()
+var has_heavy_smash := false:
+	set(v):
+		if has_heavy_smash != v:
+			has_heavy_smash = v
+			queue_redraw()
+var has_bow := false:
+	set(v):
+		if has_bow != v:
+			has_bow = v
+			queue_redraw()
+var bow_ammo := 0:
+	set(v):
+		if bow_ammo != v:
+			bow_ammo = v
+			queue_redraw()
+var gauntlet_charges := 12:
+	set(v):
+		if gauntlet_charges != v:
+			gauntlet_charges = v
+			queue_redraw()
+var prompt := "":
+	set(v):
+		if prompt != v:
+			prompt = v
+			queue_redraw()
+var notice := "":
+	set(v):
+		if notice != v:
+			notice = v
+			queue_redraw()
+var area := "THE FORGOTTEN PASSAGE":
+	set(v):
+		if area != v:
+			area = v
+			queue_redraw()
+var boss_health := 0.0:
+	set(v):
+		if boss_health != v:
+			boss_health = v
+			queue_redraw()
+var boss_max_health := 40:
+	set(v):
+		if boss_max_health != v:
+			boss_max_health = v
+			queue_redraw()
+var boss_posture := 0.0:
+	set(v):
+		if boss_posture != v:
+			boss_posture = v
+			queue_redraw()
+var boss_max_posture := 40.0:
+	set(v):
+		if boss_max_posture != v:
+			boss_max_posture = v
+			queue_redraw()
+var boss_title := "THE HOLLOW WARDEN":
+	set(v):
+		if boss_title != v:
+			boss_title = v
+			queue_redraw()
+var finished := false:
+	set(v):
+		if finished != v:
+			finished = v
+			queue_redraw()
+
+const FIST_OUTLINE: Array[Rect2] = [
+	Rect2(4, 0, 12, 2),
+	Rect2(2, 2, 2, 2), Rect2(16, 2, 2, 2),
+	Rect2(2, 4, 2, 2), Rect2(6, 4, 2, 2), Rect2(10, 4, 2, 2), Rect2(16, 4, 2, 2),
+	Rect2(2, 6, 2, 2), Rect2(16, 6, 2, 2),
+	Rect2(0, 8, 6, 2), Rect2(16, 8, 2, 2),
+	Rect2(0, 10, 2, 2), Rect2(16, 10, 2, 2),
+	Rect2(0, 12, 2, 2), Rect2(16, 12, 2, 2),
+	Rect2(2, 14, 2, 2), Rect2(16, 14, 2, 2),
+	Rect2(4, 16, 2, 2), Rect2(14, 16, 2, 2),
+]
+
+const FIST_HIGHLIGHT: Array[Rect2] = [
+	Rect2(4, 2, 12, 2),
+	Rect2(4, 4, 2, 2), Rect2(8, 4, 2, 2), Rect2(12, 4, 4, 2),
+	Rect2(4, 6, 12, 2),
+	Rect2(2, 10, 4, 2),
+]
+
+const FIST_PALM: Array[Rect2] = [
+	Rect2(6, 8, 10, 2),
+	Rect2(6, 10, 10, 2),
+	Rect2(2, 12, 12, 2),
+	Rect2(4, 14, 6, 2),
+]
+
+const FIST_SHADOW: Array[Rect2] = [
+	Rect2(14, 12, 2, 2),
+	Rect2(10, 14, 6, 2),
+	Rect2(6, 16, 8, 2),
+]
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	resized.connect(queue_redraw)
+	queue_redraw()
 
 func _draw() -> void:
 	var font := ThemeDB.fallback_font
@@ -93,14 +219,14 @@ func _draw_fist(origin: Vector2, available: bool) -> void:
 	var palm := Color(0.90, 0.65, 0.38) if available else Color(0.30, 0.38, 0.43)
 	var highlight := Color(1.0, 0.86, 0.57) if available else Color(0.44, 0.51, 0.55)
 	var shadow := Color(0.57, 0.35, 0.27) if available else Color(0.20, 0.27, 0.32)
-	var pixels := ["..OOOOOO..", ".OHHHHHHO.", ".OHOHOHHO.", ".OHHHHHHO.", "OOOPPPPPO.", "OHHPPPPPO.", "OPPPPPPSO.", ".OPPPSSSO.", "..OSSSSO.."]
-	for y in pixels.size():
-		for x in pixels[y].length():
-			var symbol: String = pixels[y].substr(x, 1)
-			if symbol == ".":
-				continue
-			var ink := outline if symbol == "O" else highlight if symbol == "H" else shadow if symbol == "S" else palm
-			draw_rect(Rect2(origin + Vector2(x * 2, y * 2), Vector2(2, 2)), ink)
+	for r in FIST_OUTLINE:
+		draw_rect(Rect2(origin + r.position, r.size), outline)
+	for r in FIST_HIGHLIGHT:
+		draw_rect(Rect2(origin + r.position, r.size), highlight)
+	for r in FIST_PALM:
+		draw_rect(Rect2(origin + r.position, r.size), palm)
+	for r in FIST_SHADOW:
+		draw_rect(Rect2(origin + r.position, r.size), shadow)
 
 func _draw_ability_strip() -> void:
 	var entries: Array[Dictionary] = [
